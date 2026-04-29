@@ -1,3 +1,5 @@
 * @Patina-Network/patchats
 
 CODEOWNERS @Patina-Network/admin
+
+.github/ @Patina-Network/cicd
