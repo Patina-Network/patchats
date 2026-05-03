@@ -32,5 +32,5 @@ public class ApiController {
         return ResponseEntity.ok()
                 .body(ApiResponder.success(
                         "Hello from Patchats!", new ServerMetadataObject(commitShaProperties.getSha())));
-    }
+        }
 }
