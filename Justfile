@@ -51,17 +51,17 @@ frontend-install *args:
 frontend-test *args:
   cd js && pnpm run test
 
-# Generate types through OpenAPI
-type-gen *args:
-  cd js && pnpm run generate {{args}}
-
-# Run the react-email development server
-email-dev *args:
-  cd email && pnpm i && pnpm email dev --dir emails {{args}}
-
-# Generate HTML output of react-email and copy to backend static folder
-email-gen *args:
-  cd email && bash email.sh {{args}}
+## Generate types through OpenAPI
+#type-gen *args:
+#  cd js && pnpm run generate {{args}}
+#
+## Run the react-email development server
+#email-dev *args:
+#  cd email && pnpm i && pnpm email dev --dir emails {{args}}
+#
+## Generate HTML output of react-email and copy to backend static folder
+#email-gen *args:
+#  cd email && bash email.sh {{args}}
 
 # Run the dev servers (backend & frontend)
 dev *args:
@@ -72,10 +72,4 @@ dev *args:
 devd *args:
   npx concurrently "just backend-dev-debug" "just frontend-dev" {{args}}
 
-# Interactive script to add a user's GPG public key so they can decrypt keys
-git-crypt-add-user:
-  cd internal/scripts && pnpm i && pnpm run git-crypt-add-user && clear && node git-crypt/add-user
 
-# Interactive script to generate a GPG key for you and direct you to upload your public key to GitHub
-git-crypt-generate-key:
-  cd internal/scripts && pnpm i && pnpm run git-crypt-generate-key && clear && node git-crypt/generate-key

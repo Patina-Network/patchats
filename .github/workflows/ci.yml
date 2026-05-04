@@ -1,5 +1,5 @@
-name: CI/CD
-run-name: Running CI/CD on ${{ github.actor }}'s commits
+name: CI
+run-name: Running continuous integration on ${{ github.actor }}'s commits
 
 on:
   push:
