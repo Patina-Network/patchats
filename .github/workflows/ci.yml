@@ -1,14 +1,20 @@
 name: CI
 run-name: Running continuous integration on ${{ github.actor }}'s commits
 
+# Triggers:
+#   - push to ANY branch (catches feature branches, not tags)
+#   - pull requests targeting main
+# Does NOT fire on tag-only pushes or unrelated events.
 on:
   push:
     branches:
-      - main
+      - "**"
   pull_request:
+    branches:
+      - main
 
 jobs:
-  backend-ci:
+  backend-pretest:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -20,14 +26,37 @@ jobs:
           distribution: "temurin"
           java-version: "25"
 
-  frontend-ci:
-    runs-on: ubuntu-latest
+      - name: Format check (Spotless)
+        run: ./mvnw spotless:check
 
+      - name: Style check (Checkstyle)
+        run: ./mvnw checkstyle:check
+
+      - name: Compile check
+        run: ./mvnw compile
+
+  frontend-pretest:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Set up node
-        uses: actions/setup-node@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
         with:
-          node-version: "24"
+          version: 10.24.0
+
+      - name: Install dependencies
+        run: cd js && pnpm install
+
+      - name: Type check
+        run: cd js && pnpm run typecheck
+
+      - name: Format check
+        run: cd js && pnpm run prettier
+
+      - name: Lint
+        run: cd js && pnpm run lint
+
+      - name: Compile check
+        run: cd js && pnpm run build
