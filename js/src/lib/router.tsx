@@ -8,21 +8,21 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: <RootPage />,
-    errorElement: <></> // To-do
+    errorElement: <></>, // To-do
   },
   {
     path: "/admin",
     element: <AdminPage />,
-    errorElement: <></> // To-do
+    errorElement: <></>, // To-do
   },
   {
     path: "/admin/emails",
     element: <EmailsPage />,
-    errorElement: <></> // To-do
+    errorElement: <></>, // To-do
   },
   {
     path: "/intake-form",
     element: <IntakeFormPage />,
-    errorElement: <></> // To-do
-  }
+    errorElement: <></>, // To-do
+  },
 ]);
