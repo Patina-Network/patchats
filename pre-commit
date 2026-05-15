@@ -1,0 +1,20 @@
+#!/bin/bash
+# Get a list of all secret.yaml and secrets.yaml files staged for commit
+echo "--Running pre-commit"
+FILES=$(git diff --cached --name-only | grep -E 'secret(s)?\.yaml$')
+EXIT_CODE=0
+for FILE in $FILES; do
+    if [ -f "$FILE" ]; then
+        if ! grep -q "sops:" "$FILE"; then
+            echo "--------------------------------------------------------"
+            echo "ERROR: Unencrypted secret file detected: $FILE"
+            echo "Please encrypt this file by running \`just e $FILE\`,"
+            echo "then run \`git add $FILE\`."
+            echo "--------------------------------------------------------"
+            EXIT_CODE=1
+        fi
+    fi
+done
+exit $EXIT_CODE
+EOF
+chmod +x .git/hooks/pre-commit
