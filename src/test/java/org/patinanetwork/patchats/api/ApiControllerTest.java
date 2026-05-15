@@ -6,14 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
 import org.patinanetwork.patchats.utilities.ServerMetadataObject;
 import org.patinanetwork.patchats.utilities.sha.CommitShaProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 public class ApiControllerTest {
     private final CommitShaProperties commitShaProperties = mock(CommitShaProperties.class);
