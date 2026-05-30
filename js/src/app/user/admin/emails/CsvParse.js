@@ -12,6 +12,27 @@ function validateCSV(csv) {
     return requiredHeaders.every(header => headers.includes(header)); //returns true if all requiredheaders are present, false otherwise
 }
 
+function splitCSVLine(line){ //split lines w/ commas as deliminators (manually implmented to handle commas within quotes)
+    const result = [];
+    let current = "";
+    let inQuotes = false;
+    
+    for (let char of line) {
+        if (char === '"') {
+            inQuotes = !inQuotes; // Toggle the inQuotes flag
+        }
+        else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = "";
+        }
+        else {
+            current += char;
+        }
+    }
+    result.push(current.trim()); // Add the last field
+    return result;  
+}
+
 function parseUsers(csv){
     /*
     Parse Users.csv and return a map from email addresses to User objects.
@@ -27,7 +48,7 @@ function parseUsers(csv){
         const data = fs.readFileSync(csv, "utf-8");
 
         const lines = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
-        const csvArray = lines.map(line => line.split(",").map(cell => cell.trim()));
+        const csvArray = lines.map(line => splitCSVLine(line, 9));
         
         if (!validateCSV(csvArray)) {
             throw new Error("Invalid CSV: missing required headers.");
