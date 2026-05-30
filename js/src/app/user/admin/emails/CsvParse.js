@@ -96,7 +96,7 @@ function parseUsers(csv){
             row[headerIndex['Topics']],
             row[headerIndex['Anything']]
         );
-        usersMap[email] =  user;
+        usersMap.set(email, user);
     }
     //console.log(usersMap);  //testing
     return usersMap;
@@ -133,8 +133,8 @@ function parsePairs(csv){
             }
             const pair = new Pair(
                 row[0], //fullNameA
-                row[1], //fullNameB
-                row[2], //emailA
+                row[2], //fullNameB
+                row[1], //emailA
                 row[3]  //emailB
             );
 
@@ -144,7 +144,7 @@ function parsePairs(csv){
    }catch (err){    
         console.error(`Error parsing CSV: ${err}`);
 }
-//console.log(pairings); //testing
+console.log(pairings); //testing
 return pairings;
 }
 
