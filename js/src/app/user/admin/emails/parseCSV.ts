@@ -4,7 +4,25 @@ import Papa from 'papaparse';
 const USER_FILE = './users-test.csv';
 const PAIR_FILE = './pairings-test.csv';
 
-function parseUserFile(filePath: string): Map<string, User> {
+interface User { 
+    name : string; 
+    email: string;
+    intro : string;
+    linkedin : string;
+    industry : string;
+    preferences : string;
+    topics : string;
+    anything : string;
+}
+
+interface Pair{
+    fullNameA: string;
+    emailA: string;
+    fullNameB: string;
+    emailB: string;
+}
+
+export async function parseUserFile(filePath: string): Promise<Map<string, User>> {
   const userFile = fs.readFileSync(new URL(filePath, import.meta.url), 'utf8');
 
   const config = {
@@ -17,17 +35,6 @@ function parseUserFile(filePath: string): Map<string, User> {
     skipEmptyLines: true,
     columns: null
   };
-
-  interface User { 
-    name : string; 
-    email: string;
-    intro : string;
-    linkedin : string;
-    industry : string;
-    preferences : string;
-    topics : string;
-    anything : string;
-  }
 
   const results = Papa.parse(userFile, config);
   const userMap = new Map<string, User>();
@@ -46,10 +53,17 @@ function parseUserFile(filePath: string): Map<string, User> {
 
     userMap.set(user.email, user);
   }
+  await fetch("/api/emails/send-users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userMap)
+      });
+
   return userMap;
+
 }
 
-function parsePairingFile(filePath: string): Pair[] {
+export async function parsePairingFile(filePath: string): Promise<Pair[]> {
   const pairFile = fs.readFileSync(new URL(filePath, import.meta.url), 'utf8');
 
   const config = {
@@ -62,13 +76,6 @@ function parsePairingFile(filePath: string): Pair[] {
     skipEmptyLines: true,
     columns: null
   };
-
-  interface Pair{
-    fullNameA: string;
-    emailA: string;
-    fullNameB: string;
-    emailB: string;
-  }
 
   const results = Papa.parse(pairFile, config);
 
@@ -84,6 +91,11 @@ function parsePairingFile(filePath: string): Pair[] {
 
     pairings.push(pair);
   }
+  await fetch("/api/emails/send-pairings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pairings)
+      });
   return pairings;
 }
 
