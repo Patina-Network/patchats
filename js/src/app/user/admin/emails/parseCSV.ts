@@ -56,7 +56,7 @@ export async function parseUserFile(filePath: string): Promise<Map<string, User>
   await fetch("/api/emails/send-users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userMap)
+        body: JSON.stringify(Object.fromEntries(userMap))
       });
 
   return userMap;
@@ -103,6 +103,6 @@ export async function parsePairingFile(filePath: string): Promise<Pair[]> {
 //console.log(parseUserFile(USER_FILE));
 //console.log(parsePairingFile(PAIR_FILE));
 
-parseUserFile(USER_FILE);
-parsePairingFile(PAIR_FILE);
+//parseUserFile(USER_FILE);
+//parsePairingFile(PAIR_FILE);
 
