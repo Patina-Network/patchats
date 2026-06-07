@@ -65,7 +65,7 @@ frontend-test *args:
 
 # Run the dev servers (backend & frontend)
 dev *args:
-  #cp internal/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && 
+  just install-pre-scripts
   npx concurrently "just backend-dev" "just frontend-dev" {{args}}
 
 # Run the dev servers (backend & frontend) but the backend will launch a debugger server.
@@ -95,13 +95,6 @@ encrypt file *args:
 edit file *args:
   just install-pre-scripts && sops edit {{ file }} {{ args }}
 
-# Git hooks are installed on almost every command
-# so that we don't accidentally add unencrypted secrets to the git history.
+# Configure Git to use the .githooks directory (idempotent)
 install-pre-scripts:
-  just install-pre-commit && just install-pre-push
-
-install-pre-commit:
-  cp pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
-
-install-pre-push:
-  cp pre-commit .git/hooks/pre-push && chmod +x .git/hooks/pre-push
+  [ "$(git config core.hooksPath)" = ".githooks" ] || git config core.hooksPath .githooks
