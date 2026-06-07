@@ -1,0 +1,76 @@
+#!/bin/bash
+# Pre-commit hook: Runs automatically before every commit to check for unencrypted secrets,
+# auto-format, and lint staged files.
+# Installed automatically via `just dev` or manually via `just install-pre-scripts`.
+# To bypass (use sparingly): git commit --no-verify
+echo "--Running pre-commit"
+EXIT_CODE=0
+
+# --- Secrets check ---
+# Get a list of all secret.yaml and secrets.yaml files staged for commit
+SECRET_FILES=$(git diff --cached --name-only | grep -E 'secret(s)?\.yaml$')
+for FILE in $SECRET_FILES; do
+    if [ -f "$FILE" ]; then
+        if ! grep -q "sops:" "$FILE"; then
+            echo "--------------------------------------------------------"
+            echo "ERROR: Unencrypted secret file detected: $FILE"
+            echo "Please encrypt this file by running \`just encrypt $FILE\`,"
+            echo "then run \`git add $FILE\`."
+            echo "--------------------------------------------------------"
+            EXIT_CODE=1
+        fi
+    fi
+done
+
+# --- Backend: format + lint (if any Java files staged) ---
+JAVA_FILES=$(git diff --cached --name-only | grep '\.java$')
+if [ -n "$JAVA_FILES" ]; then
+    echo "--Running backend formatter (Spotless)..."
+    ./mvnw spotless:apply -q
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Spotless formatting failed."
+        EXIT_CODE=1
+    else
+        echo "$JAVA_FILES" | xargs git add
+    fi
+
+    echo "--Running backend linter (Checkstyle)..."
+    ./mvnw checkstyle:check -q
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Checkstyle found violations."
+        EXIT_CODE=1
+    fi
+fi
+
+# --- Frontend: format + lint (if any frontend files staged) ---
+FRONTEND_FILES=$(git diff --cached --name-only | grep -E '^js/.*\.(ts|tsx|js|jsx|css|json|md)$')
+if [ -n "$FRONTEND_FILES" ]; then
+    echo "--Running frontend formatter (Prettier)..."
+    (cd js && pnpm prettier --write --log-level warn .)
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Prettier formatting failed."
+        EXIT_CODE=1
+    else
+        echo "$FRONTEND_FILES" | xargs git add
+    fi
+
+    echo "--Running frontend linter (ESLint)..."
+    (cd js && pnpm eslint . --fix)
+    if [ $? -ne 0 ]; then
+        echo "ERROR: ESLint found violations that could not be auto-fixed."
+        EXIT_CODE=1
+    else
+        echo "$FRONTEND_FILES" | xargs git add
+    fi
+
+    echo "--Running frontend linter (Stylelint)..."
+    (cd js && pnpm stylelint '**/*.css' --fix --allow-empty-input)
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Stylelint found violations that could not be auto-fixed."
+        EXIT_CODE=1
+    else
+        echo "$FRONTEND_FILES" | xargs git add
+    fi
+fi
+
+exit $EXIT_CODE
