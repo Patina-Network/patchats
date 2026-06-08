@@ -1,10 +1,10 @@
 // THIS MUST BE FIRST. NEVER MOVE THIS.
 import "@/patches";
 import "@mantine/core/styles.css";
-import ReactQueryProvider from "@/lib/queryProvider";
-import { router } from "@/lib/router";
+import QueryProvider from "@/app/providers/QueryProvider";
+import { themeOverride } from "@/app/providers/theme";
+import { router } from "@/app/router/router";
 import "@mantine/notifications/styles.css";
-import { themeOverride } from "@/lib/theme";
 import { MantineProvider } from "@mantine/core";
 import "@mantine/dates/styles.css";
 import { Notifications } from "@mantine/notifications";
@@ -21,12 +21,12 @@ import { RouterProvider } from "react-router";
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ReactQueryProvider>
+    <QueryProvider>
       <MantineProvider theme={themeOverride} forceColorScheme={"dark"}>
         <RouterProvider router={router} />
         <Notifications />
       </MantineProvider>
       <ReactQueryDevtools />
-    </ReactQueryProvider>
+    </QueryProvider>
   </StrictMode>,
 );
