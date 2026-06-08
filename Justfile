@@ -60,8 +60,8 @@ frontend-test *args:
 #  cd email && pnpm i && pnpm email dev --dir emails {{args}}
 #
 ## Generate HTML output of react-email and copy to backend static folder
-#email-gen *args:
-#  cd email && bash email.sh {{args}}
+email-gen *args:
+  cd email && bash email.sh {{args}}
 
 # Run the dev servers (backend & frontend)
 dev *args:

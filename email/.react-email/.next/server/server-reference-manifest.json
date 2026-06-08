@@ -1,0 +1,125 @@
+{
+  "node": {
+    "7879a5fe78c7c85b88ab5a7adb26f475e924e8fb80": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": 78654,
+          "async": false,
+          "exportedName": "getEmailsDirectoryMetadataAction",
+          "filename": "src/actions/get-emails-directory-metadata-action.ts"
+        },
+        "app/page": {
+          "moduleId": 79394,
+          "async": false,
+          "exportedName": "getEmailsDirectoryMetadataAction",
+          "filename": "src/actions/get-emails-directory-metadata-action.ts"
+        },
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "getEmailsDirectoryMetadataAction",
+          "filename": "src/actions/get-emails-directory-metadata-action.ts"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "action-browser",
+        "app/page": "action-browser",
+        "app/preview/[...slug]/page": "action-browser"
+      },
+      "filename": "src/actions/get-emails-directory-metadata-action.ts",
+      "exportedName": "getEmailsDirectoryMetadataAction"
+    },
+    "605b76269b5297820bd86373e9d40ac8340ddc6d30": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "checkCompatibility",
+          "filename": "src/actions/email-validation/check-compatibility.ts"
+        }
+      },
+      "layer": {
+        "app/preview/[...slug]/page": "action-browser"
+      },
+      "filename": "src/actions/email-validation/check-compatibility.ts",
+      "exportedName": "checkCompatibility"
+    },
+    "7f05266f266f78fc9e664376fd19be0c6ec33b4808": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "getEmailPathFromSlug",
+          "filename": "src/actions/get-email-path-from-slug.ts"
+        }
+      },
+      "layer": {
+        "app/preview/[...slug]/page": "action-browser"
+      },
+      "filename": "src/actions/get-email-path-from-slug.ts",
+      "exportedName": "getEmailPathFromSlug"
+    },
+    "6067fc01b12aa66e61ccc15aab422bcfbcdbacf2e1": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "renderEmailByPath",
+          "filename": "src/actions/render-email-by-path.tsx"
+        }
+      },
+      "layer": {
+        "app/preview/[...slug]/page": "action-browser"
+      },
+      "filename": "src/actions/render-email-by-path.tsx",
+      "exportedName": "renderEmailByPath"
+    },
+    "60674c29ac8a1bbf26a9f55ebce5c09ef51c49d30c": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "checkImages",
+          "filename": "src/actions/email-validation/check-images.ts"
+        }
+      },
+      "layer": {
+        "app/preview/[...slug]/page": "rsc"
+      },
+      "filename": "src/actions/email-validation/check-images.ts",
+      "exportedName": "checkImages"
+    },
+    "40bf53c8c6502f4efbac41e690e89d9cf9f7cbb428": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "checkLinks",
+          "filename": "src/actions/email-validation/check-links.ts"
+        }
+      },
+      "layer": {
+        "app/preview/[...slug]/page": "rsc"
+      },
+      "filename": "src/actions/email-validation/check-links.ts",
+      "exportedName": "checkLinks"
+    },
+    "7f20cd6bfb7b933e1ca2d0b0948e9d248b73beae9c": {
+      "workers": {
+        "app/preview/[...slug]/page": {
+          "moduleId": 94515,
+          "async": false,
+          "exportedName": "exportSingleTemplate",
+          "filename": "src/actions/export-single-template.ts"
+        }
+      },
+      "layer": {
+        "app/preview/[...slug]/page": "action-browser"
+      },
+      "filename": "src/actions/export-single-template.ts",
+      "exportedName": "exportSingleTemplate"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "E+2ku149Bx4mzt6q5LgPeWF0jXRuYgI9n/bcS6bh9qQ="
+}

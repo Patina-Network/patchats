@@ -1,0 +1,30 @@
+{
+    "name": "react-email-starter",
+    "version": "1.1.0",
+    "private": true,
+    "scripts": {
+        "build": "email build",
+        "dev": "email dev",
+        "export": "email export"
+    },
+    "dependencies": {
+        "glob": ">=11.1.0",
+        "next": ">=16.1.5",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0"
+    },
+    "devDependencies": {
+        "@react-email/components": "0.5.1",
+        "@react-email/preview-server": "^5",
+        "@react-email/render": "^1.2.1",
+        "@types/react": "^19.0.1",
+        "@types/react-dom": "^19.0.1",
+        "react-email": "^5"
+    },
+    "pnpm": {
+        "overrides": {
+            "minimatch": ">=9.0.7",
+            "minimatch@<3.1.4": "3.1.4"
+        }
+    }
+}
