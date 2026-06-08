@@ -32,6 +32,17 @@ export interface EmailTemplate {
   replyTo: string | null;
 }
 
+export const selectableEmailTemplateNames = [
+  "Pair",
+  "Reminder",
+  "Restart",
+] as const;
+
+export type SelectableEmailTemplateName =
+  (typeof selectableEmailTemplateNames)[number];
+
+export type TemplateAudience = "all-users" | "matched-pairs";
+
 /**
  * Builds an {@link EmailTemplate} from preconfigured strings.
  * @param name     Human-readable name shown in the admin UI.
@@ -130,10 +141,31 @@ export const emailTemplateMap: Record<string, EmailTemplate> = {
   Restart: RESTART_TEMPLATE,
 };
 
-export function getTemplate(name: string): EmailTemplate {
+const templateAudiences: Record<SelectableEmailTemplateName, TemplateAudience> =
+  {
+    Pair: "matched-pairs",
+    Reminder: "matched-pairs",
+    Restart: "all-users",
+  };
+
+export function getTemplate(name: string): EmailTemplate | undefined {
   return emailTemplateMap[name];
 }
 
 export function getAllTemplateNames(): string[] {
   return Object.keys(emailTemplateMap);
+}
+
+export function isSelectableEmailTemplateName(
+  value: string,
+): value is SelectableEmailTemplateName {
+  return selectableEmailTemplateNames.includes(
+    value as SelectableEmailTemplateName,
+  );
+}
+
+export function getTemplateAudience(
+  templateName: SelectableEmailTemplateName,
+): TemplateAudience {
+  return templateAudiences[templateName];
 }

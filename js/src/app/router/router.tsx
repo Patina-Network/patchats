@@ -5,7 +5,7 @@ import { RequireAdmin } from "@/app/router/guards/RequireAdmin";
 import { RequireAuth } from "@/app/router/guards/RequireAuth";
 import AdminPage from "@/features/admin/Admin.page";
 import AdminLoginPage from "@/features/admin/AdminLogin.page";
-import EmailAdminPage from "@/features/emails/EmailAdminPage";
+import AdminEmailComposerPage from "@/features/emails/AdminEmailComposer.page";
 import HomePage from "@/features/home/Home.page";
 import SamplePage from "@/features/sample/Sample.page";
 import SampleAdminPage from "@/features/sample/SampleAdmin.page";
@@ -20,11 +20,6 @@ export const router = createBrowserRouter([
     element: <PublicLayout />,
     children: [{ index: true, element: <HomePage /> }],
   },
-  {
-    element: <EmailAdminPage />,
-    children: [{ path: "email/admin", element: <EmailAdminPage /> }],
-  },
-
   // Authenticated: guard -> layout -> page. Admin nests a second guard + layout.
   {
     element: <RequireAuth />,
@@ -40,6 +35,7 @@ export const router = createBrowserRouter([
             element: <AdminLayout />,
             children: [
               { path: "admin", element: <AdminPage /> },
+              { path: "admin/emails", element: <AdminEmailComposerPage /> },
               { path: "sample/admin", element: <SampleAdminPage /> },
             ],
           },
