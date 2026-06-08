@@ -31,6 +31,7 @@
   "include": [
     "src/**/*.test.ts",
     "src/**/*.test.tsx",
+    "src/**/*.mock.ts",
     "src/lib/test",
     "src/vite-env.d.ts",
     "src/main.tsx"
