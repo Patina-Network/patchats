@@ -78,6 +78,32 @@ See `Justfile` at the repo root for all available commands.
 
 ---
 
+## Commit Message Guidelines
+
+Use the **domain prefix** format:
+
+```
+<Domain>: <Description>
+```
+
+- Domain: short label for the area changed, prefer capitalized (`JS`, `Java`, `DB`, `CI`, `Docs`, `Infra`). Symbols are fine when natural (`JS/CSS`, `API/Auth`, `.git`).
+- Description: capitalized, imperative mood (`Add login page`, not `Added login page`).
+- Subject line ≤ 72 chars, no trailing period.
+
+Examples:
+
+```
+JS: Add password reset form
+Java: Validate email uniqueness on signup
+DB: Add users table migration
+CI: Cache pnpm dependencies in workflow
+```
+
+AI Agents should add a Co-Authored by with their model when writing a commit message.
+See `CONTRIBUTING.md` for the full spec.
+
+---
+
 ## Secret Management
 
 Secrets are encrypted with [SOPS](https://github.com/getsops/sops) and committed as `secrets-ro.yaml` (read-only) and `secrets-rw.yaml` (read-write). Never commit plaintext secrets.

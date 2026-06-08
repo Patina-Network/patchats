@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+# check-message: warn about commit messages that stray from the project convention.
+#
+# Reads the full commit message on stdin; prints any problems to stderr.
+# Exit 0 = clean, 1 = has warnings. Nothing here ever blocks a commit: the
+# commit-msg hook and CI both treat a non-zero exit as advisory only.
+# See CONTRIBUTING.md for the convention this checks.
+
+# Normalize exactly as git does on commit (drop comment lines, trim blank runs).
+msg=$(git stripspace --strip-comments)
+[ -z "$msg" ] && exit 0
+
+subject=$(printf '%s\n' "$msg" | sed -n '1p')
+second=$(printf '%s\n' "$msg" | sed -n '2p')
+maxlen=72
+rc=0
+
+# Exempt merge, revert, and autosquash (fixup!/squash!) subjects.
+case "$subject" in
+  "Merge "*|"Revert "*|"fixup! "*|"squash! "*) exit 0 ;;
+esac
+
+warn() {
+  echo "⚠  $1" >&2
+  rc=1
+}
+
+# Subject shape: <domain>: <Capitalized description>
+printf '%s' "$subject" | grep -qE '^\S+: [A-Z].+' \
+  || warn "Subject should match '<Domain>: <Description>' (e.g. 'JS: Add password reset form'). Got: $subject"
+
+# Subject length.
+[ "${#subject}" -le "$maxlen" ] \
+  || warn "Subject is ${#subject} chars (max $maxlen): $subject"
+
+# No trailing period on the subject.
+case "$subject" in
+  *.) warn "Subject should not end with a period: $subject" ;;
+esac
+
+# A body must be separated from the subject by a blank line.
+[ -z "$second" ] \
+  || warn "Leave a blank line between the subject and the body."
+
+exit $rc

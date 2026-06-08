@@ -1,0 +1,15 @@
+# Format:  <Domain>: <Description>
+# Example: JS: Add password reset form
+# Domains: prefer capitalized (JS, Java, DB, CI, Docs, Infra, Hooks...)
+#          symbols ok when natural (.git, v2, JS/CSS, API/Auth)
+# Rules:   imperative mood, capitalize description, ≤72 chars, no trailing period
+<Domain>:
+
+# Body (optional): explain WHY, not what. Separate from the subject with a blank line.
+# (leave blank to omit)
+
+
+# Footers (optional git trailers, "Key: value" — add any you need):
+# Test: none|manual|compile|auto
+# Refs: #12 or a ticket id, e.g. PROJ-123
+# Co-authored-by: Name <email>
