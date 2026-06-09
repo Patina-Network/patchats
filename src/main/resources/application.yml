@@ -1,7 +1,21 @@
 spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 app:
   commit:
     sha: "@commit.sha@"
+  email:
+    from: ${EMAIL_FROM:coffeechats@patinanetwork.org}
+    from-name: ${EMAIL_FROM_NAME:PatChats}
