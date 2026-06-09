@@ -147,14 +147,14 @@
             <version>5.3.0</version>
         </dependency>
         <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>jakarta.mail</artifactId>
-            <version>2.0.1</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>pop3</artifactId>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail-junit5</artifactId>
             <version>2.0.1</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
