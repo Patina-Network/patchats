@@ -1,6 +1,7 @@
+import { expect, test } from "vitest";
+
 import SamplePage from "@/features/sample/Sample.page";
 import { renderWithProviders, screen } from "@/lib/test/render";
-import { expect, test } from "vitest";
 
 test("renders the message returned by the API", async () => {
   renderWithProviders(<SamplePage />);

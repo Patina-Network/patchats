@@ -1,5 +1,6 @@
-import { useSampleMessage } from "@/features/sample/api/useSampleMessage";
 import { Loader, Stack, Text, Title } from "@mantine/core";
+
+import { useSampleMessage } from "@/features/sample/api/useSampleMessage";
 
 /** Sample authenticated page — demonstrates the feature + data-layer pattern. */
 export default function SamplePage() {

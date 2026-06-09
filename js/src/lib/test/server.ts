@@ -1,5 +1,6 @@
-import { sampleHandlers } from "@/features/sample/api/sample.mock";
 import { setupServer } from "msw/node";
+
+import { sampleHandlers } from "@/features/sample/api/sample.mock";
 
 /**
  * MSW server for tests. Each domain owns its request handlers in

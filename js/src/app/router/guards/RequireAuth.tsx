@@ -1,6 +1,7 @@
-import { useSession } from "@/lib/api/useSession";
 import { Center, Loader } from "@mantine/core";
 import { Navigate, Outlet } from "react-router-dom";
+
+import { useSession } from "@/lib/api/useSession";
 
 /**
  * Route guard: render the nested routes only for an authenticated user.

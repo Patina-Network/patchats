@@ -1,5 +1,6 @@
-import { useSession } from "@/lib/api/useSession";
 import { Navigate, Outlet } from "react-router-dom";
+
+import { useSession } from "@/lib/api/useSession";
 
 /**
  * Route guard: render the nested routes only for an admin. Assumes it is nested
