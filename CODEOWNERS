@@ -5,4 +5,5 @@ CODEOWNERS @Patina-Network/admin
 .github/ @Patina-Network/cicd
 
 ci.admin.secrets.yaml @Patina-Network/infra
-ci.secrets.yaml @Patina-Network/infra
+secrets.ci.yaml @Patina-Network/infra
+
