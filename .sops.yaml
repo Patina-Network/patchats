@@ -2,7 +2,7 @@ stores:
   yaml:
     indent: 2
 creation_rules:
-  - path_regex: secrets-rw\.yaml
-    azure_keyvault: "https://sops-master.vault.azure.net/keys/sops-key/"
-  - path_regex: secrets-ro\.yaml
+  - path_regex: secrets.ci.yaml
     azure_keyvault: "https://sops-ro.vault.azure.net/keys/sops-ro-key/"
+  - path_regex: .*secret(s)?.*\.yaml
+    azure_keyvault: "https://sops-master.vault.azure.net/keys/sops-key/"
