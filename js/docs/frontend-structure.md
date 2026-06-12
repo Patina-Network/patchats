@@ -26,7 +26,7 @@ js/src/
       QueryProvider.tsx            # TanStack Query provider
       theme.tsx                    # Mantine theme
   features/                        # DOMAINS — one folder per bounded context
-    <domain>/                      # e.g. pairings, profile, intake, admin
+    <domain>/                      # e.g. pairings, profile, signup, admin
       <Name>.page.tsx              # a page (flat file until it grows)
       <name>/                      # page-FOLDER, only once the page gains local pieces
         <Name>.page.tsx
@@ -65,7 +65,7 @@ js/src/
    Keep the `.page.tsx` suffix inside page-folders — don't use `index.tsx`.
 5. **Data layer split.** Global (`lib/api/`): generated OpenAPI types + typed fetch client +
    QueryClient. Domain-owned (`features/<d>/api/`): per-endpoint query/mutation hooks + Zod
-   schemas. `useSubmitIntake` belongs to `intake`, not a global pile.
+   schemas. `useSubmitSignUp` belongs to `SignUp`, not a global pile.
 6. **Concern folders, on demand.** A domain has `components/` + `api/`; add `hooks/` /
    `utils.ts` / `types.ts` only as they grow (flat file first, folder at 2–3 files). There is
    no domain-level `lib/` — `lib/` means app infra only.

@@ -1,4 +1,9 @@
 import {
+  INDUSTRIES,
+  MATCHING_PREFERENCES,
+  TALKING_POINTS,
+} from "@/features/intake/components/SignUpFormConfig";
+import {
   Alert,
   Button,
   Divider,
@@ -11,83 +16,57 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { z } from "zod";
 
-export type MatchingPreference = "Mentor" | "Mentee" | "Peer" | "No Preference";
-export type IndustryOption =
-  | "Technology"
-  | "Finance"
-  | "Business"
-  | "Design"
-  | "Other";
+// Options for select fields. Defined in SignUpFormConfig
+const matchingPreferenceOptions = MATCHING_PREFERENCES.map((v) => ({
+  value: v,
+  label: v,
+}));
 
-export interface IntakeFormValues {
+const talkingPointOptions = TALKING_POINTS.map((v) => ({ value: v, label: v }));
+
+const industryOptions = INDUSTRIES.map(({ name }) => ({
+  value: name,
+  label: name,
+}));
+
+const roleOptionsByIndustry: Record<
+  string,
+  { value: string; label: string }[]
+> = Object.fromEntries(
+  INDUSTRIES.map((i) => [i.name, i.roles.map((r) => ({ value: r, label: r }))]),
+);
+
+// Email and LinkedIn URL validation using zod schemas
+const emailSchema = z.string().email();
+const linkedinSchema = z
+  .string()
+  .url()
+  .startsWith("https://linkedin.com/")
+  .or(z.string().url().startsWith("https://www.linkedin.com/"));
+
+const isValidEmail = (email: string) =>
+  emailSchema.safeParse(email.trim()).success;
+const isValidLinkedinUrl = (value: string) =>
+  linkedinSchema.safeParse(value.trim()).success;
+
+// Define props and initial values for the signupForm component
+export interface SignUpFormValues {
   fullName: string;
   email: string;
   linkedin: string;
   introduction: string;
   referralSource: string;
-  matchingPreference: MatchingPreference | "";
-  industry: IndustryOption | "";
+  matchingPreference: string;
+  industry: string;
   role: string;
   talkingPoints: string[];
   additionalInfo: string;
 }
 
-export interface IntakeFormProps {
-  onSubmit?: (values: IntakeFormValues) => Promise<void> | void;
-  initialValues?: Partial<IntakeFormValues>;
-}
-
-const matchingPreferenceOptions = [
-  { value: "Mentor", label: "Mentor" },
-  { value: "Mentee", label: "Mentee" },
-  { value: "Peer", label: "Peer" },
-  { value: "No Preference", label: "No Preference" },
-];
-
-const industryOptions = [
-  { value: "Technology", label: "Technology" },
-  { value: "Finance", label: "Finance" },
-  { value: "Business", label: "Business" },
-  { value: "Design", label: "Design" },
-  { value: "Other", label: "Other" },
-];
-
-const roleOptionsByIndustry: Record<
-  IndustryOption,
-  Array<{ value: string; label: string }>
-> = {
-  Technology: [
-    { value: "Software Engineering", label: "Software Engineering" },
-    { value: "Data Analytics", label: "Data Analytics" },
-    { value: "Artificial Intelligence", label: "Artificial Intelligence" },
-    { value: "Undecided", label: "Undecided" },
-    { value: "Other", label: "Other" },
-  ],
-  Finance: [
-    { value: "Accounting", label: "Accounting" },
-    { value: "Investment Banking", label: "Investment Banking" },
-    { value: "Other", label: "Other" },
-  ],
-  Business: [
-    { value: "Consulting", label: "Consulting" },
-    { value: "Product Management", label: "Product Management" },
-    { value: "Other", label: "Other" },
-  ],
-  Design: [],
-  Other: [],
-};
-
-const talkingPointOptions = [
-  { value: "Career journey", label: "Career journey" },
-  { value: "Advice", label: "Advice" },
-  { value: "Current events", label: "Current events" },
-  { value: "Hobbies", label: "Hobbies" },
-  { value: "Other", label: "Other" },
-];
-
-const initialFormValues: IntakeFormValues = {
+const initialFormValues: SignUpFormValues = {
   fullName: "",
   email: "",
   linkedin: "",
@@ -100,32 +79,27 @@ const initialFormValues: IntakeFormValues = {
   additionalInfo: "",
 };
 
-const isValidEmail = (email: string) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-
-const isValidLinkedinUrl = (value: string) =>
-  /^https?:\/\/(www\.)?linkedin\.com\/.+/i.test(value.trim());
-
-export function IntakeForm({ onSubmit, initialValues }: IntakeFormProps) {
-  const [values, setValues] = useState<IntakeFormValues>(() => ({
+export function SignUpForm() {
+  // State management
+  const [values, setValues] = useState<SignUpFormValues>(() => ({
     ...initialFormValues,
-    ...initialValues,
   }));
+
   const [errors, setErrors] = useState<
-    Partial<Record<keyof IntakeFormValues, string>>
+    Partial<Record<keyof SignUpFormValues, string>>
   >({});
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const availableRoleOptions = useMemo(
-    () => (values.industry ? roleOptionsByIndustry[values.industry] : []),
-    [values.industry],
-  );
+  const availableRoleOptions =
+    values.industry ? roleOptionsByIndustry[values.industry] : [];
 
-  const handleFieldChange = <K extends keyof IntakeFormValues>(
+  // Handlers
+  const handleFieldChange = <K extends keyof SignUpFormValues>(
     field: K,
-    value: IntakeFormValues[K],
+    value: SignUpFormValues[K],
   ) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
@@ -135,7 +109,7 @@ export function IntakeForm({ onSubmit, initialValues }: IntakeFormProps) {
 
   const handleIndustryChange = (value: string | null) => {
     setValues((current) => {
-      const nextIndustry = (value ?? "") as IndustryOption;
+      const nextIndustry = value ?? "";
       const nextRoleOptions =
         values.industry ? roleOptionsByIndustry[values.industry] : [];
       const roleIsValid = nextRoleOptions.some(
@@ -157,7 +131,7 @@ export function IntakeForm({ onSubmit, initialValues }: IntakeFormProps) {
   };
 
   const validate = () => {
-    const nextErrors: Partial<Record<keyof IntakeFormValues, string>> = {};
+    const nextErrors: Partial<Record<keyof SignUpFormValues, string>> = {};
 
     if (!values.fullName.trim()) {
       nextErrors.fullName = "Full Name is required.";
@@ -226,8 +200,9 @@ export function IntakeForm({ onSubmit, initialValues }: IntakeFormProps) {
 
     setIsSubmitting(true);
     try {
-      await Promise.resolve(onSubmit?.(values));
-      setSuccessMessage("Your intake form was submitted successfully.");
+      // TODO: replace with API call
+      await Promise.resolve();
+      setSuccessMessage("Your form was submitted successfully.");
       setErrors({});
     } catch (_error) {
       setSubmitError(
@@ -306,7 +281,7 @@ export function IntakeForm({ onSubmit, initialValues }: IntakeFormProps) {
             onChange={(value) =>
               handleFieldChange(
                 "matchingPreference",
-                (value || "") as IntakeFormValues["matchingPreference"],
+                (value || "") as SignUpFormValues["matchingPreference"],
               )
             }
             error={errors.matchingPreference}
@@ -358,7 +333,7 @@ export function IntakeForm({ onSubmit, initialValues }: IntakeFormProps) {
               loading={isSubmitting}
               disabled={isSubmitting}
             >
-              Submit intake form
+              Submit Form
             </Button>
           </Group>
         </Stack>

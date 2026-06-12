@@ -9,8 +9,8 @@ export default function HomePage() {
       <Text>
         Monthly one-on-one coffee chat pairings for the Patina Network.
       </Text>
-      <Anchor component={Link} to="/intake">
-        Complete the intake form
+      <Anchor component={Link} to="/signup">
+        Complete the signup form
       </Anchor>
       <Anchor component={Link} to="/sample">
         Go to the app

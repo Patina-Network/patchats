@@ -1,18 +1,10 @@
-import {
-  IntakeForm,
-  IntakeFormValues,
-} from "@/features/intake/components/IntakeForm";
+import { SignUpForm } from "@/features/intake/components/SignUpForm";
 import { Stack, Text, Title } from "@mantine/core";
 
-export function IntakePage() {
-  const handleSubmit = async (values: IntakeFormValues) => {
-    // Replace this with a real API call or mutation once available.
-    console.log("Submitted intake form", values);
-  };
-
+export function SignUpPage() {
   return (
     <Stack gap="xl">
-      <Title order={2}>PatChats Intake Form</Title>
+      <Title order={2}>PatChats Sign Up Form</Title>
       <Text size="lg">
         Hi everyone! Would you like to get to know other members of the Patina
         community better?
@@ -33,7 +25,7 @@ export function IntakePage() {
         Sign up here to be included in next month's cycle. We currently have 80
         people signed up and looking to keep it growing!
       </Text>
-      <IntakeForm onSubmit={handleSubmit} />
+      <SignUpForm />
     </Stack>
   );
 }
