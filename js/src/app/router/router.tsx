@@ -7,7 +7,7 @@ import AdminPage from "@/features/admin/Admin.page";
 import AdminLoginPage from "@/features/admin/AdminLogin.page";
 import EmailAdminPage from "@/features/emails/EmailAdminPage";
 import HomePage from "@/features/home/Home.page";
-import IntakePage from "@/features/intake/intake.page";
+import { IntakePage } from "@/features/intake/intake.page";
 import SamplePage from "@/features/sample/Sample.page";
 import SampleAdminPage from "@/features/sample/SampleAdmin.page";
 import { createBrowserRouter } from "react-router-dom";

@@ -106,10 +106,7 @@ const isValidEmail = (email: string) =>
 const isValidLinkedinUrl = (value: string) =>
   /^https?:\/\/(www\.)?linkedin\.com\/.+/i.test(value.trim());
 
-export default function IntakeForm({
-  onSubmit,
-  initialValues,
-}: IntakeFormProps) {
+export function IntakeForm({ onSubmit, initialValues }: IntakeFormProps) {
   const [values, setValues] = useState<IntakeFormValues>(() => ({
     ...initialFormValues,
     ...initialValues,

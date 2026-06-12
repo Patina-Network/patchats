@@ -1,9 +1,10 @@
-import IntakeForm, {
+import {
+  IntakeForm,
   IntakeFormValues,
-} from "@/features/intake/components/intake-form";
+} from "@/features/intake/components/IntakeForm";
 import { Stack, Text, Title } from "@mantine/core";
 
-export default function IntakePage() {
+export function IntakePage() {
   const handleSubmit = async (values: IntakeFormValues) => {
     // Replace this with a real API call or mutation once available.
     console.log("Submitted intake form", values);
