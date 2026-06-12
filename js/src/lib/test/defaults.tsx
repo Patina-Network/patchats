@@ -1,7 +1,6 @@
-import { afterAll, afterEach, beforeAll, vi } from "vitest";
-import "@testing-library/jest-dom/vitest";
-
 import { server } from "@/lib/test/server";
+import "@testing-library/jest-dom/vitest";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 // --- MSW lifecycle: mock the network for every test ---
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));

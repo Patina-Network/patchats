@@ -1,5 +1,3 @@
-import { createBrowserRouter } from "react-router-dom";
-
 import { AdminLayout } from "@/app/layouts/AdminLayout";
 import { AppLayout } from "@/app/layouts/AppLayout";
 import { PublicLayout } from "@/app/layouts/PublicLayout";
@@ -12,6 +10,7 @@ import HomePage from "@/features/home/Home.page";
 import IntakePage from "@/features/intake/intake.page";
 import SamplePage from "@/features/sample/Sample.page";
 import SampleAdminPage from "@/features/sample/SampleAdmin.page";
+import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
   // Public admin login: its page owns the full viewport.

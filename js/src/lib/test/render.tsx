@@ -1,10 +1,9 @@
+import { themeOverride } from "@/app/providers/theme";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, RenderOptions } from "@testing-library/react";
 import { ReactElement, ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
-
-import { themeOverride } from "@/app/providers/theme";
 
 /**
  * A fresh QueryClient per render so tests never share cache. Retries are off so

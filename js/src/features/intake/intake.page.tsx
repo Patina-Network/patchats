@@ -1,8 +1,7 @@
-import { Stack, Text, Title } from "@mantine/core";
-
 import IntakeForm, {
   IntakeFormValues,
 } from "@/features/intake/components/intake-form";
+import { Stack, Text, Title } from "@mantine/core";
 
 export default function IntakePage() {
   const handleSubmit = async (values: IntakeFormValues) => {
