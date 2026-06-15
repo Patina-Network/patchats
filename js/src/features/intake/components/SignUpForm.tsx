@@ -130,13 +130,12 @@ export function SignUpForm() {
     setSubmitError(null);
   };
 
+  // Validation logic
   const validate = () => {
     const nextErrors: Partial<Record<keyof SignUpFormValues, string>> = {};
 
     if (!values.fullName.trim()) {
       nextErrors.fullName = "Full Name is required.";
-    } else if (values.fullName.trim().length < 2) {
-      nextErrors.fullName = "Full Name must be at least 2 characters.";
     }
 
     if (!values.email.trim()) {
@@ -147,7 +146,7 @@ export function SignUpForm() {
 
     if (values.linkedin.trim() && !isValidLinkedinUrl(values.linkedin)) {
       nextErrors.linkedin =
-        "Enter a valid LinkedIn URL starting with https://linkedin.com/.";
+        "Enter a valid LinkedIn URL (must start with https://linkedin.com/ or https://www.linkedin.com/).";
     }
 
     if (!values.introduction) {
@@ -162,10 +161,6 @@ export function SignUpForm() {
       nextErrors.matchingPreference = "Matching Preference is required.";
     }
 
-    if (!values.industry) {
-      nextErrors.industry = "Industry is required.";
-    }
-
     if (
       values.role &&
       values.industry &&
@@ -175,11 +170,13 @@ export function SignUpForm() {
     }
 
     if (values.referralSource.trim().length > 200) {
-      nextErrors.referralSource = "Answer must be 200 characters or fewer.";
+      nextErrors.referralSource =
+        "Referral source must be 200 characters or fewer.";
     }
 
     if (values.additionalInfo.trim().length > 500) {
-      nextErrors.additionalInfo = "Answer must be 500 characters or fewer.";
+      nextErrors.additionalInfo =
+        "Additional info must be 500 characters or fewer.";
     }
 
     console.log("Validation errors", nextErrors);
@@ -193,8 +190,8 @@ export function SignUpForm() {
     setSubmitError(null);
 
     const validationErrors = validate();
+    setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
       return;
     }
 
@@ -203,7 +200,6 @@ export function SignUpForm() {
       // TODO: replace with API call
       await Promise.resolve();
       setSuccessMessage("Your form was submitted successfully.");
-      setErrors({});
     } catch (_error) {
       setSubmitError(
         "There was a problem submitting the form. Please try again.",
@@ -287,7 +283,6 @@ export function SignUpForm() {
             error={errors.matchingPreference}
           />
           <Select
-            required
             label="What industry are you interested in?"
             placeholder="Choose one"
             data={industryOptions}
