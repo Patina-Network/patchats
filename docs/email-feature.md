@@ -6,16 +6,15 @@ contract stable.
 
 The frontend POSTs **who** to email plus the **content** (a subject + body template and the
 variables to merge in); the backend interpolates and sends over SMTP. v1 is **plain-text only**;
-HTML is a deliberate, isolated future extension. This is the first **domain-first
-(package-by-feature)** module in the backend — the analogue of the frontend's
-`features/<domain>/` (see `js/docs/frontend-structure.md`): a flat feature package that grows
-into sub-packages only when it needs to, with the one external concern (SMTP transport) isolated
-behind a port.
+As of now, the emails are composed of plain-text only. It is intended to implement HTML in 
+future emails. To ease this future extension, the email module was developed with a
+**domain-first (package-by-feature)** structure. This is similar to the front-end architecture(see `js/docs/frontend-structure.md`): a flat feature package that grows
+into sub-packages only when it needs to, with the one external concern (SMTP transport) isolated behind a port.
 
 ## The shape
 
 ```
-org.patinanetwork.patchats.email/
+src/main/java/org/patinanetwork/patchats/email/
   EmailController.java        POST /api/email/send → ResponseEntity<ApiResponder<SendEmailResponse>>
   EmailService.java           orchestration: per message build vars → render → send → collect results (+ @Slf4j)
   EmailSender.java            PORT: void send(OutgoingEmail email)
