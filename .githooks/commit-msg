@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+# commit-msg: warn (never block) about messages that break the project convention.
+# Delegates to the shared checker; advisory only. CI runs the same check on PRs.
+# See CONTRIBUTING.md.
+
+hook_dir=$(dirname "$0")
+sh "$hook_dir/lib/check-message" < "$1" || true
+exit 0

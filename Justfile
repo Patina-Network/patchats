@@ -95,6 +95,7 @@ encrypt file *args:
 edit file *args:
   just install-pre-scripts && sops edit {{ file }} {{ args }}
 
-# Configure Git to use the .githooks directory (idempotent)
+# Configure Git to use the .githooks directory and commit message template (idempotent)
 install-pre-scripts:
   [ "$(git config core.hooksPath)" = ".githooks" ] || git config core.hooksPath .githooks
+  [ "$(git config commit.template)" = ".gitmessage" ] || git config commit.template .gitmessage
