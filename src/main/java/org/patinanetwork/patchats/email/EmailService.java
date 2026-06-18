@@ -64,7 +64,7 @@ public class EmailService {
         }
         final List<SendEmailRequest.Recipient> recipients = message.recipients();
         for (int i = 0; i < recipients.size(); i++) {
-            final String prefix = "recipient" + (i + 1) + ".";
+            final String prefix = "rec" + (i + 1) + ".";
             final Map<String, String> vars = recipients.get(i).variableToValue();
             if (vars != null) {
                 vars.forEach((key, value) -> merged.put(prefix + key, value));

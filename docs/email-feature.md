@@ -51,8 +51,8 @@ The SMTP transport is the only piece that touches the outside world, so it sits 
     {
       "variables": { ... },        // optional shared vars → referenced un-prefixed, e.g. ${month}
       "recipients": [              // 1 or 2 recipients
-        { "email": "...", "variableToValue": { ... } },   // becomes ${recipient1.*}
-        { "email": "...", "variableToValue": { ... } }    // becomes ${recipient2.*}
+        { "email": "...", "variableToValue": { ... } },   // becomes ${rec1.*}
+        { "email": "...", "variableToValue": { ... } }    // becomes ${rec2.*}
       ]
     }
   ]
@@ -82,7 +82,7 @@ Sending is **best-effort**: one failed message never blocks the others, so the r
 }
 ```
 
-**Placeholders.** Reference message-level `variables` un-prefixed (`${month}`), recipient vars as `${recipient1.*}` / `${recipient2.*}`. Behaviour when a key is missing depends on the syntax:
+**Placeholders.** Reference message-level `variables` un-prefixed (`${month}`), recipient vars as `${rec1.*}` / `${rec2.*}`. Behaviour when a key is missing depends on the syntax:
 
 | Placeholder    | If missing |
 |----------------|------------|
@@ -90,7 +90,7 @@ Sending is **best-effort**: one failed message never blocks the others, so the r
 | `${x:default}` | uses `default` |
 | `${x:}`        | uses empty string |
 
-A solo message has no `recipient2.*`, so any `${recipient2.*}` placeholder must use a default or
+A solo message has no `rec2.*`, so any `${rec2.*}` placeholder must use a default or
 the message fails.
 
 Invalid requests (bad email, empty `messages`, a message with 0 or >2 recipients, blank
