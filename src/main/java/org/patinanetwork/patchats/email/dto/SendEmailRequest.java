@@ -24,5 +24,11 @@ public record SendEmailRequest(
             @NotEmpty @Size(max = 2) @Valid List<Recipient> recipients) {}
 
     /** A single recipient and the variables personalised to them (exposed as {@code recipientN.*}). */
-    public record Recipient(@NotBlank @Email String email, Map<String, String> name_to_variable) {}
+    public record Recipient(@NotBlank @Email String email, Map<String, String> variableToValue) {}
 }
+
+/**
+ * Simple Example JSON (see `src/test/java/org/patinanetwork/patchats/email/mocks` for more examples): { "subject":
+ * "Pair testing subject", "body": "Pair email testing", "replyTo": "patchats@example.com", "messages" : [ {
+ * "recipients" : [{"email" : "anna@example.com"}, { "email" : "bob@example.com"}] } ] }
+ */
