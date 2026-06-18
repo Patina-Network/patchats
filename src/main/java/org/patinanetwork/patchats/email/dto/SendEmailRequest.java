@@ -23,7 +23,7 @@ public record SendEmailRequest(
             Map<String, String> variables,
             @NotEmpty @Size(max = 2) @Valid List<Recipient> recipients) {}
 
-    /** A single recipient and the variables personalised to them (exposed as {@code recipientN.*}). */
+    /** A single recipient and the variables personalised to them (exposed as {@code recN.*}). */
     public record Recipient(@NotBlank @Email String email, Map<String, String> variableToValue) {}
 }
 

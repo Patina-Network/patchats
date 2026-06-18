@@ -1,6 +1,6 @@
 {
-  "subject": "You've been paired, ${recipient1.firstName}!",
-  "body": "Hi ${recipient1.firstName} and ${recipient2.firstName} — you're paired for ${month}!\nSay hi: ${recipient1.firstName} (${recipient1.linkedIn:N/A})  ${recipient2.firstName} (${recipient2.linkedIn:N/A}).\n${intro:Looking forward to your chat!}",
+  "subject": "You've been paired, ${rec1.firstName}!",
+  "body": "Hi ${rec1.firstName} and ${rec2.firstName} — you're paired for ${month}!\nSay hi: ${rec1.firstName} (${rec1.linkedIn:N/A})  ${rec2.firstName} (${rec2.linkedIn:N/A}).\n${rec2.intro:Looking forward to your chat!}",
   "replyTo": "coordinator@patinanetwork.org",          
   "messages": [
     {                                                 

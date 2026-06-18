@@ -32,6 +32,6 @@ class TemplateRendererTest {
 
     @Test
     void resolvesNamespacedKeys() {
-        assertEquals("Bob", renderer.render("${recipient2.firstName}", Map.of("recipient2.firstName", "Bob")));
+        assertEquals("Bob", renderer.render("${rec2.firstName}", Map.of("rec2.firstName", "Bob")));
     }
 }
