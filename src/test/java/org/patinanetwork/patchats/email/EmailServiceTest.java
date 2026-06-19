@@ -24,8 +24,8 @@ class EmailServiceTest {
     @Test
     void sendsPairAsOneEmailWithNamespacedVariables() {
         final SendEmailRequest request = new SendEmailRequest(
-                "Hi ${rec1.firstName} & ${rec2.firstName}",
-                "Paired for ${month}. LinkedIn: ${rec2.linkedIn:N/A}",
+                "Hi ${per1.firstName} & ${per2.firstName}",
+                "Paired for ${month}. LinkedIn: ${per2.linkedIn:N/A}",
                 null,
                 List.of(new SendEmailRequest.Message(
                         Map.of("month", "July"),
@@ -50,7 +50,7 @@ class EmailServiceTest {
     @Test
     void missingRequiredVariableFailsOnlyThatMessage() {
         final SendEmailRequest request = new SendEmailRequest(
-                "Hi ${rec1.firstName}",
+                "Hi ${per1.firstName}",
                 "Body",
                 null,
                 List.of(

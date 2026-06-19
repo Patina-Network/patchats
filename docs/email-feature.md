@@ -2,14 +2,14 @@
 
 How the backend `email` domain sends transactional email (e.g. monthly pairing notifications).
 
-**What it does.** The frontend POSTs *who* to email plus the *content* — a subject + body
+**What it does.** The frontend POSTs _who_ to email plus the _content_ — a subject + body
 template and the variables to fill in. The backend merges the variables into the templates and
 sends the result over SMTP.
 
 **How it's organised.** v1 is **plain-text only**; HTML is planned for later. So the module uses
 a **domain-first (package-by-feature)** layout — the same idea as the frontend (see
 `js/docs/frontend-structure.md`): one flat `email` package that only splits into sub-packages when
-it needs to, with the single external dependency (SMTP) hidden behind a *port* (a Java interface
+it needs to, with the single external dependency (SMTP) hidden behind a _port_ (a Java interface
 whose implementation can be swapped).
 
 ## The shape
@@ -42,6 +42,7 @@ The SMTP transport is the only piece that touches the outside world, so it sits 
 `POST /api/email/send` — subject and body are templates; substitution runs **once per message**.
 
 ### Request
+
 ```jsonc
 {
   "subject": "...",       // ${} template, required
@@ -51,46 +52,51 @@ The SMTP transport is the only piece that touches the outside world, so it sits 
     {
       "variables": { ... },        // optional shared vars → referenced un-prefixed, e.g. ${month}
       "recipients": [              // 1 or 2 recipients
-        { "email": "...", "variableToValue": { ... } },   // becomes ${rec1.*}
-        { "email": "...", "variableToValue": { ... } }    // becomes ${rec2.*}
+        { "email": "...", "variableToValue": { ... } },   // becomes ${per1.*}
+        { "email": "...", "variableToValue": { ... } }    // becomes ${per2.*}
       ]
     }
   ]
 }
 ```
 
-For full, runnable POST requests see the mock JSON files in [src/test/java/org/patinanetwork/patchats/email/mocks/]. 
+For full, runnable POST requests see the mock JSON files in [src/test/java/org/patinanetwork/patchats/email/mocks/].
 
 ### Response
 
-Sending is **best-effort**: one failed message never blocks the others, so the response tells you the outcome of *each* message. 
+Sending is **best-effort**: one failed message never blocks the others, so the response tells you the outcome of _each_ message.
 
 ```jsonc
 // 200 OK
 {
   "success": true,
-  "message": "Sent 2 of 2 emails",   // human-readable summary
+  "message": "Sent 2 of 2 emails", // human-readable summary
   "payload": {
-    "sent": 2,                        // how many messages went out
-    "failed": 0,                      // how many failed
-    "results": [                      // one entry per message, in request order
-      { "recipients": ["ann@example.com", "bob@example.com"], "sent": true,  "error": null },
-      { "recipients": ["cara@example.com"],                    "sent": false, "error": "..." }
+    "sent": 2, // how many messages went out
+    "failed": 0, // how many failed
+    "results": [
+      // one entry per message, in request order
+      {
+        "recipients": ["ann@example.com", "bob@example.com"],
+        "sent": true,
+        "error": null,
+      },
+      { "recipients": ["cara@example.com"], "sent": false, "error": "..." },
       //                                                        ^ false + a reason if that one failed
-    ]
-  }
+    ],
+  },
 }
 ```
 
-**Placeholders.** Reference message-level `variables` un-prefixed (`${month}`), recipient vars as `${rec1.*}` / `${rec2.*}`. Behaviour when a key is missing depends on the syntax:
+**Placeholders.** Reference message-level `variables` un-prefixed (`${month}`), recipient vars as `${per1.*}` / `${per2.*}`. Behaviour when a key is missing depends on the syntax:
 
-| Placeholder    | If missing |
-|----------------|------------|
+| Placeholder    | If missing                              |
+| -------------- | --------------------------------------- |
 | `${x}`         | **fails the message** (error names `x`) |
-| `${x:default}` | uses `default` |
-| `${x:}`        | uses empty string |
+| `${x:default}` | uses `default`                          |
+| `${x:}`        | uses empty string                       |
 
-A solo message has no `rec2.*`, so any `${rec2.*}` placeholder must use a default or
+A solo message has no `per2.*`, so any `${per2.*}` placeholder must use a default or
 the message fails.
 
 Invalid requests (bad email, empty `messages`, a message with 0 or >2 recipients, blank
@@ -107,7 +113,7 @@ To hit the endpoint locally with a real request:
 4. Under **Body**, choose **raw**, then select **JSON** from the format dropdown.
 5. Write a request body that matches `SendEmailRequest`
    ([dto/SendEmailRequest.java](../src/main/java/org/patinanetwork/patchats/email/dto/SendEmailRequest.java)).
-    or paste a mock JSON in
+   or paste a mock JSON in
    [src/test/java/org/patinanetwork/patchats/email/mocks/](../src/test/java/org/patinanetwork/patchats/email/mocks/).
 6. Start the app with `just dev` in a terminal (the `dev` profile logs emails instead of sending, so no real SMTP is needed).
-7. Press **Send** and check the response payload 
+7. Press **Send** and check the response payload
