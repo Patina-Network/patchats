@@ -1,8 +1,6 @@
 import { $ } from "bun";
 
 async function main() {
-  await $`pnpm -dir js run generate`;
-
   await $`pnpm --dir js run typecheck`;
 
   // fmt
