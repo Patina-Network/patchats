@@ -13,7 +13,7 @@
     "prettier:fix": "prettier --write ."
   },
   "keywords": [],
-  "author": "Tahmid Ahmed",
+  "author": "Patina Network",
   "license": "MIT",
   "dependencies": {
     "@tahminator/pipeline": "^1.0.55",
