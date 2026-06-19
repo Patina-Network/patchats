@@ -3,12 +3,17 @@ import { AppLayout } from "@/app/layouts/AppLayout";
 import { PublicLayout } from "@/app/layouts/PublicLayout";
 import { RequireAdmin } from "@/app/router/guards/RequireAdmin";
 import { RequireAuth } from "@/app/router/guards/RequireAuth";
+import AdminPage from "@/features/admin/Admin.page";
+import AdminLoginPage from "@/features/admin/AdminLogin.page";
 import HomePage from "@/features/home/Home.page";
 import SamplePage from "@/features/sample/Sample.page";
 import SampleAdminPage from "@/features/sample/SampleAdmin.page";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
+  // Public admin login: its page owns the full viewport.
+  { path: "admin/login", element: <AdminLoginPage /> },
+
   // Public: no guard, public chrome.
   {
     element: <PublicLayout />,
@@ -28,7 +33,10 @@ export const router = createBrowserRouter([
         children: [
           {
             element: <AdminLayout />,
-            children: [{ path: "sample/admin", element: <SampleAdminPage /> }],
+            children: [
+              { path: "admin", element: <AdminPage /> },
+              { path: "sample/admin", element: <SampleAdminPage /> },
+            ],
           },
         ],
       },
