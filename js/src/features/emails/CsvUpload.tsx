@@ -1,4 +1,4 @@
-import { readFiles } from "@/app/user/admin/emails/parseCSV";
+import { readFiles } from "@/features/emails/api/parseCSV";
 import { FileInput, Button, Stack, NativeSelect } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState } from "react";

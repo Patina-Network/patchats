@@ -1,4 +1,4 @@
-import { emailTemplateMap } from "@/app/user/admin/emails/EmailTemplate";
+import { emailTemplateMap } from "@/features/emails/api/EmailTemplate";
 import { parse, ParseResult } from "papaparse";
 
 interface User {
