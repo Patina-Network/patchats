@@ -55,4 +55,4 @@ runs:
 
     - name: Run script
       shell: bash
-      run: bun .github/scripts/test/run-frontend-pretests
+      run: bun ./.github/scripts/src/test/run-frontend-pretests.ts

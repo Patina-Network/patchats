@@ -22,4 +22,4 @@ runs:
 
     - name: Run script
       shell: bash
-      run: bun .github/scripts/test/run-backend-pretests.ts
+      run: bun ./.github/scripts/test/run-backend-pretests.ts
