@@ -1,4 +1,4 @@
-import { SignUpForm } from "@/features/intake/components/SignUpForm";
+import { SignUpForm } from "@/features/sign-up/components/SignUpForm";
 import { Stack, Text, Title } from "@mantine/core";
 
 export function SignUpPage() {

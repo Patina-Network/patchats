@@ -1,8 +1,10 @@
+import { signUpFormSchema } from "@/features/sign-up/api/schemas";
 import {
   INDUSTRIES,
   MATCHING_PREFERENCES,
   TALKING_POINTS,
-} from "@/features/intake/components/SignUpFormConfig";
+} from "@/features/sign-up/components/signUpFormConfig";
+import { SignUpFormValues } from "@/features/sign-up/types";
 import {
   Alert,
   Button,
@@ -17,7 +19,6 @@ import {
   Title,
 } from "@mantine/core";
 import { useState } from "react";
-import { z } from "zod";
 
 // Options for select fields. Defined in SignUpFormConfig
 const matchingPreferenceOptions = MATCHING_PREFERENCES.map((v) => ({
@@ -39,33 +40,7 @@ const roleOptionsByIndustry: Record<
   INDUSTRIES.map((i) => [i.name, i.roles.map((r) => ({ value: r, label: r }))]),
 );
 
-// Email and LinkedIn URL validation using zod schemas
-const emailSchema = z.string().email();
-const linkedinSchema = z
-  .string()
-  .url()
-  .startsWith("https://linkedin.com/")
-  .or(z.string().url().startsWith("https://www.linkedin.com/"));
-
-const isValidEmail = (email: string) =>
-  emailSchema.safeParse(email.trim()).success;
-const isValidLinkedinUrl = (value: string) =>
-  linkedinSchema.safeParse(value.trim()).success;
-
-// Define props and initial values for the signupForm component
-export interface SignUpFormValues {
-  fullName: string;
-  email: string;
-  linkedin: string;
-  introduction: string;
-  referralSource: string;
-  matchingPreference: string;
-  industry: string;
-  role: string;
-  talkingPoints: string[];
-  additionalInfo: string;
-}
-
+// Define initial values
 const initialFormValues: SignUpFormValues = {
   fullName: "",
   email: "",
@@ -131,57 +106,25 @@ export function SignUpForm() {
   };
 
   // Validation logic
-  const validate = () => {
-    const nextErrors: Partial<Record<keyof SignUpFormValues, string>> = {};
-
-    if (!values.fullName.trim()) {
-      nextErrors.fullName = "Full Name is required.";
+  const validateForm = (values: SignUpFormValues) => {
+    const result = signUpFormSchema.safeParse(values);
+    const fieldErrors =
+      result.success ? {} : result.error?.flatten().fieldErrors;
+    const errors = {} as Partial<Record<keyof SignUpFormValues, string>>;
+    for (const key in fieldErrors) {
+      if (fieldErrors[key as keyof SignUpFormValues]?.[0]) {
+        errors[key as keyof SignUpFormValues] =
+          fieldErrors[key as keyof SignUpFormValues]?.[0];
+      }
     }
-
-    if (!values.email.trim()) {
-      nextErrors.email = "Email Address is required.";
-    } else if (!isValidEmail(values.email)) {
-      nextErrors.email = "Enter a valid email address.";
-    }
-
-    if (values.linkedin.trim() && !isValidLinkedinUrl(values.linkedin)) {
-      nextErrors.linkedin =
-        "Enter a valid LinkedIn URL (must start with https://linkedin.com/ or https://www.linkedin.com/).";
-    }
-
-    if (!values.introduction) {
-      nextErrors.introduction = "Introduction is required.";
-    }
-
-    if (values.introduction.trim().length > 300) {
-      nextErrors.introduction = "Introduction must be 300 characters or fewer.";
-    }
-
-    if (!values.matchingPreference) {
-      nextErrors.matchingPreference = "Matching Preference is required.";
-    }
-
     if (
       values.role &&
       values.industry &&
       !availableRoleOptions.some((option) => option.value === values.role)
     ) {
-      nextErrors.role = "Select a role that matches the chosen industry.";
+      errors.role = "Select a role that matches the chosen industry.";
     }
-
-    if (values.referralSource.trim().length > 200) {
-      nextErrors.referralSource =
-        "Referral source must be 200 characters or fewer.";
-    }
-
-    if (values.additionalInfo.trim().length > 500) {
-      nextErrors.additionalInfo =
-        "Additional info must be 500 characters or fewer.";
-    }
-
-    console.log("Validation errors", nextErrors);
-
-    return nextErrors;
+    return errors;
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -189,7 +132,7 @@ export function SignUpForm() {
     setSuccessMessage(null);
     setSubmitError(null);
 
-    const validationErrors = validate();
+    const validationErrors = validateForm(values);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       return;

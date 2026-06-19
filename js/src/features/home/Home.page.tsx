@@ -9,7 +9,7 @@ export default function HomePage() {
       <Text>
         Monthly one-on-one coffee chat pairings for the Patina Network.
       </Text>
-      <Anchor component={Link} to="/signup">
+      <Anchor component={Link} to="/sign-up">
         Complete the signup form
       </Anchor>
       <Anchor component={Link} to="/sample">
