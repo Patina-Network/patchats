@@ -1,4 +1,4 @@
-import { CsvUpload } from "@/app/user/admin/emails/CsvUpload";
+import { CsvUpload } from "@/features/emails/CsvUpload";
 
 export default function EmailAdminPage() {
   return (
