@@ -1,18 +1,35 @@
 {
-  "subject": "You've been paired, ${rec1.firstName}!",
-  "body": "Hi ${rec1.firstName} and ${rec2.firstName} — you're paired for ${month}!\nSay hi: ${rec1.firstName} (${rec1.linkedIn:N/A})  ${rec2.firstName} (${rec2.linkedIn:N/A}).\n${rec2.intro:Looking forward to your chat!}",
-  "replyTo": "coordinator@patinanetwork.org",          
+  "subject": "You've been paired, ${per1.firstName}!",
+  "body": "Hi ${per1.firstName} and ${per2.firstName} — you're paired for ${month}!\nSay hi: ${per1.firstName} (${per1.linkedIn:N/A})  ${per2.firstName} (${per2.linkedIn:N/A}).\n${per2.intro:Looking forward to your chat!}",
+  "replyTo": "coordinator@patinanetwork.org",
   "messages": [
-    {                                                 
-      "variables": { "month": "July" },               
+    {
+      "variables": { "month": "July" },
       "recipients": [
-        { "email": "anna@example.com", "variableToValue": { "firstName": "Anna", "linkedIn": "https://linkedin.com" } },
-        { "email": "bob@example.com", "variableToValue": { "firstName": "Bob" } }
+        {
+          "email": "anna@example.com",
+          "variableToValue": {
+            "firstName": "Anna",
+            "linkedIn": "https://linkedin.com"
+          }
+        },
+        {
+          "email": "bob@example.com",
+          "variableToValue": { "firstName": "Bob" }
+        }
       ]
     },
-    {                                                
-      "recipients": [ { "email": "cara@example.com", "variableToValue": { "firstName": "Cara" } },
-                    {"email": "dan@example.com", "variableToValue": { "firstName": "Dan" }} ]
+    {
+      "recipients": [
+        {
+          "email": "cara@example.com",
+          "variableToValue": { "firstName": "Cara" }
+        },
+        {
+          "email": "dan@example.com",
+          "variableToValue": { "firstName": "Dan" }
+        }
+      ]
     }
   ]
 }

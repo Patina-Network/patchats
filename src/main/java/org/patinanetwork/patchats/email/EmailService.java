@@ -55,7 +55,7 @@ public class EmailService {
 
     /**
      * Flattens a message's variables into one map: message-level variables un-prefixed, and each recipient's variables
-     * under a positional {@code recipient1.}/{@code recipient2.} prefix.
+     * under a positional {@code per1.}/{@code per2.} prefix.
      */
     private static Map<String, String> mergeVariables(final SendEmailRequest.Message message) {
         final Map<String, String> merged = new HashMap<>();
@@ -64,7 +64,7 @@ public class EmailService {
         }
         final List<SendEmailRequest.Recipient> recipients = message.recipients();
         for (int i = 0; i < recipients.size(); i++) {
-            final String prefix = "rec" + (i + 1) + ".";
+            final String prefix = "per" + (i + 1) + ".";
             final Map<String, String> vars = recipients.get(i).variableToValue();
             if (vars != null) {
                 vars.forEach((key, value) -> merged.put(prefix + key, value));
