@@ -158,9 +158,15 @@ export async function parsePairingFile(pairFile: File): Promise<Pair[]> {
 }
 
 async function sendToEmailApi(body: unknown) {
-  await fetch("/api/email/send", {
+  const response = await fetch("/api/email/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  if (!response.ok) {
+    throw new Error(
+      `Email API failed: ${response.status} ${response.statusText}`,
+    );
+  }
+  return response.json();
 }
