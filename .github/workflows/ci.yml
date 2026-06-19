@@ -2,13 +2,15 @@ name: CI
 run-name: Running continuous integration on ${{ github.actor }}'s commits
 
 # Triggers:
-#   - push to ANY branch (catches feature branches, not tags)
-#   - pull requests targeting main
+#   - push to main (merges, hotfixes — not tags)
+#   - pull requests targeting main (covers feature-branch work)
+# Feature-branch pushes are handled by the pull_request trigger, so push is
+# scoped to main to avoid running every job twice on PRs.
 # Does NOT fire on tag-only pushes or unrelated events.
 on:
   push:
     branches:
-      - "**"
+      - main
   pull_request:
     branches:
       - main
