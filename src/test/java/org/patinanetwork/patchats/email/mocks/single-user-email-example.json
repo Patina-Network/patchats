@@ -1,0 +1,23 @@
+{
+  "subject": "Single User Testing Subject",
+  "body": "This should send two separate emails to two different users. ${per1.name}",
+  "replyTo": "patchats@example.com",
+  "messages": [
+    {
+      "recipients": [
+        {
+          "email": "anna@example.com",
+          "variableToValue": { "name": "Anna" }
+        }
+      ]
+    },
+    {
+      "recipients": [
+        {
+          "email": "bob@example.com",
+          "variableToValue": { "name": "Bob" }
+        }
+      ]
+    }
+  ]
+}

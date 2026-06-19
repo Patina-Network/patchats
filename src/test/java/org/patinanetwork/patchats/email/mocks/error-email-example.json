@@ -1,0 +1,20 @@
+{
+  "subject": "Too Many Receipients",
+  "body": "The maximum number of receipients is 2. This message has 3 recipients and should fail.",
+  "replyTo": "patchats@example.com",
+  "messages": [
+    {
+      "recipients": [
+        {
+          "email": "anna@example.com"
+        },
+        {
+          "email": "bob@example.com"
+        },
+        {
+          "email": "cara@example.com"
+        }
+      ]
+    }
+  ]
+}
