@@ -86,8 +86,11 @@ export function SignUpForm() {
     setSubmitError(null);
 
     const validationErrors = validateForm(values);
+    console.log("errors:", validationErrors);
     setErrors(validationErrors);
+
     if (Object.keys(validationErrors).length > 0) {
+      setSubmitError("Please fix the errors above before submitting.");
       return;
     }
 
