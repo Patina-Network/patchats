@@ -65,6 +65,18 @@ export function SignUpForm() {
     setSubmitError(null);
   };
 
+  const handleFieldBlur = (field: keyof SignUpFormValues) => {
+    const fieldSchema = signUpFormSchema.pick({ [field]: true } as Record<
+      typeof field,
+      true
+    >);
+    const result = fieldSchema.safeParse({ [field]: values[field] });
+    if (!result.success) {
+      const message = result.error.flatten().fieldErrors[field]?.[0];
+      if (message) setErrors((current) => ({ ...current, [field]: message }));
+    }
+  };
+
   // Validation logic
   const validateForm = (values: SignUpFormValues) => {
     const result = signUpFormSchema.safeParse(values);
@@ -121,6 +133,7 @@ export function SignUpForm() {
             onChange={(event) =>
               handleFieldChange("fullName", event.target.value)
             }
+            onBlur={() => handleFieldBlur("fullName")}
             error={errors.fullName}
             autoFocus
           />
@@ -131,6 +144,7 @@ export function SignUpForm() {
             description="Use an email address you check regularly, as this is how we will contact you about your matches!"
             value={values.email}
             onChange={(event) => handleFieldChange("email", event.target.value)}
+            onBlur={() => handleFieldBlur("email")}
             error={errors.email}
           />
           <TextInput
@@ -140,6 +154,7 @@ export function SignUpForm() {
             onChange={(event) =>
               handleFieldChange("linkedin", event.target.value)
             }
+            onBlur={() => handleFieldBlur("linkedin")}
             error={errors.linkedin}
           />
           <Divider />
@@ -152,6 +167,7 @@ export function SignUpForm() {
             onChange={(event) =>
               handleFieldChange("introduction", event.target.value)
             }
+            onBlur={() => handleFieldBlur("introduction")}
             error={errors.introduction}
             minRows={4}
           />
@@ -162,6 +178,7 @@ export function SignUpForm() {
             onChange={(event) =>
               handleFieldChange("referralSource", event.target.value)
             }
+            onBlur={() => handleFieldBlur("referralSource")}
             error={errors.referralSource}
           />
           <Divider />
@@ -180,6 +197,7 @@ export function SignUpForm() {
                 (value || "") as SignUpFormValues["matchingPreference"],
               )
             }
+            onBlur={() => handleFieldBlur("matchingPreference")}
             error={errors.matchingPreference}
           />
           <Select
@@ -193,6 +211,7 @@ export function SignUpForm() {
                 (value || "") as SignUpFormValues["industry"],
               )
             }
+            onBlur={() => handleFieldBlur("industry")}
             error={errors.industry}
           />
           <TextInput
@@ -200,6 +219,7 @@ export function SignUpForm() {
             placeholder="Optional"
             value={values.role}
             onChange={(event) => handleFieldChange("role", event.target.value)}
+            onBlur={() => handleFieldBlur("role")}
             error={errors.role}
           />
           <TextInput
@@ -209,6 +229,7 @@ export function SignUpForm() {
             onChange={(event) =>
               handleFieldChange("talkingPoints", event.target.value)
             }
+            onBlur={() => handleFieldBlur("talkingPoints")}
             error={errors.talkingPoints}
           />
           <Textarea
@@ -218,6 +239,7 @@ export function SignUpForm() {
             onChange={(event) =>
               handleFieldChange("additionalInfo", event.target.value)
             }
+            onBlur={() => handleFieldBlur("additionalInfo")}
             error={errors.additionalInfo}
             minRows={3}
           />
