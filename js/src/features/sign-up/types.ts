@@ -7,6 +7,6 @@ export interface SignUpFormValues {
   matchingPreference: string;
   industry: string;
   role: string;
-  talkingPoints: string[];
+  talkingPoints: string;
   additionalInfo: string;
 }

@@ -1,8 +1,8 @@
 export const MATCHING_PREFERENCES = [
-  "Mentor",
-  "Mentee",
-  "Peer",
-  "No Preference",
+  "Mentor - I am looking for guidance from someone with more experience",
+  "Mentee - I am looking to provide guidance to someone with less experience",
+  "Peer - I am looking for someone at a similar level",
+  "No Preference - I am open to any type of match",
 ] as const;
 
 export const TALKING_POINTS = [
@@ -14,30 +14,10 @@ export const TALKING_POINTS = [
 ] as const;
 
 export const INDUSTRIES = [
-  {
-    name: "Technology",
-    roles: [
-      "Software Engineering",
-      "Data Analytics",
-      "Artificial Intelligence",
-      "Undecided",
-      "Other",
-    ],
-  },
-  {
-    name: "Finance",
-    roles: ["Accounting", "Investment Banking", "Other"],
-  },
-  {
-    name: "Business",
-    roles: ["Consulting", "Product Management", "Other"],
-  },
-  {
-    name: "Design",
-    roles: [],
-  },
-  {
-    name: "Other",
-    roles: [],
-  },
+  "Technology",
+  "Finance",
+  "Business",
+  "Design",
+  "Other",
+  "No Preference",
 ] as const;

@@ -2,7 +2,6 @@ import { signUpFormSchema } from "@/features/sign-up/api/schemas";
 import {
   INDUSTRIES,
   MATCHING_PREFERENCES,
-  TALKING_POINTS,
 } from "@/features/sign-up/components/signUpFormConfig";
 import { SignUpFormValues } from "@/features/sign-up/types";
 import {
@@ -10,10 +9,10 @@ import {
   Button,
   Divider,
   Group,
-  MultiSelect,
   Paper,
   Select,
   Stack,
+  Text,
   Textarea,
   TextInput,
   Title,
@@ -25,20 +24,7 @@ const matchingPreferenceOptions = MATCHING_PREFERENCES.map((v) => ({
   value: v,
   label: v,
 }));
-
-const talkingPointOptions = TALKING_POINTS.map((v) => ({ value: v, label: v }));
-
-const industryOptions = INDUSTRIES.map(({ name }) => ({
-  value: name,
-  label: name,
-}));
-
-const roleOptionsByIndustry: Record<
-  string,
-  { value: string; label: string }[]
-> = Object.fromEntries(
-  INDUSTRIES.map((i) => [i.name, i.roles.map((r) => ({ value: r, label: r }))]),
-);
+const industryOptions = INDUSTRIES.map((v) => ({ value: v, label: v }));
 
 // Define initial values
 const initialFormValues: SignUpFormValues = {
@@ -50,7 +36,7 @@ const initialFormValues: SignUpFormValues = {
   matchingPreference: "",
   industry: "",
   role: "",
-  talkingPoints: [],
+  talkingPoints: "",
   additionalInfo: "",
 };
 
@@ -68,9 +54,6 @@ export function SignUpForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const availableRoleOptions =
-    values.industry ? roleOptionsByIndustry[values.industry] : [];
-
   // Handlers
   const handleFieldChange = <K extends keyof SignUpFormValues>(
     field: K,
@@ -78,29 +61,6 @@ export function SignUpForm() {
   ) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
-    setSuccessMessage(null);
-    setSubmitError(null);
-  };
-
-  const handleIndustryChange = (value: string | null) => {
-    setValues((current) => {
-      const nextIndustry = value ?? "";
-      const nextRoleOptions =
-        values.industry ? roleOptionsByIndustry[values.industry] : [];
-      const roleIsValid = nextRoleOptions.some(
-        (option) => option.value === current.role,
-      );
-      return {
-        ...current,
-        industry: nextIndustry,
-        role: roleIsValid ? current.role : "",
-      };
-    });
-    setErrors((current) => ({
-      ...current,
-      industry: undefined,
-      role: undefined,
-    }));
     setSuccessMessage(null);
     setSubmitError(null);
   };
@@ -116,13 +76,6 @@ export function SignUpForm() {
         errors[key as keyof SignUpFormValues] =
           fieldErrors[key as keyof SignUpFormValues]?.[0];
       }
-    }
-    if (
-      values.role &&
-      values.industry &&
-      !availableRoleOptions.some((option) => option.value === values.role)
-    ) {
-      errors.role = "Select a role that matches the chosen industry.";
     }
     return errors;
   };
@@ -160,10 +113,9 @@ export function SignUpForm() {
           <TextInput
             required
             label="Full Name"
-            placeholder="Enter your full name"
             value={values.fullName}
             onChange={(event) =>
-              handleFieldChange("fullName", event.currentTarget.value)
+              handleFieldChange("fullName", event.target.value)
             }
             error={errors.fullName}
             autoFocus
@@ -172,19 +124,17 @@ export function SignUpForm() {
             required
             type="email"
             label="Email Address"
-            placeholder="name@example.com"
+            description="Use an email address you check regularly, as this is how we will contact you about your matches!"
             value={values.email}
-            onChange={(event) =>
-              handleFieldChange("email", event.currentTarget.value)
-            }
+            onChange={(event) => handleFieldChange("email", event.target.value)}
             error={errors.email}
           />
           <TextInput
             label="LinkedIn"
-            placeholder="https://linkedin.com/in/your-profile"
+            description="Use the format https://linkedin.com/in/your-profile or https://www.linkedin.com/in/your-profile"
             value={values.linkedin}
             onChange={(event) =>
-              handleFieldChange("linkedin", event.currentTarget.value)
+              handleFieldChange("linkedin", event.target.value)
             }
             error={errors.linkedin}
           />
@@ -192,25 +142,29 @@ export function SignUpForm() {
           <Title order={3}>Introduction</Title>
           <Textarea
             required
-            label="Introduce yourself to your PatChats match in 1-2 sentences."
-            placeholder="Tell us a little about yourself."
+            label="Introduce yourself to your PatChats match in 1-2 sentences, written in third person"
+            description="e.g. Henry is a board member of Patina Network, helping run the organization! He was previously a software engineer at Microsoft and Yext, and is looking to get back into tech in the near future."
             value={values.introduction}
             onChange={(event) =>
-              handleFieldChange("introduction", event.currentTarget.value)
+              handleFieldChange("introduction", event.target.value)
             }
             error={errors.introduction}
             minRows={4}
           />
           <TextInput
             label="How did you find out about us?"
+            description="If you were referred by a friend, please include their name!"
             value={values.referralSource}
             onChange={(event) =>
-              handleFieldChange("referralSource", event.currentTarget.value)
+              handleFieldChange("referralSource", event.target.value)
             }
             error={errors.referralSource}
           />
           <Divider />
           <Title order={3}>Matching</Title>
+          <Text size="sm" c="dimmed">
+            We will do our best to accommodate your preferences.
+          </Text>
           <Select
             required
             label="Matching Preference"
@@ -226,39 +180,39 @@ export function SignUpForm() {
             error={errors.matchingPreference}
           />
           <Select
-            label="What industry are you interested in?"
+            required
+            label="What industry are you in, or looking to get into?"
             placeholder="Choose one"
             data={industryOptions}
             value={values.industry}
-            onChange={handleIndustryChange}
+            onChange={(value) =>
+              handleFieldChange(
+                "industry",
+                (value || "") as SignUpFormValues["industry"],
+              )
+            }
             error={errors.industry}
           />
-          <Select
-            label="What role are you interested in?"
-            placeholder={
-              availableRoleOptions.length > 0 ?
-                "Choose one"
-              : "Select an industry first"
-            }
-            data={availableRoleOptions}
+          <TextInput
+            label="What role(s) would you like to get matched with?"
+            placeholder="Optional"
             value={values.role}
-            onChange={(value) => handleFieldChange("role", value ?? "")}
-            error={errors.role}
-            disabled={availableRoleOptions.length === 0}
-            clearable
+            onChange={(event) => handleFieldChange("role", event.target.value)}
           />
-          <MultiSelect
+          <TextInput
             label="What are some things you would like to talk about?"
-            placeholder="Select topics"
-            data={talkingPointOptions}
+            placeholder="Optional"
             value={values.talkingPoints}
-            onChange={(value) => handleFieldChange("talkingPoints", value)}
+            onChange={(event) =>
+              handleFieldChange("talkingPoints", event.target.value)
+            }
           />
           <Textarea
-            label="Anything else you would like us to know?"
+            label="Anything else you would like us to consider when matching you?"
+            placeholder="Optional"
             value={values.additionalInfo}
             onChange={(event) =>
-              handleFieldChange("additionalInfo", event.currentTarget.value)
+              handleFieldChange("additionalInfo", event.target.value)
             }
             error={errors.additionalInfo}
             minRows={3}
