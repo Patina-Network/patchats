@@ -59,12 +59,7 @@ export function TemplateSelect({
       onChange={(event) => onChange(event.currentTarget.value)}
       label="Email Templates"
       description="Select an email template"
-      data={[
-        { label: "Select a template", value: "" },
-        "Pair",
-        "Reminder",
-        "Restart",
-      ]}
+      data={[{ label: "Select a template", value: "" }, "Pair", "Reminder"]}
     />
   );
 }

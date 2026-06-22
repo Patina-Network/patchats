@@ -94,40 +94,11 @@ Cheers,
 Patina Network`,
 );
 
-export const RESTART_TEMPLATE: EmailTemplate = emailTemplate(
-  `Restart`,
-  `[PatChats] Restarting Patchats!`,
-  `Hey \${per1.name}!
-
-    • Getting PatChats restarted, opt-in by replying to this email.
-    • To update your info, fill out this form: https://forms.gle/XggJPda2Yr3ZbJGH7
-
-It's been a few months since I got PatChats out, as life has been pretty hectic, but we're looking to get it restarted!
-Since it's been a while, let me know if you're still interested in getting paired each month by replying to this email.
-
-
-As a refresher, PatChats is our monthly networking program, where we pair you with another member of the Patina community for a 30 minute coffee or video chat!
-If you'd like to update any of your info, you can fill out the form again or reply with the update in this email. 
-
-Here's the info we currently have:
-    • Intro: "\${per1.intro:}"
-    • Pairing Preferences: "\${per1.preferences:}"
-    • Industry: "\${per1.industry:}"
-    • Conversation Topics: "\${per1.topics:}"
-    • Anything Else For Us: "\${per1.anything:}"
-
-Cheers,
-Patina Network
-
-https://www.patinanetwork.org/`,
-);
-
 /** All templates: keyed by name for lookup and iteration in the admin UI. */
 export const emailTemplateMap: Record<string, EmailTemplate> = {
   Sample: SAMPLE_TEMPLATE,
   Pair: PAIR_TEMPLATE,
   Reminder: REMINDER_TEMPLATE,
-  Restart: RESTART_TEMPLATE,
 };
 
 export function getTemplate(name: string): EmailTemplate {
