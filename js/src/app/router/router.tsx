@@ -9,6 +9,7 @@ import EmailAdminPage from "@/features/emails/EmailAdminPage";
 import HomePage from "@/features/home/Home.page";
 import SamplePage from "@/features/sample/Sample.page";
 import SampleAdminPage from "@/features/sample/SampleAdmin.page";
+import { SignUpPage } from "@/features/sign-up/SignUp.page";
 import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
@@ -18,7 +19,10 @@ export const router = createBrowserRouter([
   // Public: no guard, public chrome.
   {
     element: <PublicLayout />,
-    children: [{ index: true, element: <HomePage /> }],
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: "sign-up", element: <SignUpPage /> },
+    ],
   },
 
   // Authenticated: guard -> layout -> page. Admin nests a second guard + layout.

@@ -14,7 +14,7 @@
     "eslint": "eslint .",
     "eslint:fix": "eslint . --fix",
     "stylelint": "stylelint '**/*.css' --allow-empty-input",
-    "stylelint:fix": "stylelint '**/*.css' --fix",
+    "stylelint:fix": "stylelint '**/*.css' --fix --allow-empty-input",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "preview": "vite preview"
