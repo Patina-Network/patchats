@@ -1,5 +1,5 @@
 import { readFiles } from "@/features/emails/api/parseCSV";
-import { FileInput, Button, Stack, NativeSelect } from "@mantine/core";
+import { FileInput, Button, Stack, NativeSelect, Box } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState } from "react";
 
@@ -59,7 +59,12 @@ export function TemplateSelect({
       onChange={(event) => onChange(event.currentTarget.value)}
       label="Email Templates"
       description="Select an email template"
-      data={["Pair", "Reminder", "Restart"]}
+      data={[
+        { label: "Select a template", value: "" },
+        "Pair",
+        "Reminder",
+        "Restart",
+      ]}
     />
   );
 }
@@ -86,7 +91,7 @@ export function CsvUpload() {
       });
       return;
     }
-    if (!template) {
+    if (template == "") {
       notifications.show({
         color: "red",
         title: "Missing template",
@@ -98,11 +103,13 @@ export function CsvUpload() {
   };
 
   return (
-    <Stack>
-      <UserCsvUpload value={userFile} onChange={setUserFile} />
-      <PairingCsvUpload value={pairingFile} onChange={setPairingFile} />
-      <TemplateSelect value={template} onChange={setTemplate} />
-      <CsvSubmitButton onSubmit={() => void handleSubmit()} />
-    </Stack>
+    <Box w="25%">
+      <Stack gap="md">
+        <UserCsvUpload value={userFile} onChange={setUserFile} />
+        <PairingCsvUpload value={pairingFile} onChange={setPairingFile} />
+        <TemplateSelect value={template} onChange={setTemplate} />
+        <CsvSubmitButton onSubmit={() => void handleSubmit()} />
+      </Stack>
+    </Box>
   );
 }

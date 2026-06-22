@@ -20,10 +20,6 @@ export const router = createBrowserRouter([
     element: <PublicLayout />,
     children: [{ index: true, element: <HomePage /> }],
   },
-  {
-    element: <EmailAdminPage />,
-    children: [{ path: "email/admin", element: <EmailAdminPage /> }],
-  },
 
   // Authenticated: guard -> layout -> page. Admin nests a second guard + layout.
   {
@@ -41,6 +37,7 @@ export const router = createBrowserRouter([
             children: [
               { path: "admin", element: <AdminPage /> },
               { path: "sample/admin", element: <SampleAdminPage /> },
+              { path: "sample/admin/email", element: <EmailAdminPage /> },
             ],
           },
         ],
