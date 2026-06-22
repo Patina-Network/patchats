@@ -68,6 +68,7 @@ export function SignUpForm() {
   // Validation logic
   const validateForm = (values: SignUpFormValues) => {
     const result = signUpFormSchema.safeParse(values);
+    console.log("validation result:", result);
     const fieldErrors =
       result.success ? {} : result.error?.flatten().fieldErrors;
     const errors = {} as Partial<Record<keyof SignUpFormValues, string>>;
@@ -146,7 +147,7 @@ export function SignUpForm() {
           <Textarea
             required
             label="Introduce yourself to your PatChats match in 1-2 sentences, written in third person"
-            description="e.g. Henry is a board member of Patina Network, helping run the organization! He was previously a software engineer at Microsoft and Yext, and is looking to get back into tech in the near future."
+            description="e.g. Jane is a marketing manager with 5 years of experience in the tech industry. She is passionate about mentorship and is looking for opportunities to connect with students."
             value={values.introduction}
             onChange={(event) =>
               handleFieldChange("introduction", event.target.value)
@@ -169,9 +170,8 @@ export function SignUpForm() {
             We will do our best to accommodate your preferences.
           </Text>
           <Select
-            required
             label="Matching Preference"
-            placeholder="Choose one"
+            placeholder="No Preference"
             data={matchingPreferenceOptions}
             value={values.matchingPreference}
             onChange={(value) =>
@@ -183,9 +183,8 @@ export function SignUpForm() {
             error={errors.matchingPreference}
           />
           <Select
-            required
             label="What industry are you in, or looking to get into?"
-            placeholder="Choose one"
+            placeholder="No Preference"
             data={industryOptions}
             value={values.industry}
             onChange={(value) =>
@@ -201,6 +200,7 @@ export function SignUpForm() {
             placeholder="Optional"
             value={values.role}
             onChange={(event) => handleFieldChange("role", event.target.value)}
+            error={errors.role}
           />
           <TextInput
             label="What are some things you would like to talk about?"
@@ -209,6 +209,7 @@ export function SignUpForm() {
             onChange={(event) =>
               handleFieldChange("talkingPoints", event.target.value)
             }
+            error={errors.talkingPoints}
           />
           <Textarea
             label="Anything else you would like us to consider when matching you?"

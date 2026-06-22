@@ -25,8 +25,8 @@ export const signUpFormSchema = z.object({
   referralSource: z
     .string()
     .max(200, "Referral source must be 200 characters or fewer."),
-  matchingPreference: z.string().min(1, "Matching Preference is required."),
-  industry: z.string().min(1, "Industry Preference is required."),
+  matchingPreference: z.string(),
+  industry: z.string(),
   role: z.string().max(200, "Role Preference must be 200 characters or fewer."),
   talkingPoints: z
     .string()
