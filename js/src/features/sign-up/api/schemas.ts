@@ -15,7 +15,7 @@ export const signUpFormSchema = z.object({
         value.startsWith("https://www.linkedin.com/in/"),
       {
         message:
-          "Enter a url starting with https://linkedin.com/in/ or https://www.linkedin.com/in/.",
+          "Enter a LinkedIn profile URL in the format linkedin.com/in/your-profile.",
       },
     ),
   introduction: z

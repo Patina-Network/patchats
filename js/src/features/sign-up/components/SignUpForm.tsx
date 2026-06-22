@@ -54,6 +54,16 @@ export function SignUpForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Helper function
+  const normalizeLinkedin = (value: string): string => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    if (trimmed.includes("linkedin.com/in/") && !trimmed.startsWith("http")) {
+      return `https://${trimmed}`;
+    }
+    return trimmed;
+  };
+
   // Handlers
   const handleFieldChange = <K extends keyof SignUpFormValues>(
     field: K,
@@ -65,12 +75,16 @@ export function SignUpForm() {
     setSubmitError(null);
   };
 
-  const handleFieldBlur = (field: keyof SignUpFormValues) => {
+  const handleFieldBlur = (
+    field: keyof SignUpFormValues,
+    overrideValue?: string,
+  ) => {
+    const valueToValidate = overrideValue ?? values[field];
     const fieldSchema = signUpFormSchema.pick({ [field]: true } as Record<
       typeof field,
       true
     >);
-    const result = fieldSchema.safeParse({ [field]: values[field] });
+    const result = fieldSchema.safeParse({ [field]: valueToValidate });
     if (!result.success) {
       const message = result.error.flatten().fieldErrors[field]?.[0];
       if (message) setErrors((current) => ({ ...current, [field]: message }));
@@ -80,7 +94,6 @@ export function SignUpForm() {
   // Validation logic
   const validateForm = (values: SignUpFormValues) => {
     const result = signUpFormSchema.safeParse(values);
-    console.log("validation result:", result);
     const fieldErrors =
       result.success ? {} : result.error?.flatten().fieldErrors;
     const errors = {} as Partial<Record<keyof SignUpFormValues, string>>;
@@ -99,7 +112,7 @@ export function SignUpForm() {
     setSubmitError(null);
 
     const validationErrors = validateForm(values);
-    console.log("errors:", validationErrors);
+    // console.log("errors:", validationErrors);
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
@@ -149,12 +162,16 @@ export function SignUpForm() {
           />
           <TextInput
             label="LinkedIn"
-            description="Use the format https://linkedin.com/in/your-profile or https://www.linkedin.com/in/your-profile"
+            description="Use the format linkedin.com/in/your-profile"
             value={values.linkedin}
             onChange={(event) =>
               handleFieldChange("linkedin", event.target.value)
             }
-            onBlur={() => handleFieldBlur("linkedin")}
+            onBlur={() => {
+              const normalized = normalizeLinkedin(values.linkedin);
+              handleFieldChange("linkedin", normalized);
+              handleFieldBlur("linkedin", normalized);
+            }}
             error={errors.linkedin}
           />
           <Divider />
