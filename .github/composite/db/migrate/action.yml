@@ -1,5 +1,5 @@
-name: "Validate DB"
-description: "Validate the current db/ folder at a current commit against a database"
+name: "Migrate database"
+description: "Run Flyway migrations against the target environment's database"
 
 inputs:
   AZURE_CLIENT_ID:
@@ -17,10 +17,7 @@ inputs:
   ENVIRONMENT:
     description: '"staging" or "production"'
     required: false
-    default: production
-  SHA:
-    description: "(Staging only). Current commit SHA"
-    required: false
+    default: staging
 
 runs:
   using: "composite"
@@ -50,5 +47,5 @@ runs:
     - name: Run script
       shell: bash
 
-      run: bun run .github/scripts/src/db/migrate.ts --environment=${{ inputs.ENVIRONMENT }} --sha=${{ inputs.SHA }}
-
+      run: |
+        bun run .github/scripts/src/db/migrate.ts --environment=${{ inputs.ENVIRONMENT }}

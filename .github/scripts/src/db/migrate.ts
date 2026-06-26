@@ -8,16 +8,12 @@ async function main() {
     .option("environment", {
       type: "string",
       choices: ["staging", "production"],
-      default: "production",
-    })
-    .option("sha", {
-      type: "string",
-      description: "Current commit SHA (staging only)",
+      require: true,
     })
     .parseAsync();
 
   const envClient = EnvClient.create(EnvClientStrategy.SOPS);
-  const ciEnv = await envClient.readFromEnv("secrets-rw.yaml");
+  const ciEnv = await envClient.readFromEnv("secrets.ci.yaml");
   const {
     DATABASE_NAME,
     DATABASE_HOST,
@@ -42,7 +38,7 @@ function parseCiEnv(ciEnv: Record<string, string>, environment: string) {
   const DATABASE_NAME = (() => {
     const v = ciEnv["PG_DATABASE"];
     if (!v) {
-      throw new Error("Missing PG_DATABASE from secrets-rw.yaml");
+      throw new Error("Missing PG_DATABASE from secrets.ci.yaml");
     }
     return v;
   })();
@@ -50,7 +46,7 @@ function parseCiEnv(ciEnv: Record<string, string>, environment: string) {
   const DATABASE_HOST = (() => {
     const v = ciEnv["PG_HOST"];
     if (!v) {
-      throw new Error("Missing PG_HOST from secrets-rw.yaml");
+      throw new Error("Missing PG_HOST from secrets.ci.yaml");
     }
     return v;
   })();
@@ -58,7 +54,7 @@ function parseCiEnv(ciEnv: Record<string, string>, environment: string) {
   const DATABASE_PORT = (() => {
     const v = ciEnv["PG_PORT"];
     if (!v) {
-      throw new Error("Missing PG_PORT from secrets-rw.yaml");
+      throw new Error("Missing PG_PORT from secrets.ci.yaml");
     }
     return v;
   })();
@@ -69,7 +65,7 @@ function parseCiEnv(ciEnv: Record<string, string>, environment: string) {
     const v = ciEnv[`PG_ROLE_patchats-${roleSuffix}-app`];
     if (!v) {
       throw new Error(
-        `Missing PG_ROLE_patchats-${roleSuffix}-app from secrets-rw.yaml`,
+        `Missing PG_ROLE_patchats-${roleSuffix}-app from secrets.ci.yaml`,
       );
     }
     return v;
