@@ -1,9 +1,9 @@
-import { userProfileSchema } from "@/features/api/schemas";
 import {
   INDUSTRIES,
   MATCHING_PREFERENCES,
 } from "@/features/sign-up/components/signUpFormConfig";
-import { UserProfileValues } from "@/features/types";
+import { userProfileSchema } from "@/features/user-profile/api/schemas";
+import { UserProfileValues } from "@/features/user-profile/types";
 import {
   Alert,
   Button,
