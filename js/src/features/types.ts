@@ -1,4 +1,4 @@
-export interface SignUpFormValues {
+export interface UserProfileValues {
   fullName: string;
   email: string;
   linkedin: string;
