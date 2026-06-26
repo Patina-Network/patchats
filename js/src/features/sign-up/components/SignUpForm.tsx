@@ -1,9 +1,9 @@
-import { signUpFormSchema } from "@/features/sign-up/api/schemas";
+import { userProfileSchema } from "@/features/api/schemas";
 import {
   INDUSTRIES,
   MATCHING_PREFERENCES,
 } from "@/features/sign-up/components/signUpFormConfig";
-import { SignUpFormValues } from "@/features/sign-up/types";
+import { UserProfileValues } from "@/features/types";
 import {
   Alert,
   Button,
@@ -27,7 +27,7 @@ const matchingPreferenceOptions = MATCHING_PREFERENCES.map((v) => ({
 const industryOptions = INDUSTRIES.map((v) => ({ value: v, label: v }));
 
 // Define initial values
-const initialFormValues: SignUpFormValues = {
+const initialFormValues: UserProfileValues = {
   fullName: "",
   email: "",
   linkedin: "",
@@ -42,12 +42,12 @@ const initialFormValues: SignUpFormValues = {
 
 export function SignUpForm() {
   // State management
-  const [values, setValues] = useState<SignUpFormValues>(() => ({
+  const [values, setValues] = useState<UserProfileValues>(() => ({
     ...initialFormValues,
   }));
 
   const [errors, setErrors] = useState<
-    Partial<Record<keyof SignUpFormValues, string>>
+    Partial<Record<keyof UserProfileValues, string>>
   >({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,9 +65,9 @@ export function SignUpForm() {
   };
 
   // Handlers
-  const handleFieldChange = <K extends keyof SignUpFormValues>(
+  const handleFieldChange = <K extends keyof UserProfileValues>(
     field: K,
-    value: SignUpFormValues[K],
+    value: UserProfileValues[K],
   ) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
@@ -76,11 +76,11 @@ export function SignUpForm() {
   };
 
   const handleFieldBlur = (
-    field: keyof SignUpFormValues,
+    field: keyof UserProfileValues,
     overrideValue?: string,
   ) => {
     const valueToValidate = overrideValue ?? values[field];
-    const fieldSchema = signUpFormSchema.pick({ [field]: true } as Record<
+    const fieldSchema = userProfileSchema.pick({ [field]: true } as Record<
       typeof field,
       true
     >);
@@ -92,15 +92,15 @@ export function SignUpForm() {
   };
 
   // Validation logic
-  const validateForm = (values: SignUpFormValues) => {
-    const result = signUpFormSchema.safeParse(values);
+  const validateForm = (values: UserProfileValues) => {
+    const result = userProfileSchema.safeParse(values);
     const fieldErrors =
       result.success ? {} : result.error?.flatten().fieldErrors;
-    const errors = {} as Partial<Record<keyof SignUpFormValues, string>>;
+    const errors = {} as Partial<Record<keyof UserProfileValues, string>>;
     for (const key in fieldErrors) {
-      if (fieldErrors[key as keyof SignUpFormValues]?.[0]) {
-        errors[key as keyof SignUpFormValues] =
-          fieldErrors[key as keyof SignUpFormValues]?.[0];
+      if (fieldErrors[key as keyof UserProfileValues]?.[0]) {
+        errors[key as keyof UserProfileValues] =
+          fieldErrors[key as keyof UserProfileValues]?.[0];
       }
     }
     return errors;
@@ -211,7 +211,7 @@ export function SignUpForm() {
             onChange={(value) =>
               handleFieldChange(
                 "matchingPreference",
-                (value || "") as SignUpFormValues["matchingPreference"],
+                (value || "") as UserProfileValues["matchingPreference"],
               )
             }
             onBlur={() => handleFieldBlur("matchingPreference")}
@@ -225,7 +225,7 @@ export function SignUpForm() {
             onChange={(value) =>
               handleFieldChange(
                 "industry",
-                (value || "") as SignUpFormValues["industry"],
+                (value || "") as UserProfileValues["industry"],
               )
             }
             onBlur={() => handleFieldBlur("industry")}
