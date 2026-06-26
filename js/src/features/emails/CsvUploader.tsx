@@ -3,6 +3,9 @@ import { FileInput, Button, NativeSelect, Flex } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useState } from "react";
 
+/**
+ * Component for user and pairing CSV file uploaders, an email template dropdown, and email generation button.
+ */
 export function CsvUploader({
   setRequest,
 }: {

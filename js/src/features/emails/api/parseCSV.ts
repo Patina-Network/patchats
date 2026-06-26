@@ -41,7 +41,6 @@ export const readFiles = async (
   pairingFile: File | null,
   template: string,
 ): Promise<SendRequest> => {
-  //await Promise.resolve(combineData(userFile, pairingFile, template));
   const request = combineData(userFile, pairingFile, template);
   return request;
 };

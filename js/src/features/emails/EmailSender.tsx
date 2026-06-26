@@ -5,6 +5,9 @@ import {
 import { Button, Flex } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 
+/**
+ *  Button to send  emails.
+ */
 export function EmailSender({ request }: { request: SendRequest | null }) {
   const handleSend = async () => {
     if (!request) {
