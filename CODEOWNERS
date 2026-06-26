@@ -3,3 +3,8 @@
 CODEOWNERS @Patina-Network/admin
 
 .github/ @Patina-Network/cicd
+
+secrets.admin.ci.yaml @Patina-Network/infra
+
+secrets.ci.yaml @Patina-Network/infra
+
