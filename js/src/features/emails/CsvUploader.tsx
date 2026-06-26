@@ -1,30 +1,31 @@
 import {
   readFiles,
   sendToEmailApi,
-  sendToPreviewApi,
-  type MessagePreview,
   type SendRequest,
 } from "@/features/emails/api/parseCSV";
-import { EmailPreview } from "@/features/emails/EmailPreview";
-import {
-  FileInput,
-  Button,
-  Stack,
-  NativeSelect,
-  Box,
-  Group,
-} from "@mantine/core";
+import { FileInput, Button, NativeSelect, Flex } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useState } from "react";
 
-export function CsvUpload() {
-  const [userFile, setUserFile] = useState<File | null>(null);
-  const [pairingFile, setPairingFile] = useState<File | null>(null);
-  const [template, setTemplate] = useState("");
-  const [request, setRequest] = useState<SendRequest | null>(null);
-  const [previews, setPreviews] = useState<MessagePreview[] | null>(null);
-
-  const handlePreview = async () => {
+export function CsvUploader({
+  userFile,
+  setUserFile,
+  pairingFile,
+  setPairingFile,
+  template,
+  setTemplate,
+  request,
+  setRequest,
+}: {
+  userFile: File | null;
+  setUserFile: React.Dispatch<React.SetStateAction<File | null>>;
+  pairingFile: File | null;
+  setPairingFile: React.Dispatch<React.SetStateAction<File | null>>;
+  template: string;
+  setTemplate: React.Dispatch<React.SetStateAction<string>>;
+  request: SendRequest | null;
+  setRequest: React.Dispatch<React.SetStateAction<SendRequest | null>>;
+}) {
+  const handleCSV = async () => {
     if (!userFile) {
       notifications.show({
         color: "red",
@@ -43,7 +44,6 @@ export function CsvUpload() {
     }
     const req = await readFiles(userFile, pairingFile, template);
     setRequest(req);
-    setPreviews(await sendToPreviewApi(req));
   };
 
   const handleSend = async () => {
@@ -64,22 +64,13 @@ export function CsvUpload() {
   };
 
   return (
-    <Group align="flex-start" gap="xl">
-      <Box w="25%">
-        <Stack gap="md">
-          <UserCsvUpload value={userFile} onChange={setUserFile} />
-          <PairingCsvUpload value={pairingFile} onChange={setPairingFile} />
-          <TemplateSelect value={template} onChange={setTemplate} />
-          <Button onClick={() => void handlePreview()}>Preview Emails</Button>
-          <Button onClick={() => void handleSend()}>Send Emails</Button>
-        </Stack>
-      </Box>
-      {
-        <Box style={{ flex: 1 }}>
-          <EmailPreview previews={previews} />
-        </Box>
-      }
-    </Group>
+    <Flex gap="lg" direction="column">
+      <UserCsvUpload value={userFile} onChange={setUserFile} />
+      <PairingCsvUpload value={pairingFile} onChange={setPairingFile} />
+      <TemplateSelect value={template} onChange={setTemplate} />
+      <Button onClick={() => void handleCSV()}>Process Emails</Button>
+      <Button onClick={() => void handleSend()}>Send Emails</Button>
+    </Flex>
   );
 }
 
@@ -122,6 +113,7 @@ export function PairingCsvUpload({
     />
   );
 }
+
 export function TemplateSelect({
   value,
   onChange,
