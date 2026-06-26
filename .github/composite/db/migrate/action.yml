@@ -49,5 +49,6 @@ runs:
 
     - name: Run script
       shell: bash
-      run: bun run .github/scripts/src/db/migrate.ts --environment=${{ inputs.ENVIRONMENT }}
-        --sha=${{ inputs.SHA }}
+
+      run: bun run .github/scripts/src/db/migrate.ts --environment=${{ inputs.ENVIRONMENT }} --sha=${{ inputs.SHA }}
+
