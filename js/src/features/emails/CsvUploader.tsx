@@ -1,30 +1,17 @@
-import {
-  readFiles,
-  sendToEmailApi,
-  type SendRequest,
-} from "@/features/emails/api/parseCSV";
+import { readFiles, type SendRequest } from "@/features/emails/api/parseCSV";
 import { FileInput, Button, NativeSelect, Flex } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { useState } from "react";
 
 export function CsvUploader({
-  userFile,
-  setUserFile,
-  pairingFile,
-  setPairingFile,
-  template,
-  setTemplate,
-  request,
   setRequest,
 }: {
-  userFile: File | null;
-  setUserFile: React.Dispatch<React.SetStateAction<File | null>>;
-  pairingFile: File | null;
-  setPairingFile: React.Dispatch<React.SetStateAction<File | null>>;
-  template: string;
-  setTemplate: React.Dispatch<React.SetStateAction<string>>;
-  request: SendRequest | null;
   setRequest: React.Dispatch<React.SetStateAction<SendRequest | null>>;
 }) {
+  const [userFile, setUserFile] = useState<File | null>(null);
+  const [pairingFile, setPairingFile] = useState<File | null>(null);
+  const [template, setTemplate] = useState("");
+
   const handleCSV = async () => {
     if (!userFile) {
       notifications.show({
@@ -46,30 +33,12 @@ export function CsvUploader({
     setRequest(req);
   };
 
-  const handleSend = async () => {
-    if (!request) {
-      notifications.show({
-        color: "red",
-        title: "Preview first",
-        message: "Preview before sending.",
-      });
-      return;
-    }
-    await sendToEmailApi(request);
-    notifications.show({
-      color: "green",
-      title: "Sent",
-      message: "Emails sent.",
-    });
-  };
-
   return (
     <Flex gap="lg" direction="column">
       <UserCsvUpload value={userFile} onChange={setUserFile} />
       <PairingCsvUpload value={pairingFile} onChange={setPairingFile} />
       <TemplateSelect value={template} onChange={setTemplate} />
       <Button onClick={() => void handleCSV()}>Process Emails</Button>
-      <Button onClick={() => void handleSend()}>Send Emails</Button>
     </Flex>
   );
 }
