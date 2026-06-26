@@ -41,6 +41,7 @@ jobs:
   migrate-database:
     name: Migrate staging database
     runs-on: ubuntu-latest
+    needs: [backend-pretest, frontend-pretest]
 
     steps:
       - name: Checkout Repository
