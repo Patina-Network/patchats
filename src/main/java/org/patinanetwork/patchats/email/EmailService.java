@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.patinanetwork.patchats.email.dto.PreviewEmailResponse;
 import org.patinanetwork.patchats.email.dto.SendEmailRequest;
 import org.patinanetwork.patchats.email.dto.SendEmailResponse;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,28 @@ public class EmailService {
         }
 
         return new SendEmailResponse(sent, failed, results);
+    }
+
+    /**
+     * Renders each message and returns the result without sending. Best-effort: a render failure is reported per
+     * message.
+     */
+    public PreviewEmailResponse preview(final SendEmailRequest request) {
+        final List<PreviewEmailResponse.MessagePreview> previews = new ArrayList<>();
+        for (final SendEmailRequest.Message message : request.messages()) {
+            final List<String> recipients = message.recipients().stream()
+                    .map(SendEmailRequest.Recipient::email)
+                    .toList();
+            try {
+                final Map<String, String> variables = mergeVariables(message);
+                final String subject = renderer.render(request.subject(), variables);
+                final String body = renderer.render(request.body(), variables);
+                previews.add(new PreviewEmailResponse.MessagePreview(recipients, subject, body, null));
+            } catch (final RuntimeException ex) {
+                previews.add(new PreviewEmailResponse.MessagePreview(recipients, null, null, ex.getMessage()));
+            }
+        }
+        return new PreviewEmailResponse(previews);
     }
 
     /**

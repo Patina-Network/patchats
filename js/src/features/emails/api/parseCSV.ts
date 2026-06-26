@@ -17,27 +17,40 @@ interface Pair {
   fullNameB: string;
   emailB: string;
 }
+export interface MessagePreview {
+  recipients: string[];
+  subject: string | null;
+  body: string | null;
+  error: string | null;
+}
+
+export interface SendRequest {
+  subject: string;
+  body: string;
+  replyTo: string | null;
+  messages: {
+    recipients: {
+      email: string;
+      variableToValue: Record<string, string>;
+    }[];
+  }[];
+}
 
 export const readFiles = async (
   userFile: File,
   pairingFile: File | null,
   template: string,
-): Promise<string> => {
-  try {
-    await Promise.resolve(combineData(userFile, pairingFile, template));
-
-    return "success";
-  } catch (error) {
-    console.error("Error reading files:", error);
-    return "Error reading files: " + error;
-  }
+): Promise<SendRequest> => {
+  //await Promise.resolve(combineData(userFile, pairingFile, template));
+  const request = combineData(userFile, pairingFile, template);
+  return request;
 };
 
 async function combineData(
   userFile: File,
   pairFile: File | null,
   templateKey: string,
-): Promise<void> {
+): Promise<SendRequest> {
   const userMap = await parseUserFile(userFile);
 
   // Drop empty/whitespace-only values so the key is absent from variableToValue. The backend
@@ -94,7 +107,7 @@ async function combineData(
     messages,
   };
 
-  await sendToEmailApi(sendRequest);
+  return sendRequest;
 }
 
 export async function parseUserFile(
@@ -157,7 +170,7 @@ export async function parsePairingFile(pairFile: File): Promise<Pair[]> {
   return pairings;
 }
 
-async function sendToEmailApi(body: unknown) {
+export async function sendToEmailApi(body: unknown) {
   const response = await fetch("/api/email/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -169,4 +182,25 @@ async function sendToEmailApi(body: unknown) {
     );
   }
   return response.json();
+}
+
+export async function sendToPreviewApi(
+  body: SendRequest,
+): Promise<MessagePreview[]> {
+  const response = await fetch("/api/email/preview", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(
+      `Preview API failed: ${response.status} ${response.statusText}`,
+    );
+  }
+  // The backend wraps the result in ApiResponder: { success, message, payload: { previews: [...] } }.
+  // Unwrap to the MessagePreview[] that EmailPreview expects.
+  const json = (await response.json()) as {
+    payload: { previews: MessagePreview[] };
+  };
+  return json.payload.previews;
 }

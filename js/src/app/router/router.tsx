@@ -24,7 +24,6 @@ export const router = createBrowserRouter([
       { path: "sign-up", element: <SignUpPage /> },
     ],
   },
-
   // Authenticated: guard -> layout -> page. Admin nests a second guard + layout.
   {
     element: <RequireAuth />,
