@@ -1,0 +1,61 @@
+name: "Validate DB"
+description: "Validate the current db/ folder at a current commit against a database"
+
+inputs:
+  AZURE_CLIENT_ID:
+    description: "Azure client ID if azure authentication is required."
+    required: false
+  AZURE_CLIENT_SECRET:
+    description: "Azure client secret if azure authentication is required."
+    required: false
+  AZURE_TENANT_ID:
+    description: "Azure tenant ID if azure authentication is required."
+    required: false
+  AZURE_SUBSCRIPTION_ID:
+    description: "Azure subscription ID if azure authentication is required."
+    required: false
+  ENVIRONMENT:
+    description: '"staging" or "production"'
+    required: false
+    default: production
+  SHA:
+    description: "(Staging only). Current commit SHA"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup CI
+      uses: ./.github/composite/setup-ci
+      with:
+        AZURE_CLIENT_ID:
+          description: "Azure client ID if azure authentication is required."
+          required: false
+        AZURE_CLIENT_SECRET:
+          description: "Azure client secret if azure authentication is required."
+          required: false
+        AZURE_TENANT_ID:
+          description: "Azure tenant ID if azure authentication is required."
+          required: false
+        AZURE_SUBSCRIPTION_ID:
+          description: "Azure subscription ID if azure authentication is required."
+          required: false
+
+    - name: Set up OpenJDK 25
+      uses: actions/setup-java@v5
+      with:
+        distribution: "temurin"
+        java-version: "25"
+
+    - name: Cache Maven packages
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.m2
+          ~/repository
+        key: ${{ github.job }}-${{ hashFiles('**/pom.xml') }}
+
+    - name: Run script
+      shell: bash
+      run: bun run .github/scripts/migrate-db --environment=${{ inputs.ENVIRONMENT }}
+        --sha=${{ inputs.SHA }}

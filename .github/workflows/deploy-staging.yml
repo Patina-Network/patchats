@@ -1,0 +1,60 @@
+name: Deploy to staging
+run-name: Deploying to staging triggered by ${{ github.actor }}
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  statuses: write
+  checks: write
+
+jobs:
+  backend-pretest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run workflow
+        uses: ./.github/composite/test/backend-pretest
+
+  frontend-pretest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: js
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run workflow
+        uses: ./.github/composite/test/frontend-pretest
+
+  migrate-database:
+    name: Migrate staging database
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Run workflow
+        uses: ./.github/composite/db/migrate
+        with:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ENVIRONMENT: staging
+          SHA: ${{ github.sha }}
