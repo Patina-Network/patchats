@@ -24,7 +24,8 @@ export const router = createBrowserRouter([
       { path: "sign-up", element: <SignUpPage /> },
     ],
   },
-
+  //TESTING
+  { path: "email", element: <EmailAdminPage /> },
   // Authenticated: guard -> layout -> page. Admin nests a second guard + layout.
   {
     element: <RequireAuth />,

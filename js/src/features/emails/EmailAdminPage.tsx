@@ -1,5 +1,30 @@
-import { CsvUpload } from "@/features/emails/CsvUpload";
+import {
+  type MessagePreview,
+  type SendRequest,
+} from "@/features/emails/api/parseCSV";
+import { CsvUploader } from "@/features/emails/CsvUploader";
+import { EmailPreviewer } from "@/features/emails/EmailPreviewer";
+import { EmailSender } from "@/features/emails/EmailSender";
+import { Box, Flex, Stack } from "@mantine/core";
+import { useState } from "react";
 
 export default function EmailAdminPage() {
-  return <CsvUpload />;
+  const [request, setRequest] = useState<SendRequest | null>(null);
+  const [previews, setPreviews] = useState<MessagePreview[] | null>(null);
+
+  return (
+    <Flex align="flex-start" gap="lg" wrap="nowrap">
+      <Stack w="30%" gap="lg">
+        <CsvUploader setRequest={setRequest} />
+        <EmailSender request={request} />
+      </Stack>
+      <Box w="70%">
+        <EmailPreviewer
+          previews={previews}
+          setPreviews={setPreviews}
+          request={request}
+        />
+      </Box>
+    </Flex>
+  );
 }
