@@ -13,6 +13,7 @@ public interface MemberRepo {
      *       <li>fullName
      *       <li>email
      *       <li>introduction
+     *       <li>active
      *       <li>createdAt
      *       <li>updatedAt
      *     </ul>
