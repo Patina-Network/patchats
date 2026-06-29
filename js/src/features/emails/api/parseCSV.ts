@@ -3,7 +3,6 @@ import type { User, Pair, SendRequest } from "@/features/emails/dto/EmailDto";
 import { emailTemplateMap } from "@/features/emails/api/emailTemplate";
 import { parse, ParseResult } from "papaparse";
 
-
 export const readFiles = async (
   userFile: File,
   pairingFile: File | null,
@@ -50,15 +49,11 @@ async function combineData(
     messages = pairList.map((p) => {
       const userA = userMap.get(p.emailA);
       const userB = userMap.get(p.emailB);
-      if (!userA ) {
-        throw new Error(
-          `Pairing references unknown email: ${p.emailA}`,
-        );
+      if (!userA) {
+        throw new Error(`Pairing references unknown email: ${p.emailA}`);
       }
       if (!userB) {
-        throw new Error(
-          `Pairing references unknown email: ${p.emailB}`,
-        );
+        throw new Error(`Pairing references unknown email: ${p.emailB}`);
       }
       //Combines two users into a recipient list within a message object
       return { recipients: [toRecipient(userA), toRecipient(userB)] };
@@ -141,4 +136,3 @@ export async function parsePairingFile(pairFile: File): Promise<Pair[]> {
 
   return pairings;
 }
-

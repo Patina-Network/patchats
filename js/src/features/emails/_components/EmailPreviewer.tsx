@@ -32,7 +32,6 @@ export function EmailPreviewer({
     queryFn: async () => {
       if (!request) throw new Error("Request required");
       return sendToPreviewApi(request);
-      
     },
     enabled: !!request,
   });
@@ -46,24 +45,24 @@ export function EmailPreviewer({
       });
       return;
     }
-    if (status === 'success'){
+    if (status === "success") {
       notifications.show({
         color: "green",
         title: `${status}`,
         message: "Email previews loaded",
       });
-    }else if (status === 'pending'){
+    } else if (status === "pending") {
       notifications.show({
         color: "yellow",
         title: `${status}`,
         message: "Email previews loading...",
-    });
-    }else if (status === 'error'){
+      });
+    } else if (status === "error") {
       notifications.show({
         color: "red",
         title: `${status}`,
         message: "Error when processing email previews",
-    });
+      });
     }
     setPreviews(data ?? null);
   };

@@ -4,7 +4,7 @@ import { sendToEmailApi } from "@/features/emails/api/emailAPI";
 import { Button, Flex } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect} from "react";
+import { useEffect } from "react";
 
 /**
  *  Button to send  emails.
@@ -28,7 +28,7 @@ export function EmailSender({ request }: { request: SendRequest | null }) {
       notifications.show({
         color: "red",
         title: "Preview first",
-        message: 'Preview before sending.'
+        message: "Preview before sending.",
       });
       return;
     }
@@ -41,19 +41,21 @@ export function EmailSender({ request }: { request: SendRequest | null }) {
         message: `Emails sent.`,
       });
     } catch {
-        notifications.show({
+      notifications.show({
         color: "red",
         title: `${mutation.status}`,
         message: "Unable to send emails.",
       });
     }
-
-    
   };
 
   return (
     <Flex>
-      <Button fullWidth loading={mutation.isPending} onClick={() => void handleSend()}>
+      <Button
+        fullWidth
+        loading={mutation.isPending}
+        onClick={() => void handleSend()}
+      >
         Send Emails
       </Button>
     </Flex>
