@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS "members" (
     linked_in_url TEXT,
     introduction TEXT NOT NULL,
     referral_source TEXT,
-    active BOOLEAN,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
     match_pref TEXT,
     industry_pref TEXT,
     role_pref TEXT,
