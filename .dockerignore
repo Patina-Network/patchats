@@ -1,0 +1,7 @@
+node_modules
+js/node_modules
+target
+.git
+.DS_Store
+dist
+js/dist
