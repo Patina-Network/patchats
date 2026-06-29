@@ -1,40 +1,8 @@
-import { emailTemplateMap } from "@/features/emails/api/EmailTemplate";
+import type { User, Pair, SendRequest } from "@/features/emails/dto/EmailDto";
+
+import { emailTemplateMap } from "@/features/emails/api/emailTemplate";
 import { parse, ParseResult } from "papaparse";
 
-interface User {
-  Name: string;
-  Email: string;
-  Intro: string;
-  LinkedIn: string;
-  Industry: string;
-  Preferences: string;
-  Topics: string;
-  Anything: string;
-}
-interface Pair {
-  fullNameA: string;
-  emailA: string;
-  fullNameB: string;
-  emailB: string;
-}
-export interface MessagePreview {
-  recipients: string[];
-  subject: string | null;
-  body: string | null;
-  error: string | null;
-}
-
-export interface SendRequest {
-  subject: string;
-  body: string;
-  replyTo: string | null;
-  messages: {
-    recipients: {
-      email: string;
-      variableToValue: Record<string, string>;
-    }[];
-  }[];
-}
 
 export const readFiles = async (
   userFile: File,
@@ -82,9 +50,14 @@ async function combineData(
     messages = pairList.map((p) => {
       const userA = userMap.get(p.emailA);
       const userB = userMap.get(p.emailB);
-      if (!userA || !userB) {
+      if (!userA ) {
         throw new Error(
-          `Pairing references unknown email: ${p.emailA} or ${p.emailB}`,
+          `Pairing references unknown email: ${p.emailA}`,
+        );
+      }
+      if (!userB) {
+        throw new Error(
+          `Pairing references unknown email: ${p.emailB}`,
         );
       }
       //Combines two users into a recipient list within a message object
@@ -169,37 +142,3 @@ export async function parsePairingFile(pairFile: File): Promise<Pair[]> {
   return pairings;
 }
 
-export async function sendToEmailApi(body: unknown) {
-  const response = await fetch("/api/email/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Email API failed: ${response.status} ${response.statusText}`,
-    );
-  }
-  return response.json();
-}
-
-export async function sendToPreviewApi(
-  body: SendRequest,
-): Promise<MessagePreview[]> {
-  const response = await fetch("/api/email/preview", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Preview API failed: ${response.status} ${response.statusText}`,
-    );
-  }
-  // The backend wraps the result in ApiResponder: { success, message, payload: { previews: [...] } }.
-  // Unwrap to the MessagePreview[] that EmailPreview expects.
-  const json = (await response.json()) as {
-    payload: { previews: MessagePreview[] };
-  };
-  return json.payload.previews;
-}

@@ -1,7 +1,9 @@
-import { readFiles, type SendRequest } from "@/features/emails/api/parseCSV";
-import { FileInput, Button, NativeSelect, Flex } from "@mantine/core";
+import type { SendRequest } from "@/features/emails/dto/EmailDto";
+
+import { readFiles } from "@/features/emails/api/parseCSV";
+import { FileInput, Button, NativeSelect, Flex, Box, ScrollArea, Text} from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Component for user and pairing CSV file uploaders, an email template dropdown, and email generation button.
@@ -32,8 +34,16 @@ export function CsvUploader({
       });
       return;
     }
+    try{
     const req = await readFiles(userFile, pairingFile, template);
     setRequest(req);
+    }catch(err){
+      notifications.show({
+        color: "red",
+        title: "Error when processing CSV",
+        message: `${err}`,
+      });
+    }
   };
 
   return (
@@ -41,7 +51,7 @@ export function CsvUploader({
       <UserCsvUpload value={userFile} onChange={setUserFile} />
       <PairingCsvUpload value={pairingFile} onChange={setPairingFile} />
       <TemplateSelect value={template} onChange={setTemplate} />
-      <Button onClick={() => void handleCSV()}>Process Emails</Button>
+      <Button onClick={() => void handleCSV()}>Process Files and Template</Button>
     </Flex>
   );
 }
@@ -53,19 +63,40 @@ export function UserCsvUpload({
   value: File | null;
   onChange: (file: File | null) => void;
 }) {
+  const [rawText, setRawText] = useState<string>("");
+
+  useEffect(() => {
+    if (value) {
+      value.text().then((text) => {
+          setRawText(text);
+      });
+    } else {
+      setRawText("");
+    }
+  }, [value]);
+
   return (
-    <FileInput
-      accept=".csv"
-      label="User CSV"
-      withAsterisk
-      description="Upload a CSV file containing information about users"
-      placeholder="Choose file"
-      value={value}
-      onChange={onChange}
-    />
+    <Box>
+      <FileInput
+        accept=".csv"
+        label="User CSV"
+        withAsterisk
+        description="Upload a CSV file containing information about users"
+        placeholder="Choose file"
+        value={value}
+        onChange={onChange}
+      />
+      <Text size = "sm">File Content:</Text>
+      {value ? (
+        <ScrollArea h = {150}>
+        <Text size = "sm">{rawText}</Text>
+        </ScrollArea>
+      ) : (
+        <Text size = "sm">Select a file to see its raw text contents.</Text>
+      )}
+    </Box>
   );
 }
-
 export function PairingCsvUpload({
   value,
   onChange,
@@ -73,7 +104,20 @@ export function PairingCsvUpload({
   value: File | null;
   onChange: (file: File | null) => void;
 }) {
+  const [rawText, setRawText] = useState<string>("");
+
+  useEffect(() => {
+    if (value) {
+      value.text().then((text) => {
+          setRawText(text);
+      });
+    } else {
+      setRawText("");
+    }
+  }, [value]);
+
   return (
+    <Box>
     <FileInput
       accept=".csv"
       label="Pairing CSV"
@@ -83,6 +127,15 @@ export function PairingCsvUpload({
       value={value}
       onChange={onChange}
     />
+    <Text size = "sm">File Content:</Text>
+      {value ? (
+        <ScrollArea h = {150}>
+        <Text size = "sm">{rawText}</Text>
+        </ScrollArea>
+      ) : (
+        <Text size = "sm">Select a file to see its raw text contents.</Text>
+      )}
+      </Box>
   );
 }
 
