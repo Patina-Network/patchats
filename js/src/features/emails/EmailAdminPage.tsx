@@ -1,10 +1,10 @@
+import { CsvUploader } from "@/features/emails/_components/CsvUploader";
+import { EmailPreviewer } from "@/features/emails/_components/EmailPreviewer";
+import { EmailSender } from "@/features/emails/_components/EmailSender";
 import {
   type MessagePreview,
   type SendRequest,
-} from "@/features/emails/api/parseCSV";
-import { CsvUploader } from "@/features/emails/CsvUploader";
-import { EmailPreviewer } from "@/features/emails/EmailPreviewer";
-import { EmailSender } from "@/features/emails/EmailSender";
+} from "@/features/emails/dto/EmailDto";
 import { Box, Flex, Stack } from "@mantine/core";
 import { useState } from "react";
 

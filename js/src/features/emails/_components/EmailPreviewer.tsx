@@ -1,13 +1,15 @@
 import type {
   MessagePreview,
   SendRequest,
-} from "@/features/emails/api/parseCSV";
+} from "@/features/emails/dto/EmailDto";
 
-import { sendToPreviewApi } from "@/features/emails/api/parseCSV";
+import { sendToPreviewApi } from "@/features/emails/api/emailAPI";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
 import { Alert, Box, Divider, Stack, Text, Button } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { useQuery } from "@tanstack/react-query";
+
 /**
  * Displays the rendered emails returned by the /api/email/preview endpoint.
  *
@@ -25,16 +27,45 @@ export function EmailPreviewer({
   setPreviews: React.Dispatch<React.SetStateAction<MessagePreview[] | null>>;
   request: SendRequest | null;
 }) {
+  const { data, status } = useQuery({
+    queryKey: ["preview", request],
+    queryFn: async () => {
+      if (!request) throw new Error("Request required");
+      return sendToPreviewApi(request);
+      
+    },
+    enabled: !!request,
+  });
+
   const handlePreview = async () => {
     if (!request) {
       notifications.show({
         color: "red",
         title: "Process CSV first",
-        message: "Process CSV before sending.",
+        message: "Process CSV before previewing.",
       });
       return;
     }
-    setPreviews(await sendToPreviewApi(request));
+    if (status === 'success'){
+      notifications.show({
+        color: "green",
+        title: `${status}`,
+        message: "Email previews loaded",
+      });
+    }else if (status === 'pending'){
+      notifications.show({
+        color: "yellow",
+        title: `${status}`,
+        message: "Email previews loading...",
+    });
+    }else if (status === 'error'){
+      notifications.show({
+        color: "red",
+        title: `${status}`,
+        message: "Error when processing email previews",
+    });
+    }
+    setPreviews(data ?? null);
   };
 
   return (
@@ -74,12 +105,12 @@ function EmailPreviewCard({ preview }: { preview: MessagePreview }) {
     <Box
       p="sm"
       style={{
-        borderLeft: `3px solid var(--mantine-color-${hasError ? "red" : "green"}-6)`,
-        backgroundColor: "var(--mantine-color-gray-0)",
+        borderLeft: `green${hasError ? "red" : "green"}-6)`,
+        backgroundColor: "white",
         borderRadius: 4,
       }}
     >
-      <Text size="sm" c="dimmed">
+      <Text size="sm" c="black">
         To: {preview.recipients.join(", ")}
       </Text>
       {hasError ?
@@ -87,11 +118,11 @@ function EmailPreviewCard({ preview }: { preview: MessagePreview }) {
           {preview.error}
         </Alert>
       : <>
-          <Text fw={600} mt="xs" c="dimmed">
+          <Text fw={600} mt="xs" c="black">
             {preview.subject}
           </Text>
           <Divider my="xs" />
-          <Text size="sm" style={{ whiteSpace: "pre-wrap" }} c="dimmed">
+          <Text size="sm" style={{ whiteSpace: "pre-wrap" }} c="black">
             {preview.body}
           </Text>
         </>
