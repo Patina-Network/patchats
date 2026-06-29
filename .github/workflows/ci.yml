@@ -36,3 +36,27 @@ jobs:
 
       - name: Run workflow
         uses: ./.github/composite/test/frontend-pretest
+
+  backendTests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    needs: backend-pretest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Run workflow
+        uses: ./.github/composite/test/backend-test
+
+  frontendTests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    needs: frontend-pretest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Run workflow
+        uses: ./.github/composite/test/frontend-test
