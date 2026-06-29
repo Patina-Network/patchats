@@ -1,1 +1,49 @@
+package org.patinanetwork.patchats.api.member;
 
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.patinanetwork.patchats.common.db.models.member.Member;
+import org.patinanetwork.patchats.common.db.repos.member.MemberRepo;
+import org.patinanetwork.patchats.common.dto.member.MemberDto;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+@RequiredArgsConstructor
+public class MemberService {
+
+    private final MemberRepo memberRepo;
+
+    public MemberDto createMember(Member member) {
+        if (memberRepo.getMemberByEmail(member.getEmail()).isPresent()) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "Member with email " + member.getEmail() + " already exists");
+        }
+        member.setId(UUID.randomUUID());
+        member.setActive(true);
+        Member createdMember = memberRepo.createMember(member);
+        return MemberDto.from(createdMember);
+    }
+
+    public MemberDto editMember(Member member) {
+        return memberRepo
+                .editMember(member)
+                .map(MemberDto::from)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
+    }
+
+    public MemberDto getMemberById(UUID id) {
+        return memberRepo
+                .getMemberById(id)
+                .map(MemberDto::from)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
+    }
+
+    public MemberDto deactivateMemberById(UUID id) {
+        return memberRepo
+                .deactivateMemberById(id)
+                .map(MemberDto::from)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
+    }
+}
