@@ -10,7 +10,6 @@ runs:
     - name: Set up pnpm
       uses: pnpm/action-setup@v5
       with:
-        version: 10.24.0
         cache: true
         cache_dependency_path: js/pnpm-lock.yaml
         package_json_file: js/package.json

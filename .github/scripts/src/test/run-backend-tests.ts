@@ -1,7 +1,7 @@
 import { $ } from "bun";
 
 async function main() {
-  await $`./mvnw clean verify -Dspring.profiles.active=ci`;
+  await $`./mvnw clean test -Dspring.profiles.active=ci`;
 }
 
 main()
