@@ -37,11 +37,11 @@ public interface MemberRepo {
      *       <li>extraNotes
      *     </ul>
      */
-    boolean editMember(Member member);
+    Optional<Member> editMember(Member member);
 
     Optional<Member> getMemberById(UUID id);
 
     Optional<Member> getMemberByEmail(String email);
 
-    boolean deleteMemberById(UUID id);
+    Optional<Member> deactivateMemberById(UUID id);
 }
