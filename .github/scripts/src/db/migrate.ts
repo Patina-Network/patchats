@@ -26,24 +26,20 @@ async function main() {
     DATABASE_PORT,
     DATABASE_USER,
     DATABASE_PASSWORD,
-  })`./mvnw flyway:migrate -Dflyway.locations=filesystem:db`;
+  })`./mvnw -X flyway:migrate -Dflyway.locations=filesystem:db`;
 }
 
 function parseCiEnv(environment: string) {
   const roleSuffix = environment === "staging" ? "stg" : "prod";
 
   const DATABASE_NAME = (() => {
-    const v = process.env["PG_DATABASE"];
-    if (!v) {
-      throw new Error("Missing PG_DATABASE from secrets.ci.yaml");
-    }
-    return v;
+    return `patchats-${roleSuffix}`;
   })();
 
   const DATABASE_HOST = (() => {
     const v = process.env["PG_HOST"];
     if (!v) {
-      throw new Error("Missing PG_HOST from secrets.ci.yaml");
+      throw new Error("Missing PG_HOST from platform-infra patchats.yaml");
     }
     return v;
   })();
@@ -51,18 +47,19 @@ function parseCiEnv(environment: string) {
   const DATABASE_PORT = (() => {
     const v = process.env["PG_PORT"];
     if (!v) {
-      throw new Error("Missing PG_PORT from secrets.ci.yaml");
+      throw new Error("Missing PG_PORT from platform-infra patchats.yaml");
     }
     return v;
   })();
 
-  const DATABASE_USER = `patchats-${roleSuffix}-app`;
+  const DATABASE_USER = `patchats-${roleSuffix}-sa`;
 
   const DATABASE_PASSWORD = (() => {
-    const v = process.env[`PG_ROLE_patchats-${roleSuffix}-app`];
+    const v = process.env[`PG_ROLE_PATCHATS_${roleSuffix.toUpperCase()}_SA`];
+
     if (!v) {
       throw new Error(
-        `Missing PG_ROLE_patchats-${roleSuffix}-app from secrets.ci.yaml`,
+        `Missing PG_ROLE_PATCHATS_${roleSuffix.toUpperCase()}.to_SA from platform-infra patchats.yaml`,
       );
     }
     return v;
