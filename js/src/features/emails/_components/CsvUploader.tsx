@@ -184,7 +184,7 @@ export function PairingCsvUpload({
     } else {
       setRows([]);
     }
-  }, [value, rows]);
+  }, [value]);
 
   return (
     <Box>
