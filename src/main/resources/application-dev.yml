@@ -1,0 +1,4 @@
+app:
+  auth:
+    # Dev runs plain HTTP through the Vite proxy; a Secure cookie would be silently dropped.
+    cookie-secure: false
