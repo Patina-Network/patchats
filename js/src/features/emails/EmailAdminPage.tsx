@@ -4,7 +4,7 @@ import { EmailSender } from "@/features/emails/_components/EmailSender";
 import {
   type MessagePreview,
   type SendRequest,
-} from "@/features/emails/dto/EmailDto";
+} from "@/features/emails/dto/emailDto";
 import { Box, Flex, Stack } from "@mantine/core";
 import { useState } from "react";
 

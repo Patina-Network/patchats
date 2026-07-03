@@ -1,12 +1,14 @@
 export interface User {
-  Name: string;
-  Email: string;
-  Intro: string;
-  LinkedIn: string;
-  Industry: string;
-  Preferences: string;
-  Topics: string;
-  Anything: string;
+  name: string;
+  email: string;
+  intro: string;
+  linkedIn: string;
+  industry: string;
+  preferences: string;
+  topics: string;
+  anything: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface Pair {

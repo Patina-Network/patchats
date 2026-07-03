@@ -1,14 +1,15 @@
 import type {
   MessagePreview,
   SendRequest,
-} from "@/features/emails/dto/EmailDto";
+} from "@/features/emails/dto/emailDto";
 
 import { sendToPreviewApi } from "@/features/emails/api/emailAPI";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { Alert, Box, Divider, Stack, Text, Button } from "@mantine/core";
+import { Alert, Flex, Box, Divider, Stack, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 /**
  * Displays the rendered emails returned by the /api/email/preview endpoint.
@@ -36,41 +37,21 @@ export function EmailPreviewer({
     enabled: !!request,
   });
 
-  const handlePreview = async () => {
-    if (!request) {
-      notifications.show({
-        color: "red",
-        title: "Process CSV first",
-        message: "Process CSV before previewing.",
-      });
-      return;
-    }
+  useEffect(() => {
     if (status === "success") {
+      setPreviews(data);
       notifications.show({
         color: "green",
         title: `${status}`,
         message: "Email previews loaded",
       });
-    } else if (status === "pending") {
-      notifications.show({
-        color: "yellow",
-        title: `${status}`,
-        message: "Email previews loading...",
-      });
-    } else if (status === "error") {
-      notifications.show({
-        color: "red",
-        title: `${status}`,
-        message: "Error when processing email previews",
-      });
     }
-    setPreviews(data ?? null);
-  };
+    // handle other statuses
+  }, [status, data, setPreviews]);
 
   return (
     <Stack gap="md">
-      <Box style={{ flex: 1 }}>
-        <Button onClick={() => void handlePreview()}>Preview Emails</Button>
+      <Flex direction="column" gap="md" mr="xl">
         {previews === null ?
           <Text c="dimmed">Upload a CSV and click Preview.</Text>
         : previews.length === 0 ?
@@ -83,6 +64,8 @@ export function EmailPreviewer({
               slideSize="100%"
               withIndicators
               emblaOptions={{ loop: true }}
+              px="xl"
+              controlsOffset="xxs"
             >
               {previews.map((preview, index) => (
                 <Carousel.Slide key={index}>
@@ -92,7 +75,7 @@ export function EmailPreviewer({
             </Carousel>
           </>
         }
-      </Box>
+      </Flex>
     </Stack>
   );
 }
@@ -104,7 +87,7 @@ function EmailPreviewCard({ preview }: { preview: MessagePreview }) {
     <Box
       p="sm"
       style={{
-        borderLeft: `green${hasError ? "red" : "green"}-6)`,
+        borderLeft: `3px solid ${hasError ? "red" : "green"}`,
         backgroundColor: "white",
         borderRadius: 4,
       }}

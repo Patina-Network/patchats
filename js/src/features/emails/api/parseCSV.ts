@@ -1,4 +1,4 @@
-import type { User, Pair, SendRequest } from "@/features/emails/dto/EmailDto";
+import type { User, Pair, SendRequest } from "@/features/emails/dto/emailDto";
 
 import { emailTemplateMap } from "@/features/emails/api/emailTemplate";
 import { parse, ParseResult } from "papaparse";
@@ -28,16 +28,18 @@ async function combineData(
 
   // Turn a full User record into a recipient oject with their variables.
   const toRecipient = (u: User) => ({
-    email: u.Email,
+    email: u.email,
     variableToValue: withoutEmpty({
-      name: u.Name,
-      email: u.Email,
-      intro: u.Intro,
-      linkedin: u.LinkedIn,
-      industry: u.Industry,
-      preferences: u.Preferences,
-      topics: u.Topics,
-      anything: u.Anything,
+      name: u.name,
+      email: u.email,
+      intro: u.intro,
+      linkedIn: u.linkedIn,
+      industry: u.industry,
+      preferences: u.preferences,
+      topics: u.topics,
+      anything: u.anything,
+      firstName: (u.name ?? "").split(" ")[0],
+      lastName: (u.name ?? "").split(" ").slice(1).join(" "),
     }),
   });
 
@@ -93,18 +95,39 @@ export async function parseUserFile(
   const userMap = new Map<string, User>();
   const results = parse<User>(text, config);
 
+  //check User CSV for required headers
+  const headers = results.meta.fields ?? [];
+  const requiredHeaders = [
+    "name",
+    "email",
+    "intro",
+    "linkedIn",
+    "industry",
+    "preferences",
+    "topics",
+    "anything",
+  ];
+  const missingHeaders = requiredHeaders.filter(
+    (header) => !headers.includes(header),
+  );
+  if (missingHeaders.length > 0) {
+    throw new Error(
+      `User file is missing required headers: ${missingHeaders.join(", ")}`,
+    );
+  }
+
   for (const userData of results.data) {
     const user: User = {
-      Name: userData.Name,
-      Email: userData.Email,
-      Intro: userData.Intro,
-      LinkedIn: userData.LinkedIn,
-      Industry: userData.Industry,
-      Preferences: userData.Preferences,
-      Topics: userData.Topics,
-      Anything: userData.Anything,
+      name: userData.name,
+      email: userData.email,
+      intro: userData.intro,
+      linkedIn: userData.linkedIn,
+      industry: userData.industry,
+      preferences: userData.preferences,
+      topics: userData.topics,
+      anything: userData.anything,
     };
-    userMap.set(user.Email, user);
+    userMap.set(user.email, user);
   }
   return userMap;
 }

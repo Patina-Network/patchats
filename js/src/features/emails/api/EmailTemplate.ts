@@ -61,8 +61,8 @@ export const PAIR_TEMPLATE: EmailTemplate = emailTemplate(
   "Pair",
   "[PatChats " +
     month +
-    "] ${per1.name} and ${per2.name}, you've been paired for PatChats!",
-  `Hey \${per1.name} and \${per2.name}! \n
+    "] ${per1.firstName} and ${per2.firstName}, you've been paired for PatChats!",
+  `Hey \${per1.firstName} and \${per2.firstName}! \n
 We've paired you two for PatChats this month! Find some time to have a 30 minute coffee chat or video call with your pairing!
 Share a screenshot or selfie of you two in the #pat-chats channel on the Discord server! \n
 \${per1.name} (\${per1.email}): 
@@ -79,7 +79,7 @@ Patina Network`,
 export const REMINDER_TEMPLATE: EmailTemplate = emailTemplate(
   "Reminder",
   `[PatChats ` + month + `] Reminder: Have you had your PatChat yet?`,
-  `Hi \${per1.name} and \${per2.name},
+  `Hi \${per1.firstName} and \${per2.firstName},
 
 Just a friendly reminder that you were paired for PatChats this month!
 If you haven't had your 30 minute coffee chat or video call yet, now's a great time to schedule it.
