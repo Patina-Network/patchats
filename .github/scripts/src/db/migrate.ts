@@ -26,7 +26,7 @@ async function main() {
     DATABASE_PORT,
     DATABASE_USER,
     DATABASE_PASSWORD,
-  })`./mvnw -X flyway:migrate -Dflyway.locations=filesystem:db`;
+  })`./mvnw flyway:migrate -Dflyway.locations=filesystem:db`;
 }
 
 function parseCiEnv(environment: string) {
@@ -59,7 +59,7 @@ function parseCiEnv(environment: string) {
 
     if (!v) {
       throw new Error(
-        `Missing PG_ROLE_PATCHATS_${roleSuffix.toUpperCase()}.to_SA from platform-infra patchats.yaml`,
+        `Missing PG_ROLE_PATCHATS_${roleSuffix.toUpperCase()}_SA from platform-infra patchats.yaml`,
       );
     }
     return v;
