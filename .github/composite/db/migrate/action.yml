@@ -2,18 +2,6 @@ name: "Migrate database"
 description: "Run Flyway migrations against the target environment's database"
 
 inputs:
-  AZURE_CLIENT_ID:
-    description: "Azure client ID if azure authentication is required."
-    required: false
-  AZURE_CLIENT_SECRET:
-    description: "Azure client secret if azure authentication is required."
-    required: false
-  AZURE_TENANT_ID:
-    description: "Azure tenant ID if azure authentication is required."
-    required: false
-  AZURE_SUBSCRIPTION_ID:
-    description: "Azure subscription ID if azure authentication is required."
-    required: false
   ENVIRONMENT:
     description: '"staging" or "production"'
     required: false
@@ -22,14 +10,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup CI
-      uses: ./.github/composite/setup-ci
-      with:
-        AZURE_CLIENT_ID: ${{ inputs.AZURE_CLIENT_ID }}
-        AZURE_CLIENT_SECRET: ${{ inputs.AZURE_CLIENT_SECRET }}
-        AZURE_TENANT_ID: ${{ inputs.AZURE_TENANT_ID }}
-        AZURE_SUBSCRIPTION_ID: ${{ inputs.AZURE_SUBSCRIPTION_ID }}
-
     - name: Set up OpenJDK 25
       uses: actions/setup-java@v5
       with:
