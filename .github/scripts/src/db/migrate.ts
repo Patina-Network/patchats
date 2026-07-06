@@ -30,7 +30,7 @@ async function main() {
 }
 
 function parseCiEnv(environment: string) {
-  const roleSuffix = environment === "staging" ? "stg" : "prod";
+  const roleSuffix = environment === "production" ? "prod" : "stg";
 
   const DATABASE_NAME = (() => {
     return `patchats-${roleSuffix}`;
