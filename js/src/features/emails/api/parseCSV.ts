@@ -3,22 +3,18 @@ import type { User, Pair, SendRequest } from "@/features/emails/dto/emailDto";
 import { emailTemplateMap } from "@/features/emails/api/emailTemplate";
 import { parse, ParseResult } from "papaparse";
 
-export const readFiles = async (
-  userFile: File,
-  pairingFile: File | null,
+/**
+ * Takes parsed user/pair data and generates a SendRequest object based on the selected email template.
+ * @param userMap - map of user data keyed by email address
+ * @param pairList - list of user pairs
+ * @param template - the selected email template
+ * @returns SendRequest object to be sent to backend email API
+ */
+export const dataToSendRequest = async (
+  userMap: Map<string, User>,
+  pairList: Pair[],
   template: string,
 ): Promise<SendRequest> => {
-  const request = combineData(userFile, pairingFile, template);
-  return request;
-};
-
-async function combineData(
-  userFile: File,
-  pairFile: File | null,
-  templateKey: string,
-): Promise<SendRequest> {
-  const userMap = await parseUserFile(userFile);
-
   // Drop empty/whitespace-only values so the key is absent from variableToValue. The backend
   // resolves missing keys (not empty strings) to a template default via ${x:default}
   const withoutEmpty = (vars: Record<string, string>): Record<string, string> =>
@@ -44,10 +40,9 @@ async function combineData(
   });
 
   let messages;
-  if (pairFile) {
+  if (pairList.length > 0) {
     // One message per pair, addressed to two recipients. The pairing file only gives us names + emails,
     // so we look each person up in userMap to add the user with their full set of variables.
-    const pairList = await parsePairingFile(pairFile);
     messages = pairList.map((p) => {
       const userA = userMap.get(p.emailA);
       const userB = userMap.get(p.emailB);
@@ -57,7 +52,7 @@ async function combineData(
       if (!userB) {
         throw new Error(`Pairing references unknown email: ${p.emailB}`);
       }
-      //Combines two users into a recipient list within a message object
+      // Combines two users into a recipient list within a message object
       return { recipients: [toRecipient(userA), toRecipient(userB)] };
     });
   } else {
@@ -67,18 +62,23 @@ async function combineData(
     }));
   }
 
-  const template = emailTemplateMap[templateKey];
+  const templateValue = emailTemplateMap[template];
 
   const sendRequest = {
-    subject: template.subject,
-    body: template.body,
-    replyTo: template.replyTo,
+    subject: templateValue.subject,
+    body: templateValue.body,
+    replyTo: templateValue.replyTo,
     messages,
   };
 
   return sendRequest;
-}
+};
 
+/**
+ * Parses the user CSV file and returns a map of user data.
+ * @param userFile - The user CSV file to be parsed.
+ * @returns user data map
+ */
 export async function parseUserFile(
   userFile: File,
 ): Promise<Map<string, User>> {
@@ -95,7 +95,7 @@ export async function parseUserFile(
   const userMap = new Map<string, User>();
   const results = parse<User>(text, config);
 
-  //check User CSV for required headers
+  // Check User CSV for required headers
   const headers = results.meta.fields ?? [];
   const requiredHeaders = [
     "name",
@@ -119,7 +119,8 @@ export async function parseUserFile(
   for (const userData of results.data) {
     const user: User = {
       name: userData.name,
-      email: userData.email,
+      // Trim so trailing whitespace from the CSV doesn't fail backend email validation.
+      email: userData.email?.trim(),
       intro: userData.intro,
       linkedIn: userData.linkedIn,
       industry: userData.industry,
@@ -131,13 +132,19 @@ export async function parseUserFile(
   }
   return userMap;
 }
+
+/**
+ * Parses the pairing CSV file and returns a list of pair data.
+ * @param pairFile - The pairing CSV file to be parsed.
+ * @returns pair data list
+ */
 export async function parsePairingFile(pairFile: File): Promise<Pair[]> {
   const config = {
     quotes: false,
     quoteChar: '"',
     escapeChar: '"',
     delimiter: ",",
-    header: false, //change header to false
+    header: false, // Change header to false
     skipEmptyLines: true,
     columns: null,
     complete: (results: ParseResult<string[]>) => {
@@ -150,9 +157,10 @@ export async function parsePairingFile(pairFile: File): Promise<Pair[]> {
   for (const pairData of results.data) {
     const pair: Pair = {
       fullNameA: pairData[0],
-      emailA: pairData[1],
+      // Trim so emails match the trimmed userMap keys and pass backend validation.
+      emailA: pairData[1]?.trim(),
       fullNameB: pairData[2],
-      emailB: pairData[3],
+      emailB: pairData[3]?.trim(),
     };
     pairings.push(pair);
   }

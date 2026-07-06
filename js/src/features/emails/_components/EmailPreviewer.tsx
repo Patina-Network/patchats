@@ -4,18 +4,18 @@ import type {
 } from "@/features/emails/dto/emailDto";
 
 import { sendToPreviewApi } from "@/features/emails/api/emailAPI";
+import { showEmailError } from "@/features/emails/api/emailError";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
 import { Alert, Flex, Box, Divider, Stack, Text } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 /**
- * Displays the rendered emails returned by the /api/email/preview endpoint.
+ * Component that displays the rendered emails returned by the /api/email/preview endpoint in a carousel.
  *
- * Note: this takes the *rendered* previews (MessagePreview[]), not the raw object from combineData.
- * combineData returns a SendEmailRequest whose subject/body still contain unresolved ${...} placeholders;
+ * Note: this takes the *rendered* previews (MessagePreview[]), not the raw object from dataToSendRequest.
+ * dataToSendRequest returns a SendEmailRequest whose subject/body still contain unresolved ${...} placeholders;
  * passing that here would show literal template syntax. Render it first via previewEmails(request), then
  * pass the result in so the user sees exactly what will be sent.
  */
@@ -40,13 +40,13 @@ export function EmailPreviewer({
   useEffect(() => {
     if (status === "success") {
       setPreviews(data);
-      notifications.show({
-        color: "green",
-        title: `${status}`,
-        message: "Email previews loaded",
-      });
+      showEmailError(
+        "green",
+        "Email previews loaded",
+        `${data?.length} email previews loaded.`,
+      );
     }
-    // handle other statuses
+    // Handle other statuses
   }, [status, data, setPreviews]);
 
   return (
@@ -80,6 +80,11 @@ export function EmailPreviewer({
   );
 }
 
+/**
+ * Component to display a single email preview card.
+ * @param preview - The MessagePreview object containing the rendered email data to be displayed.
+ * @returns A card that displays the email preview, including recipients, subject, body, and any rendering errors.
+ */
 function EmailPreviewCard({ preview }: { preview: MessagePreview }) {
   const hasError = preview.error !== null;
 

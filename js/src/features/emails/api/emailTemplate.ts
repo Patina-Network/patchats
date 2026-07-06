@@ -15,7 +15,7 @@
  * if included in a message sent to multiple users. 
  */
 
-//Defaults
+// Defaults
 const INTRO_MISSING = "{Intro missing! Send me an intro to add to the emails.}";
 const month: string = new Intl.DateTimeFormat("en-US", {
   month: "long",

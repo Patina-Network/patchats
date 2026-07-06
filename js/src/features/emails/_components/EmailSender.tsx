@@ -1,14 +1,16 @@
 import type { SendRequest } from "@/features/emails/dto/emailDto";
 
 import { sendToEmailApi } from "@/features/emails/api/emailAPI";
+import { showEmailError } from "@/features/emails/api/emailError";
 import { Button, Flex, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
-import { notifications } from "@mantine/notifications";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 /**
  *  Button to send  emails.
+ *  @param request - The SendRequest object containing the email data to be sent.
+ *  @returns A button that, when clicked, opens a confirmation modal and sends the emails if confirmed.
  */
 export function EmailSender({ request }: { request: SendRequest | null }) {
   const mutation = useMutation({
@@ -16,11 +18,11 @@ export function EmailSender({ request }: { request: SendRequest | null }) {
   });
   useEffect(() => {
     if (mutation.status === "pending") {
-      notifications.show({
-        color: "yellow",
-        title: `${mutation.status}`,
-        message: "Email sending in progress...",
-      });
+      showEmailError(
+        "yellow",
+        `${mutation.status}`,
+        "Email sending in progress...",
+      );
     }
   }, [mutation.status]);
 
@@ -35,37 +37,25 @@ export function EmailSender({ request }: { request: SendRequest | null }) {
       ),
       labels: { confirm: "Confirm", cancel: "Cancel" },
       onCancel: () =>
-        notifications.show({
-          color: "yellow",
-          title: `Cancel`,
-          message: `${request?.messages.length} Emails cancelled.`,
-        }),
+        showEmailError(
+          "yellow",
+          "Cancel",
+          `${request?.messages.length} Emails cancelled.`,
+        ),
       onConfirm: () => void handleSend(),
     });
 
   const handleSend = async () => {
     if (!request) {
-      notifications.show({
-        color: "red",
-        title: "Preview first",
-        message: "Preview before sending.",
-      });
+      showEmailError("red", "Preview first", "Preview before sending.");
       return;
     }
 
     try {
       await mutation.mutateAsync(request);
-      notifications.show({
-        color: "green",
-        title: `${mutation.status}`,
-        message: `Emails sent.`,
-      });
+      showEmailError("green", "Success", "Emails sent.");
     } catch {
-      notifications.show({
-        color: "red",
-        title: `${mutation.status}`,
-        message: "Unable to send emails.",
-      });
+      showEmailError("red", "Error", "Unable to send emails.");
     }
   };
 

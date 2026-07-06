@@ -1,11 +1,12 @@
-import type { SendRequest } from "@/features/emails/dto/emailDto";
+import type { Pair, SendRequest, User } from "@/features/emails/dto/emailDto";
 
+import { showEmailError } from "@/features/emails/api/emailError";
 import {
   EmailTemplate,
   emailTemplateMap,
 } from "@/features/emails/api/emailTemplate";
 import {
-  readFiles,
+  dataToSendRequest,
   parseUserFile,
   parsePairingFile,
 } from "@/features/emails/api/parseCSV";
@@ -20,10 +21,9 @@ import {
   Table,
   Spoiler,
 } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { useEffect, useState } from "react";
 
-// style definition for each row in the  User file preview table
+// Style definition for each row in the  User file preview table
 const rowStyle = {
   overflow: "hidden",
   textOverflow: "ellipsis",
@@ -32,51 +32,51 @@ const rowStyle = {
 };
 
 /**
- * Component for user and pairing CSV file uploaders, an email template dropdown, and email generation button.
+ * Main component for user and pairing CSV file uploaders, an email template dropdown, and email generation button.
+ * @param setRequest - A function to set the SendRequest object in the parent component.
+ * @returns  A component that allows users to upload CSV files, select an email template, and generate a SendRequest object.
  */
 export function CsvUploader({
   setRequest,
 }: {
   setRequest: React.Dispatch<React.SetStateAction<SendRequest | null>>;
 }) {
+  const [userMap, setUserMap] = useState<Map<string, User>>(new Map());
+  const [pairList, setPairList] = useState<Pair[]>([]);
   const [userFile, setUserFile] = useState<File | null>(null);
   const [pairingFile, setPairingFile] = useState<File | null>(null);
   const [template, setTemplate] = useState("");
 
   const handleCSV = async () => {
-    if (!userFile) {
-      notifications.show({
-        color: "red",
-        title: "Missing file",
-        message: "Please upload a User CSV.",
-      });
+    if (!userMap || userMap.size === 0) {
+      showEmailError("red", "Missing file", "Please upload a User CSV.");
       return;
     }
     if (template === "") {
-      notifications.show({
-        color: "red",
-        title: "Missing template",
-        message: "Please select a template.",
-      });
+      showEmailError("red", "Missing template", "Please select a template.");
       return;
     }
     try {
-      const req = await readFiles(userFile, pairingFile, template);
+      const req = await dataToSendRequest(userMap, pairList, template);
       setRequest(req);
     } catch (err) {
-      notifications.show({
-        color: "red",
-        title: "Error when processing CSV",
-        message: `${err}`,
-      });
+      showEmailError("red", "Error when processing CSV", `${err}`);
     }
   };
 
   return (
     <Flex gap="lg" direction="column">
-      <UserCsvUpload value={userFile} onChange={setUserFile} />
-      <PairingCsvUpload value={pairingFile} onChange={setPairingFile} />
-      <TemplateSelect value={template} onChange={setTemplate} />
+      <UserCsvUpload
+        userFile={userFile}
+        changeUserFile={setUserFile}
+        changeUsers={setUserMap}
+      />
+      <PairingCsvUpload
+        pairFile={pairingFile}
+        changePairFile={setPairingFile}
+        changePairs={setPairList}
+      />
+      <TemplateSelect selection={template} changeSelection={setTemplate} />
       <Button onClick={() => void handleCSV()}>
         Process Files and Template
       </Button>
@@ -84,37 +84,53 @@ export function CsvUploader({
   );
 }
 
+/**
+ * Component for user CSV file upload and preview.
+ * @param userFile - The current user CSV file.
+ * @param changeUserFile - A function to handle changes to the user CSV file.
+ * @param changeUsers - A function to handle changes to the user data.
+ * @returns File Input and Table preview of the user CSV file.
+ */
 export function UserCsvUpload({
-  value,
-  onChange,
+  userFile,
+  changeUserFile,
+  changeUsers,
 }: {
-  value: File | null;
-  onChange: (file: File | null) => void;
+  userFile: File | null;
+  changeUserFile: (file: File | null) => void;
+  changeUsers: (users: Map<string, User>) => void;
 }) {
   const [rows, setRows] = useState<React.ReactNode[]>([]);
-
   useEffect(() => {
-    if (value) {
-      parseUserFile(value).then((users) => {
-        setRows(
-          Array.from(users.values()).map((user) => (
-            <Table.Tr key={user.email}>
-              <Table.Td style={rowStyle}>{user.name}</Table.Td>
-              <Table.Td style={rowStyle}>{user.email}</Table.Td>
-              <Table.Td style={rowStyle}>{user.intro}</Table.Td>
-              <Table.Td style={rowStyle}>{user.linkedIn}</Table.Td>
-              <Table.Td style={rowStyle}>{user.industry}</Table.Td>
-              <Table.Td style={rowStyle}>{user.preferences}</Table.Td>
-              <Table.Td style={rowStyle}>{user.topics}</Table.Td>
-              <Table.Td style={rowStyle}>{user.anything}</Table.Td>
-            </Table.Tr>
-          )),
-        );
-      });
+    if (userFile) {
+      parseUserFile(userFile)
+        .then((users) => {
+          setRows(
+            Array.from(users.values()).map((user) => (
+              <Table.Tr key={user.email}>
+                <Table.Td style={rowStyle}>{user.name}</Table.Td>
+                <Table.Td style={rowStyle}>{user.email}</Table.Td>
+                <Table.Td style={rowStyle}>{user.intro}</Table.Td>
+                <Table.Td style={rowStyle}>{user.linkedIn}</Table.Td>
+                <Table.Td style={rowStyle}>{user.industry}</Table.Td>
+                <Table.Td style={rowStyle}>{user.preferences}</Table.Td>
+                <Table.Td style={rowStyle}>{user.topics}</Table.Td>
+                <Table.Td style={rowStyle}>{user.anything}</Table.Td>
+              </Table.Tr>
+            )),
+          );
+          changeUsers(users);
+        })
+        .catch((error) => {
+          showEmailError("red", "Error parsing user file", `${error}`);
+          changeUsers(new Map());
+          setRows([]);
+        });
     } else {
+      changeUsers(new Map());
       setRows([]);
     }
-  }, [value, rows]);
+  }, [userFile, changeUsers]);
 
   return (
     <Box>
@@ -124,10 +140,10 @@ export function UserCsvUpload({
         withAsterisk
         description="Upload a CSV file containing information about users"
         placeholder="Choose file"
-        value={value}
-        onChange={onChange}
+        value={userFile}
+        onChange={changeUserFile}
       />
-      {value ?
+      {userFile ?
         <ScrollArea h={150}>
           <Table
             stickyHeader
@@ -140,8 +156,8 @@ export function UserCsvUpload({
           >
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Email</Table.Th>
                 <Table.Th>Name</Table.Th>
+                <Table.Th>Email</Table.Th>
                 <Table.Th>Intro</Table.Th>
                 <Table.Th>Linked In</Table.Th>
                 <Table.Th>Industry</Table.Th>
@@ -158,18 +174,27 @@ export function UserCsvUpload({
   );
 }
 
+/**
+ * Component for pairing CSV file upload and preview.
+ * @param pairFile - The current pairing CSV file.
+ * @param changePairFile - A function to handle changes to the pairing CSV file.
+ * @param changePairs - A function to handle changes to the pairing data.
+ * @returns File Input and Table preview of the pairing CSV file.
+ */
 export function PairingCsvUpload({
-  value,
-  onChange,
+  pairFile,
+  changePairFile,
+  changePairs,
 }: {
-  value: File | null;
-  onChange: (file: File | null) => void;
+  pairFile: File | null;
+  changePairFile: (file: File | null) => void;
+  changePairs: (pairs: Pair[]) => void;
 }) {
   const [rows, setRows] = useState<React.ReactNode[]>([]);
 
   useEffect(() => {
-    if (value) {
-      parsePairingFile(value).then((pairs) => {
+    if (pairFile) {
+      parsePairingFile(pairFile).then((pairs) => {
         setRows(
           Array.from(pairs.values()).map((pair) => (
             <Table.Tr key={`${pair.emailA}-${pair.emailB}`}>
@@ -180,11 +205,13 @@ export function PairingCsvUpload({
             </Table.Tr>
           )),
         );
+        changePairs(pairs);
       });
     } else {
+      changePairs([]);
       setRows([]);
     }
-  }, [value]);
+  }, [pairFile, changePairs]);
 
   return (
     <Box>
@@ -194,10 +221,10 @@ export function PairingCsvUpload({
         withAsterisk
         description="Upload a CSV file containing information about pairings"
         placeholder="Choose file"
-        value={value}
-        onChange={onChange}
+        value={pairFile}
+        onChange={changePairFile}
       />
-      {value ?
+      {pairFile ?
         <ScrollArea h={150}>
           <Table
             stickyHeader
@@ -224,29 +251,36 @@ export function PairingCsvUpload({
   );
 }
 
+/**
+ * Component for email template selection.
+ * @param selection - The currently selected email template. (undefined if no template is selected)
+ * @param changeSelection - A function to handle changes to the selected email template.
+ * @returns Email template selection dropdown and template text preview.
+ */
 export function TemplateSelect({
-  value,
-  onChange,
+  selection,
+  changeSelection,
 }: {
-  value: string;
-  onChange: React.Dispatch<React.SetStateAction<string>>;
+  selection: string | undefined;
+  changeSelection: React.Dispatch<React.SetStateAction<string>>;
 }) {
   const [template, setTemplate] = useState<EmailTemplate>();
 
   useEffect(() => {
-    if (value) {
-      //display the appropriate template
-      const template = emailTemplateMap[value];
+    if (selection) {
+      // Display the appropriate template
+      const template = emailTemplateMap[selection];
       setTemplate(template);
     } else {
       setTemplate(undefined);
     }
-  }, [value]);
+  }, [selection]);
+
   return (
     <Flex gap="xxs" direction="column">
       <NativeSelect
-        value={value}
-        onChange={(event) => onChange(event.currentTarget.value)}
+        value={selection}
+        onChange={(event) => changeSelection(event.currentTarget.value)}
         label="Email Templates"
         description="Select an email template"
         data={[{ label: "Select a template", value: "" }, "Pair", "Reminder"]}

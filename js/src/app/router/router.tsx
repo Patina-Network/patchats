@@ -24,7 +24,7 @@ export const router = createBrowserRouter([
       { path: "sign-up", element: <SignUpPage /> },
     ],
   },
-  //TESTING
+  // Temporary public email admin page for TESTING
   { path: "email", element: <EmailAdminPage /> },
   // Authenticated: guard -> layout -> page. Admin nests a second guard + layout.
   {
@@ -41,8 +41,8 @@ export const router = createBrowserRouter([
             element: <AdminLayout />,
             children: [
               { path: "admin", element: <AdminPage /> },
-              { path: "sample/admin", element: <SampleAdminPage /> },
               { path: "admin/email", element: <EmailAdminPage /> },
+              { path: "sample/admin", element: <SampleAdminPage /> },
             ],
           },
         ],
