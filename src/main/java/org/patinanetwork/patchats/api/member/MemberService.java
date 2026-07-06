@@ -56,7 +56,9 @@ public class MemberService {
                 .topics(request.topics())
                 .extraNotes(request.extraNotes())
                 .build();
-        Member updatedMember = memberRepo.updateMember(member);
+        Member updatedMember = memberRepo
+                .updateMember(member)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
         return MemberDto.from(updatedMember);
     }
 
