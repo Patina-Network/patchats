@@ -1,7 +1,6 @@
 import { useVerifyMagicLink } from "@/features/auth/api/useVerifyMagicLink";
 import { Alert, Button, Center, Loader, Stack, Text } from "@mantine/core";
-import { useEffect, useRef } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 
 /**
  * Landing page for the emailed link (`/auth/verify?token=...`). The link is a
@@ -11,22 +10,11 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 export default function VerifyPage() {
   const [params] = useSearchParams();
   const token = params.get("token");
-  const navigate = useNavigate();
-  const verify = useVerifyMagicLink();
-  // StrictMode double-invokes effects in dev; the token is single-use, so guard the POST.
-  const fired = useRef(false);
+  const verify = useVerifyMagicLink(token);
 
-  useEffect(() => {
-    if (fired.current || !token) {
-      return;
-    }
-    fired.current = true;
-    verify.mutate(token, {
-      onSuccess: () => {
-        navigate("/", { replace: true });
-      },
-    });
-  }, [token, verify, navigate]);
+  if (verify.isSuccess) {
+    return <Navigate replace to="/" />;
+  }
 
   if (!token || verify.isError) {
     return (
