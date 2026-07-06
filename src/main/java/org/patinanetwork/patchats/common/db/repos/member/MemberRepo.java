@@ -37,7 +37,7 @@ public interface MemberRepo {
      *       <li>extraNotes
      *     </ul>
      */
-    Optional<Member> editMember(Member member);
+    Optional<Member> updateMember(Member member);
 
     Optional<Member> getMemberById(UUID id);
 
