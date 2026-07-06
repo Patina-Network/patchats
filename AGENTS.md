@@ -34,7 +34,7 @@ patchats/
 | Backend build        | Maven (`./mvnw`)                                                       |
 | Database             | PostgreSQL + Flyway migrations                                         |
 | Data access          | Spring JDBC (plain SQL — no ORM)                                       |
-| Auth                 | Spring Security + OAuth2 (no passwords stored)                         |
+| Auth                 | Magic links + Spring Session JDBC cookie sessions (no passwords) — see `docs/auth-feature.md` |
 | API docs             | SpringDoc / OpenAPI → `/v3/api-docs`                                   |
 | Frontend language    | TypeScript (strict mode)                                               |
 | Frontend framework   | React 18, functional components + hooks                                |

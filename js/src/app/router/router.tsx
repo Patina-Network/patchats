@@ -5,6 +5,8 @@ import { RequireAdmin } from "@/app/router/guards/RequireAdmin";
 import { RequireAuth } from "@/app/router/guards/RequireAuth";
 import AdminPage from "@/features/admin/Admin.page";
 import AdminLoginPage from "@/features/admin/AdminLogin.page";
+import LoginPage from "@/features/auth/Login.page";
+import VerifyPage from "@/features/auth/Verify.page";
 import EmailAdminPage from "@/features/emails/EmailAdminPage";
 import HomePage from "@/features/home/Home.page";
 import SamplePage from "@/features/sample/Sample.page";
@@ -22,6 +24,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "sign-up", element: <SignUpPage /> },
+      { path: "login", element: <LoginPage /> },
+      { path: "auth/verify", element: <VerifyPage /> },
     ],
   },
   // Temporary public email admin page for TESTING
