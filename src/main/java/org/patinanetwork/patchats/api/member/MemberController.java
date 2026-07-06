@@ -33,8 +33,9 @@ public class MemberController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponder<MemberDto>> updateMember(@Valid @RequestBody final UpdateMemberRequest request) {
-        final MemberDto response = memberService.updateMember(request);
+    public ResponseEntity<ApiResponder<MemberDto>> updateMember(
+            @Valid @RequestBody final UpdateMemberRequest request, @PathVariable final UUID id) {
+        final MemberDto response = memberService.updateMember(request, id);
         return ResponseEntity.ok(ApiResponder.success("Member updated successfully", response));
     }
 
