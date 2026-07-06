@@ -1,6 +1,8 @@
 package org.patinanetwork.patchats.common.web;
 
 import java.util.stream.Collectors;
+import org.patinanetwork.patchats.auth.InvalidMagicLinkException;
+import org.patinanetwork.patchats.auth.TooManyLinkRequestsException;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
@@ -32,6 +34,16 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MemberDuplicateException.class)
     public ResponseEntity<ApiResponder<Void>> handleMemberDuplicate(final MemberDuplicateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidMagicLinkException.class)
+    public ResponseEntity<ApiResponder<Void>> handleInvalidMagicLink(final InvalidMagicLinkException ex) {
+        return ResponseEntity.badRequest().body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(TooManyLinkRequestsException.class)
+    public ResponseEntity<ApiResponder<Void>> handleTooManyLinkRequests(final TooManyLinkRequestsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ApiResponder.failure(ex.getMessage()));
     }
 
     private String formatError(final FieldError error) {
