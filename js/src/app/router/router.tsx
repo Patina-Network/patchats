@@ -5,6 +5,8 @@ import { RequireAdmin } from "@/app/router/guards/RequireAdmin";
 import { RequireAuth } from "@/app/router/guards/RequireAuth";
 import AdminPage from "@/features/admin/Admin.page";
 import AdminLoginPage from "@/features/admin/AdminLogin.page";
+import LoginPage from "@/features/auth/Login.page";
+import VerifyPage from "@/features/auth/Verify.page";
 import EmailAdminPage from "@/features/emails/EmailAdminPage";
 import { EmailHistoryDetailPage } from "@/features/emails/EmailHistoryDetailPage";
 import { EmailHistoryPage } from "@/features/emails/EmailHistoryPage";
@@ -41,6 +43,8 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "sign-up", element: <SignUpPage /> },
       { path: "profile/:id", element: <MemberProfilePage /> },
+      { path: "login", element: <LoginPage /> },
+      { path: "auth/verify", element: <VerifyPage /> },
     ],
   },
   // Temporary public email routes for TESTING (before auth is wired)

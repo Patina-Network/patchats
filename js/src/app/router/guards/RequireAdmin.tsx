@@ -1,4 +1,4 @@
-import { useSession } from "@/lib/api/useSession";
+import { useSession } from "@/features/auth/api/useSession";
 import { Navigate, Outlet } from "react-router-dom";
 
 /**
