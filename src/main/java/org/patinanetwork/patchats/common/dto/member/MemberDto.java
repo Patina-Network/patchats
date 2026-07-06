@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.patinanetwork.patchats.common.db.models.member.Member;
 
+// TODO: Separate AdminMemberDto and PublicMemberDto
 @Getter
 @Builder
 @ToString
@@ -20,6 +21,7 @@ public class MemberDto {
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private String fullName;
 
+    // TODO: Changes to email require verification after authentication is implemented
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private String email;
 
@@ -28,12 +30,6 @@ public class MemberDto {
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private String introduction;
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true)
-    private String referralSource;
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    private boolean active;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true)
     private String matchPref;
@@ -63,8 +59,6 @@ public class MemberDto {
                 .email(member.getEmail())
                 .linkedInUrl(member.getLinkedInUrl())
                 .introduction(member.getIntroduction())
-                .referralSource(member.getReferralSource())
-                .active(member.isActive())
                 .matchPref(member.getMatchPref())
                 .industryPref(member.getIndustryPref())
                 .rolePref(member.getRolePref())
