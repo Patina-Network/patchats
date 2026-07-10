@@ -2,11 +2,13 @@ package org.patinanetwork.patchats.api.member;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.patinanetwork.patchats.common.db.models.member.Member;
-import org.patinanetwork.patchats.common.db.repos.member.MemberRepo;
-import org.patinanetwork.patchats.common.dto.member.CreateMemberRequest;
-import org.patinanetwork.patchats.common.dto.member.MemberDto;
-import org.patinanetwork.patchats.common.dto.member.UpdateMemberRequest;
+import org.patinanetwork.patchats.api.member.db.models.Member;
+import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
+import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
+import org.patinanetwork.patchats.api.member.dto.MemberDto;
+import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
+import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
+import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -19,8 +21,7 @@ public class MemberService {
 
     public MemberDto createMember(CreateMemberRequest request) {
         if (memberRepo.getMemberByEmail(request.email()).isPresent()) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Member with email " + request.email() + " already exists");
+            throw new MemberDuplicateException(request.email());
         }
         Member member = Member.builder()
                 .id(UUID.randomUUID())
@@ -42,8 +43,9 @@ public class MemberService {
 
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {
         if (memberRepo.getMemberById(id).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Member with ID " + id + " does not exist");
+            throw new MemberNotFoundException(id);
         }
+        // TODO: Implement partial update instead of full update
         Member member = Member.builder()
                 .id(id)
                 .fullName(request.fullName())
@@ -62,17 +64,18 @@ public class MemberService {
         return MemberDto.from(updatedMember);
     }
 
-    public MemberDto getMemberById(UUID id) {
-        return memberRepo
-                .getMemberById(id)
-                .map(MemberDto::from)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
-    }
+    // TODO: Implement these methods after createMember and updateMember is fully functional and tested
+    // public MemberDto getMemberById(UUID id) {
+    //     return memberRepo
+    //             .getMemberById(id)
+    //             .map(MemberDto::from)
+    //             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
+    // }
 
-    public MemberDto deactivateMemberById(UUID id) {
-        return memberRepo
-                .deactivateMemberById(id)
-                .map(MemberDto::from)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
-    }
+    // public MemberDto deactivateMemberById(UUID id) {
+    //     return memberRepo
+    //             .deactivateMemberById(id)
+    //             .map(MemberDto::from)
+    //             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
+    // }
 }
