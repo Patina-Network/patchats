@@ -117,10 +117,14 @@ export async function parseUserFile(
   }
 
   for (const userData of results.data) {
+    const emailValue = userData.email?.trim();
+    if (!emailValue) {
+      throw new Error(`Missing email for user: ${userData.name}`);
+    }
     const user: User = {
       name: userData.name,
       // Trim so trailing whitespace from the CSV doesn't fail backend email validation.
-      email: userData.email?.trim(),
+      email: emailValue,
       intro: userData.intro,
       linkedIn: userData.linkedIn,
       industry: userData.industry,
