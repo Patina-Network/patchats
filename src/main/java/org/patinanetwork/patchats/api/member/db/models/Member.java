@@ -1,4 +1,4 @@
-package org.patinanetwork.patchats.common.db.models.member;
+package org.patinanetwork.patchats.api.member.db.models;
 
 import java.util.UUID;
 import lombok.Builder;
