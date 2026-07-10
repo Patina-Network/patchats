@@ -7,13 +7,25 @@ import { notifications } from "@mantine/notifications";
  * @param message - The message content of the notification.
  */
 
-export const showEmailError = (
-  color: string,
-  title: string,
-  message: string,
-) => {
+export const showEmailError = (title: string, message: string) => {
   notifications.show({
-    color: color,
+    color: "red",
+    title: title,
+    message: message,
+  });
+};
+
+export const showEmailPending = (title: string, message: string) => {
+  notifications.show({
+    color: "yellow",
+    title: title,
+    message: message,
+  });
+};
+
+export const showEmailSuccess = (title: string, message: string) => {
+  notifications.show({
+    color: "green",
     title: title,
     message: message,
   });

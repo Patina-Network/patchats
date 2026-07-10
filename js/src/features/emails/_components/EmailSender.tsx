@@ -1,7 +1,11 @@
 import type { SendRequest } from "@/features/emails/dto/emailDto";
 
 import { sendToEmailApi } from "@/features/emails/api/emailAPI";
-import { showEmailError } from "@/features/emails/api/emailError";
+import {
+  showEmailError,
+  showEmailPending,
+  showEmailSuccess,
+} from "@/features/emails/api/emailError";
 import { Button, Flex, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { useMutation } from "@tanstack/react-query";
@@ -18,11 +22,7 @@ export function EmailSender({ request }: { request: SendRequest | null }) {
   });
   useEffect(() => {
     if (mutation.status === "pending") {
-      showEmailError(
-        "yellow",
-        `${mutation.status}`,
-        "Email sending in progress...",
-      );
+      showEmailPending(`${mutation.status}`, "Email sending in progress...");
     }
   }, [mutation.status]);
 
@@ -37,8 +37,7 @@ export function EmailSender({ request }: { request: SendRequest | null }) {
       ),
       labels: { confirm: "Confirm", cancel: "Cancel" },
       onCancel: () =>
-        showEmailError(
-          "yellow",
+        showEmailPending(
           "Cancel",
           `${request?.messages.length} Emails cancelled.`,
         ),
@@ -47,15 +46,15 @@ export function EmailSender({ request }: { request: SendRequest | null }) {
 
   const handleSend = async () => {
     if (!request) {
-      showEmailError("red", "Preview first", "Preview before sending.");
+      showEmailError("Preview first", "Preview before sending.");
       return;
     }
 
     try {
       await mutation.mutateAsync(request);
-      showEmailError("green", "Success", "Emails sent.");
+      showEmailSuccess("Success", "Emails sent.");
     } catch {
-      showEmailError("red", "Error", "Unable to send emails.");
+      showEmailError("Error", "Unable to send emails.");
     }
   };
 

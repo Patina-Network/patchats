@@ -4,7 +4,7 @@ import type {
 } from "@/features/emails/dto/emailDto";
 
 import { sendToPreviewApi } from "@/features/emails/api/emailAPI";
-import { showEmailError } from "@/features/emails/api/emailError";
+import { showEmailSuccess } from "@/features/emails/api/emailError";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
 import { Alert, Flex, Box, Divider, Stack, Text } from "@mantine/core";
@@ -40,8 +40,7 @@ export function EmailPreviewer({
   useEffect(() => {
     if (status === "success") {
       setPreviews(data);
-      showEmailError(
-        "green",
+      showEmailSuccess(
         "Email previews loaded",
         `${data?.length} email previews loaded.`,
       );

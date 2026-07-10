@@ -49,18 +49,18 @@ export function CsvUploader({
 
   const handleCSV = async () => {
     if (!userMap || userMap.size === 0) {
-      showEmailError("red", "Missing file", "Please upload a User CSV.");
+      showEmailError("Missing file", "Please upload a User CSV.");
       return;
     }
     if (template === "") {
-      showEmailError("red", "Missing template", "Please select a template.");
+      showEmailError("Missing template", "Please select a template.");
       return;
     }
     try {
       const req = await dataToSendRequest(userMap, pairList, template);
       setRequest(req);
     } catch (err) {
-      showEmailError("red", "Error when processing CSV", `${err}`);
+      showEmailError("Error when processing CSV", `${err}`);
     }
   };
 
@@ -68,15 +68,15 @@ export function CsvUploader({
     <Flex gap="lg" direction="column">
       <UserCsvUpload
         userFile={userFile}
-        changeUserFile={setUserFile}
-        changeUsers={setUserMap}
+        setUserFile={setUserFile}
+        setUsers={setUserMap}
       />
       <PairingCsvUpload
         pairFile={pairingFile}
-        changePairFile={setPairingFile}
-        changePairs={setPairList}
+        setPairFile={setPairingFile}
+        setPairs={setPairList}
       />
-      <TemplateSelect selection={template} changeSelection={setTemplate} />
+      <TemplateSelect selection={template} setSelection={setTemplate} />
       <Button onClick={() => void handleCSV()}>
         Process Files and Template
       </Button>
@@ -87,18 +87,18 @@ export function CsvUploader({
 /**
  * Component for user CSV file upload and preview.
  * @param userFile - The current user CSV file.
- * @param changeUserFile - A function to handle changes to the user CSV file.
- * @param changeUsers - A function to handle changes to the user data.
+ * @param setUserFile - A function to handle changes to the user CSV file.
+ * @param setUsers - A function to handle changes to the user data.
  * @returns File Input and Table preview of the user CSV file.
  */
 export function UserCsvUpload({
   userFile,
-  changeUserFile,
-  changeUsers,
+  setUserFile,
+  setUsers,
 }: {
   userFile: File | null;
-  changeUserFile: (file: File | null) => void;
-  changeUsers: (users: Map<string, User>) => void;
+  setUserFile: (file: File | null) => void;
+  setUsers: (users: Map<string, User>) => void;
 }) {
   const [rows, setRows] = useState<React.ReactNode[]>([]);
   useEffect(() => {
@@ -119,18 +119,18 @@ export function UserCsvUpload({
               </Table.Tr>
             )),
           );
-          changeUsers(users);
+          setUsers(users);
         })
         .catch((error) => {
-          showEmailError("red", "Error parsing user file", `${error}`);
-          changeUsers(new Map());
+          showEmailError("Error parsing user file", `${error}`);
+          setUsers(new Map());
           setRows([]);
         });
     } else {
-      changeUsers(new Map());
+      setUsers(new Map());
       setRows([]);
     }
-  }, [userFile, changeUsers]);
+  }, [userFile, setUsers]);
 
   return (
     <Box>
@@ -141,7 +141,7 @@ export function UserCsvUpload({
         description="Upload a CSV file containing information about users"
         placeholder="Choose file"
         value={userFile}
-        onChange={changeUserFile}
+        onChange={setUserFile}
       />
       {userFile ?
         <ScrollArea h={150}>
@@ -177,18 +177,18 @@ export function UserCsvUpload({
 /**
  * Component for pairing CSV file upload and preview.
  * @param pairFile - The current pairing CSV file.
- * @param changePairFile - A function to handle changes to the pairing CSV file.
- * @param changePairs - A function to handle changes to the pairing data.
+ * @param setPairFile - A function to handle changes to the pairing CSV file.
+ * @param setPairs - A function to handle changes to the pairing data.
  * @returns File Input and Table preview of the pairing CSV file.
  */
 export function PairingCsvUpload({
   pairFile,
-  changePairFile,
-  changePairs,
+  setPairFile,
+  setPairs,
 }: {
   pairFile: File | null;
-  changePairFile: (file: File | null) => void;
-  changePairs: (pairs: Pair[]) => void;
+  setPairFile: (file: File | null) => void;
+  setPairs: (pairs: Pair[]) => void;
 }) {
   const [rows, setRows] = useState<React.ReactNode[]>([]);
 
@@ -205,13 +205,13 @@ export function PairingCsvUpload({
             </Table.Tr>
           )),
         );
-        changePairs(pairs);
+        setPairs(pairs);
       });
     } else {
-      changePairs([]);
+      setPairs([]);
       setRows([]);
     }
-  }, [pairFile, changePairs]);
+  }, [pairFile, setPairs]);
 
   return (
     <Box>
@@ -222,7 +222,7 @@ export function PairingCsvUpload({
         description="Upload a CSV file containing information about pairings"
         placeholder="Choose file"
         value={pairFile}
-        onChange={changePairFile}
+        onChange={setPairFile}
       />
       {pairFile ?
         <ScrollArea h={150}>
@@ -254,15 +254,15 @@ export function PairingCsvUpload({
 /**
  * Component for email template selection.
  * @param selection - The currently selected email template. (undefined if no template is selected)
- * @param changeSelection - A function to handle changes to the selected email template.
+ * @param setSelection - A function to handle changes to the selected email template.
  * @returns Email template selection dropdown and template text preview.
  */
 export function TemplateSelect({
   selection,
-  changeSelection,
+  setSelection,
 }: {
   selection: string | undefined;
-  changeSelection: React.Dispatch<React.SetStateAction<string>>;
+  setSelection: React.Dispatch<React.SetStateAction<string>>;
 }) {
   const [template, setTemplate] = useState<EmailTemplate>();
 
@@ -280,7 +280,7 @@ export function TemplateSelect({
     <Flex gap="xxs" direction="column">
       <NativeSelect
         value={selection}
-        onChange={(event) => changeSelection(event.currentTarget.value)}
+        onChange={(event) => setSelection(event.currentTarget.value)}
         label="Email Templates"
         description="Select an email template"
         data={[{ label: "Select a template", value: "" }, "Pair", "Reminder"]}
