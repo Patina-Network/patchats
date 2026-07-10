@@ -1,57 +1,20 @@
-import { emailTemplateMap } from "@/features/emails/api/EmailTemplate";
+import type { User, Pair, SendRequest } from "@/features/emails/dto/emailDto";
+
+import { emailTemplateMap } from "@/features/emails/api/emailTemplate";
 import { parse, ParseResult } from "papaparse";
 
-interface User {
-  Name: string;
-  Email: string;
-  Intro: string;
-  LinkedIn: string;
-  Industry: string;
-  Preferences: string;
-  Topics: string;
-  Anything: string;
-}
-interface Pair {
-  fullNameA: string;
-  emailA: string;
-  fullNameB: string;
-  emailB: string;
-}
-export interface MessagePreview {
-  recipients: string[];
-  subject: string | null;
-  body: string | null;
-  error: string | null;
-}
-
-export interface SendRequest {
-  subject: string;
-  body: string;
-  replyTo: string | null;
-  messages: {
-    recipients: {
-      email: string;
-      variableToValue: Record<string, string>;
-    }[];
-  }[];
-}
-
-export const readFiles = async (
-  userFile: File,
-  pairingFile: File | null,
+/**
+ * Takes parsed user/pair data and generates a SendRequest object based on the selected email template.
+ * @param userMap - map of user data keyed by email address
+ * @param pairList - list of user pairs
+ * @param template - the selected email template
+ * @returns SendRequest object to be sent to backend email API
+ */
+export const dataToSendRequest = async (
+  userMap: Map<string, User>,
+  pairList: Pair[],
   template: string,
 ): Promise<SendRequest> => {
-  const request = combineData(userFile, pairingFile, template);
-  return request;
-};
-
-async function combineData(
-  userFile: File,
-  pairFile: File | null,
-  templateKey: string,
-): Promise<SendRequest> {
-  const userMap = await parseUserFile(userFile);
-
   // Drop empty/whitespace-only values so the key is absent from variableToValue. The backend
   // resolves missing keys (not empty strings) to a template default via ${x:default}
   const withoutEmpty = (vars: Record<string, string>): Record<string, string> =>
@@ -61,33 +24,35 @@ async function combineData(
 
   // Turn a full User record into a recipient oject with their variables.
   const toRecipient = (u: User) => ({
-    email: u.Email,
+    email: u.email,
     variableToValue: withoutEmpty({
-      name: u.Name,
-      email: u.Email,
-      intro: u.Intro,
-      linkedin: u.LinkedIn,
-      industry: u.Industry,
-      preferences: u.Preferences,
-      topics: u.Topics,
-      anything: u.Anything,
+      name: u.name,
+      email: u.email,
+      intro: u.intro,
+      linkedIn: u.linkedIn,
+      industry: u.industry,
+      preferences: u.preferences,
+      topics: u.topics,
+      anything: u.anything,
+      firstName: (u.name ?? "").split(" ")[0],
+      lastName: (u.name ?? "").split(" ").slice(1).join(" "),
     }),
   });
 
   let messages;
-  if (pairFile) {
+  if (pairList.length > 0) {
     // One message per pair, addressed to two recipients. The pairing file only gives us names + emails,
     // so we look each person up in userMap to add the user with their full set of variables.
-    const pairList = await parsePairingFile(pairFile);
     messages = pairList.map((p) => {
       const userA = userMap.get(p.emailA);
       const userB = userMap.get(p.emailB);
-      if (!userA || !userB) {
-        throw new Error(
-          `Pairing references unknown email: ${p.emailA} or ${p.emailB}`,
-        );
+      if (!userA) {
+        throw new Error(`Pairing references unknown email: ${p.emailA}`);
       }
-      //Combines two users into a recipient list within a message object
+      if (!userB) {
+        throw new Error(`Pairing references unknown email: ${p.emailB}`);
+      }
+      // Combines two users into a recipient list within a message object
       return { recipients: [toRecipient(userA), toRecipient(userB)] };
     });
   } else {
@@ -97,18 +62,23 @@ async function combineData(
     }));
   }
 
-  const template = emailTemplateMap[templateKey];
+  const templateValue = emailTemplateMap[template];
 
   const sendRequest = {
-    subject: template.subject,
-    body: template.body,
-    replyTo: template.replyTo,
+    subject: templateValue.subject,
+    body: templateValue.body,
+    replyTo: templateValue.replyTo,
     messages,
   };
 
   return sendRequest;
-}
+};
 
+/**
+ * Parses the user CSV file and returns a map of user data.
+ * @param userFile - The user CSV file to be parsed.
+ * @returns user data map
+ */
 export async function parseUserFile(
   userFile: File,
 ): Promise<Map<string, User>> {
@@ -125,28 +95,60 @@ export async function parseUserFile(
   const userMap = new Map<string, User>();
   const results = parse<User>(text, config);
 
+  // Check User CSV for required headers
+  const headers = results.meta.fields ?? [];
+  const requiredHeaders = [
+    "name",
+    "email",
+    "intro",
+    "linkedIn",
+    "industry",
+    "preferences",
+    "topics",
+    "anything",
+  ];
+  const missingHeaders = requiredHeaders.filter(
+    (header) => !headers.includes(header),
+  );
+  if (missingHeaders.length > 0) {
+    throw new Error(
+      `User file is missing required headers: ${missingHeaders.join(", ")}`,
+    );
+  }
+
   for (const userData of results.data) {
+    const emailValue = userData.email?.trim();
+    if (!emailValue) {
+      throw new Error(`Missing email for user: ${userData.name}`);
+    }
     const user: User = {
-      Name: userData.Name,
-      Email: userData.Email,
-      Intro: userData.Intro,
-      LinkedIn: userData.LinkedIn,
-      Industry: userData.Industry,
-      Preferences: userData.Preferences,
-      Topics: userData.Topics,
-      Anything: userData.Anything,
+      name: userData.name,
+      // Trim so trailing whitespace from the CSV doesn't fail backend email validation.
+      email: emailValue,
+      intro: userData.intro,
+      linkedIn: userData.linkedIn,
+      industry: userData.industry,
+      preferences: userData.preferences,
+      topics: userData.topics,
+      anything: userData.anything,
     };
-    userMap.set(user.Email, user);
+    userMap.set(user.email, user);
   }
   return userMap;
 }
+
+/**
+ * Parses the pairing CSV file and returns a list of pair data.
+ * @param pairFile - The pairing CSV file to be parsed.
+ * @returns pair data list
+ */
 export async function parsePairingFile(pairFile: File): Promise<Pair[]> {
   const config = {
     quotes: false,
     quoteChar: '"',
     escapeChar: '"',
     delimiter: ",",
-    header: false, //change header to false
+    header: false, // Change header to false
     skipEmptyLines: true,
     columns: null,
     complete: (results: ParseResult<string[]>) => {
@@ -159,47 +161,13 @@ export async function parsePairingFile(pairFile: File): Promise<Pair[]> {
   for (const pairData of results.data) {
     const pair: Pair = {
       fullNameA: pairData[0],
-      emailA: pairData[1],
+      // Trim so emails match the trimmed userMap keys and pass backend validation.
+      emailA: pairData[1]?.trim(),
       fullNameB: pairData[2],
-      emailB: pairData[3],
+      emailB: pairData[3]?.trim(),
     };
     pairings.push(pair);
   }
 
   return pairings;
-}
-
-export async function sendToEmailApi(body: unknown) {
-  const response = await fetch("/api/email/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Email API failed: ${response.status} ${response.statusText}`,
-    );
-  }
-  return response.json();
-}
-
-export async function sendToPreviewApi(
-  body: SendRequest,
-): Promise<MessagePreview[]> {
-  const response = await fetch("/api/email/preview", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Preview API failed: ${response.status} ${response.statusText}`,
-    );
-  }
-  // The backend wraps the result in ApiResponder: { success, message, payload: { previews: [...] } }.
-  // Unwrap to the MessagePreview[] that EmailPreview expects.
-  const json = (await response.json()) as {
-    payload: { previews: MessagePreview[] };
-  };
-  return json.payload.previews;
 }

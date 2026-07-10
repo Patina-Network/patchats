@@ -1,18 +1,21 @@
 import type {
   MessagePreview,
   SendRequest,
-} from "@/features/emails/api/parseCSV";
+} from "@/features/emails/dto/emailDto";
 
-import { sendToPreviewApi } from "@/features/emails/api/parseCSV";
+import { sendToPreviewApi } from "@/features/emails/api/emailAPI";
+import { showEmailSuccess } from "@/features/emails/api/emailError";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { Alert, Box, Divider, Stack, Text, Button } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
+import { Alert, Flex, Box, Divider, Stack, Text } from "@mantine/core";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+
 /**
- * Displays the rendered emails returned by the /api/email/preview endpoint.
+ * Component that displays the rendered emails returned by the /api/email/preview endpoint in a carousel.
  *
- * Note: this takes the *rendered* previews (MessagePreview[]), not the raw object from combineData.
- * combineData returns a SendEmailRequest whose subject/body still contain unresolved ${...} placeholders;
+ * Note: this takes the *rendered* previews (MessagePreview[]), not the raw object from dataToSendRequest.
+ * dataToSendRequest returns a SendEmailRequest whose subject/body still contain unresolved ${...} placeholders;
  * passing that here would show literal template syntax. Render it first via previewEmails(request), then
  * pass the result in so the user sees exactly what will be sent.
  */
@@ -25,22 +28,29 @@ export function EmailPreviewer({
   setPreviews: React.Dispatch<React.SetStateAction<MessagePreview[] | null>>;
   request: SendRequest | null;
 }) {
-  const handlePreview = async () => {
-    if (!request) {
-      notifications.show({
-        color: "red",
-        title: "Process CSV first",
-        message: "Process CSV before sending.",
-      });
-      return;
+  const { data, status } = useQuery({
+    queryKey: ["preview", request],
+    queryFn: async () => {
+      if (!request) throw new Error("Request required");
+      return sendToPreviewApi(request);
+    },
+    enabled: !!request,
+  });
+
+  useEffect(() => {
+    if (status === "success") {
+      setPreviews(data);
+      showEmailSuccess(
+        "Email previews loaded",
+        `${data?.length} email previews loaded.`,
+      );
     }
-    setPreviews(await sendToPreviewApi(request));
-  };
+    // Handle other statuses
+  }, [status, data, setPreviews]);
 
   return (
     <Stack gap="md">
-      <Box style={{ flex: 1 }}>
-        <Button onClick={() => void handlePreview()}>Preview Emails</Button>
+      <Flex direction="column" gap="md" mr="xl">
         {previews === null ?
           <Text c="dimmed">Upload a CSV and click Preview.</Text>
         : previews.length === 0 ?
@@ -53,6 +63,8 @@ export function EmailPreviewer({
               slideSize="100%"
               withIndicators
               emblaOptions={{ loop: true }}
+              px="xl"
+              controlsOffset="xxs"
             >
               {previews.map((preview, index) => (
                 <Carousel.Slide key={index}>
@@ -62,11 +74,16 @@ export function EmailPreviewer({
             </Carousel>
           </>
         }
-      </Box>
+      </Flex>
     </Stack>
   );
 }
 
+/**
+ * Component to display a single email preview card.
+ * @param preview - The MessagePreview object containing the rendered email data to be displayed.
+ * @returns A card that displays the email preview, including recipients, subject, body, and any rendering errors.
+ */
 function EmailPreviewCard({ preview }: { preview: MessagePreview }) {
   const hasError = preview.error !== null;
 
@@ -74,12 +91,12 @@ function EmailPreviewCard({ preview }: { preview: MessagePreview }) {
     <Box
       p="sm"
       style={{
-        borderLeft: `3px solid var(--mantine-color-${hasError ? "red" : "green"}-6)`,
-        backgroundColor: "var(--mantine-color-gray-0)",
+        borderLeft: `3px solid ${hasError ? "red" : "green"}`,
+        backgroundColor: "white",
         borderRadius: 4,
       }}
     >
-      <Text size="sm" c="dimmed">
+      <Text size="sm" c="black">
         To: {preview.recipients.join(", ")}
       </Text>
       {hasError ?
@@ -87,11 +104,11 @@ function EmailPreviewCard({ preview }: { preview: MessagePreview }) {
           {preview.error}
         </Alert>
       : <>
-          <Text fw={600} mt="xs" c="dimmed">
+          <Text fw={600} mt="xs" c="black">
             {preview.subject}
           </Text>
           <Divider my="xs" />
-          <Text size="sm" style={{ whiteSpace: "pre-wrap" }} c="dimmed">
+          <Text size="sm" style={{ whiteSpace: "pre-wrap" }} c="black">
             {preview.body}
           </Text>
         </>

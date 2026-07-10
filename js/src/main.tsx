@@ -7,6 +7,7 @@ import { router } from "@/app/router/router";
 import "@mantine/notifications/styles.css";
 import { MantineProvider } from "@mantine/core";
 import "@mantine/dates/styles.css";
+import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { StrictMode } from "react";
@@ -23,8 +24,10 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryProvider>
       <MantineProvider theme={themeOverride} forceColorScheme={"dark"}>
-        <RouterProvider router={router} />
-        <Notifications />
+        <ModalsProvider>
+          <RouterProvider router={router} />
+          <Notifications />
+        </ModalsProvider>
       </MantineProvider>
       <ReactQueryDevtools />
     </QueryProvider>
