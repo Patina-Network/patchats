@@ -1,4 +1,4 @@
-package org.patinanetwork.patchats.common.dto.member;
+package org.patinanetwork.patchats.api.member.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

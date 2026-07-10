@@ -1,4 +1,4 @@
-package org.patinanetwork.patchats.common.dto.member;
+package org.patinanetwork.patchats.api.member.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.patinanetwork.patchats.common.db.models.member.Member;
+import org.patinanetwork.patchats.api.member.db.models.Member;
 
 // TODO: Separate AdminMemberDto and PublicMemberDto
 @Getter

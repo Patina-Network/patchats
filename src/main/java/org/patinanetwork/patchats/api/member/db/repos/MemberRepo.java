@@ -1,8 +1,8 @@
-package org.patinanetwork.patchats.common.db.repos.member;
+package org.patinanetwork.patchats.api.member.db.repos;
 
 import java.util.Optional;
 import java.util.UUID;
-import org.patinanetwork.patchats.common.db.models.member.Member;
+import org.patinanetwork.patchats.api.member.db.models.Member;
 
 public interface MemberRepo {
     /**
