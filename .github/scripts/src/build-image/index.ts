@@ -43,8 +43,6 @@ async function main() {
 
     await backend.start(ciEnv);
 
-    await $`pnpm --dir js run generate`;
-
     // copy old tz format from build-image.sh
     const timestamp = new Date()
       .toLocaleString("en-US", {
