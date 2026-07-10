@@ -1,3 +1,5 @@
+import type { Environment } from "@tahminator/pipeline";
+
 import { $ } from "bun";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
@@ -11,7 +13,7 @@ const { environment, dockerUpload, getGhaOutput, githubOutputFile } =
   await yargs(hideBin(process.argv))
     .option("environment", {
       type: "string",
-      choices: ["staging", "production"],
+      choices: ["staging", "production"] satisfies Environment[],
       demandOption: true,
     })
     .option("dockerUpload", {
