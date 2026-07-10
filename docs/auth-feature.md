@@ -61,8 +61,11 @@ js/src/features/auth/
 `{ id, name, email, isAdmin }`; 401 in the envelope when signed out. The frontend `RequireAuth`
 guard sends signed-out visitors to `/login`.
 
-Why CSRF protection is off, and why that is safe here, is documented on `SecurityConfig` — keep that
-javadoc current if the cookie or CORS posture ever changes.
+**CSRF.** Double-submit protection (the Spring-documented SPA pattern): every response sets a
+JS-readable `XSRF-TOKEN` cookie, and `apiFetch` echoes it back as an `X-XSRF-TOKEN` header on
+state-changing requests. The two pre-auth endpoints (`request-link`, `verify`) are exempt — their
+only credential travels in the body, and a first-time visitor has no CSRF cookie yet. Details and
+rationale live in `SecurityConfig`'s javadoc.
 
 ## Manual test walkthrough (dev)
 

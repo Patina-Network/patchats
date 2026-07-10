@@ -1,13 +1,16 @@
 package org.patinanetwork.patchats.auth.security;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -63,8 +66,29 @@ class SecurityWiringTest {
     void emailEndpointStaysAdminOnlyAndFailsClosed() throws Exception {
         mockMvc.perform(post("/api/email/send")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content("{}")
+                        .with(csrf()))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void stateChangingPostWithoutCsrfTokenIsForbidden() throws Exception {
+        // Logout is not in the CSRF-exempt set: it consumes the session cookie, so it needs the token.
+        mockMvc.perform(post("/api/auth/logout")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void anonymousSignUpIsExemptFromCsrf() throws Exception {
+        // A first-time visitor POSTing the sign-up form has no XSRF-TOKEN cookie yet, so requiring the token would
+        // make sign-up impossible. MemberController is outside this slice, so the concrete status is incidental —
+        // what matters is that CSRF did not reject it. See the exemption list in SecurityConfig.
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(result -> assertNotEquals(
+                        HttpServletResponse.SC_FORBIDDEN,
+                        result.getResponse().getStatus(),
+                        "anonymous sign-up must not be blocked by CSRF"));
     }
 
     @Test
@@ -110,7 +134,7 @@ class SecurityWiringTest {
         final MockHttpSession session = (MockHttpSession) login.getRequest().getSession(false);
         assertNotNull(session);
 
-        mockMvc.perform(post("/api/auth/logout").session(session)).andExpect(status().isOk());
+        mockMvc.perform(post("/api/auth/logout").session(session).with(csrf())).andExpect(status().isOk());
         assertTrue(session.isInvalid());
     }
 }
