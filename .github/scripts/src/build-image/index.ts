@@ -41,7 +41,6 @@ async function main() {
     throw new Error("Missing DOCKER_HUB_PAT from platform-infra patchats.yaml");
   }
 
-  // copy old tz format from build-image.sh
   const timestamp = new Date()
     .toLocaleString("en-US", {
       timeZone: process.env.TZ,

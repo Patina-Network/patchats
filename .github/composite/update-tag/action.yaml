@@ -5,9 +5,6 @@ inputs:
   ENVIRONMENT:
     description: "'staging' or 'production'"
     required: true
-  VERSION:
-    description: "For example, '1.2.34' or 'staging-abc3133'"
-    required: true
 
 runs:
   using: composite
