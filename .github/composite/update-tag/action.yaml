@@ -14,4 +14,4 @@ runs:
   steps:
     - name: Run script
       shell: bash
-      run: bun run .github/scripts/src/update-tag --environment "${{ inputs.ENVIRONMENT }}" --newTagVersion "${{ inputs.VERSION }}"
+      run: bun run .github/scripts/src/update-tag --environment "${{ inputs.ENVIRONMENT }}"

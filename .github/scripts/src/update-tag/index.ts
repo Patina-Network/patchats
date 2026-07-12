@@ -1,12 +1,9 @@
 import { GitHubClient, Utils, type Environment } from "@tahminator/pipeline";
+import { $ } from "bun";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-const { environment, newTagVersion } = await yargs(hideBin(process.argv))
-  .option("newTagVersion", {
-    type: "string",
-    demandOption: true,
-  })
+const { environment } = await yargs(hideBin(process.argv))
   .option("environment", {
     choices: ["staging", "production"] satisfies Environment[],
     describe: "Deployment environment (staging or production)",
@@ -36,13 +33,15 @@ async function main() {
     privateKey: await Utils.decodeBase64EncodedString(githubAppPrivateKeyB64),
   });
 
+  const gitSha = (await $`git rev-parse --short HEAD`.text()).trim();
+
   if (environment === "production") {
     await ghClient.updateK8sTagWithPR({
       manifestRepo: ["Patina-Network", "k8s-manifest"],
       originRepo: ["Patina-Network", "patchats"],
       kustomizationFilePath: "base/production/patchats/kustomization.yaml",
       imageName: "Patina-Network/patchats",
-      newTag: newTagVersion,
+      newTag: gitSha,
       environment: "production",
     });
   }
@@ -53,7 +52,7 @@ async function main() {
       originRepo: ["Patina-Network", "patchats"],
       kustomizationFilePath: "base/staging/patchats/kustomization.yaml",
       imageName: "Patina-Network/patchats",
-      newTag: newTagVersion,
+      newTag: `staging-${gitSha}`,
       environment: "staging",
     });
   }

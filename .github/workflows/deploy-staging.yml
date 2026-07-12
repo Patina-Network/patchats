@@ -116,15 +116,18 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup CI
         uses: ./.github/composite/setup-ci
         with:
           SECRETS: ${{ toJSON(secrets) }}
 
+      - name: Get short commit SHA
+        id: short_sha
+        run: echo "value=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Run Workflow
         uses: ./.github/composite/update-tag
         with:
           ENVIRONMENT: staging
-          VERSION: ${{ github.ref_name }}
