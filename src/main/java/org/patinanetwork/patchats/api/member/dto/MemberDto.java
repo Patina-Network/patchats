@@ -1,6 +1,7 @@
 package org.patinanetwork.patchats.api.member.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -47,10 +48,10 @@ public class MemberDto {
     private String extraNotes;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    private String createdAt;
+    private Instant createdAt;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    private String updatedAt;
+    private Instant updatedAt;
 
     public static MemberDto from(final Member member) {
         return MemberDto.builder()

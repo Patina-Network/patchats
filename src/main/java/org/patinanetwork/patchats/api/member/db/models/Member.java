@@ -1,5 +1,6 @@
 package org.patinanetwork.patchats.api.member.db.models;
 
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
