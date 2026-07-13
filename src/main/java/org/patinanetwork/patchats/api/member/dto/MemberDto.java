@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.ToString;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 
-// TODO: Separate AdminMemberDto and PublicMemberDto
 @Getter
 @Builder
 @ToString
@@ -31,6 +30,12 @@ public class MemberDto {
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private String introduction;
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true)
+    private String referralSource;
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean active;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true)
     private String matchPref;
@@ -60,6 +65,8 @@ public class MemberDto {
                 .email(member.getEmail())
                 .linkedInUrl(member.getLinkedInUrl())
                 .introduction(member.getIntroduction())
+                .referralSource(member.getReferralSource())
+                .active(member.isActive())
                 .matchPref(member.getMatchPref())
                 .industryPref(member.getIndustryPref())
                 .rolePref(member.getRolePref())

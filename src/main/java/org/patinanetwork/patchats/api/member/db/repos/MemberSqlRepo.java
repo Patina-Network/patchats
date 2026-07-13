@@ -37,13 +37,37 @@ public class MemberSqlRepo implements MemberRepo {
     @Override
     public Member createMember(Member member) {
         String sql = """
-            INSERT INTO "members"
-                (id, "full_name", "email","linked_in_url","introduction","referral_source",active, "match_pref", "industry_pref", "role_pref", "topics", "extra_notes")
-            VALUES
-                (:id, :full_name, :email, :linked_in_url, :introduction, :referral_source, :active , :match_pref, :industry_pref, :role_pref, :topics, :extra_notes)
+            INSERT INTO "members" (
+                "id",
+                "full_name",
+                "email",
+                "linked_in_url",
+                "introduction",
+                "referral_source",
+                "active",
+                "match_pref",
+                "industry_pref",
+                "role_pref",
+                "topics",
+                "extra_notes"
+            )
+            VALUES(
+                :id,
+                :full_name,
+                :email,
+                :linked_in_url,
+                :introduction,
+                :referral_source,
+                :active ,
+                :match_pref,
+                :industry_pref,
+                :role_pref,
+                :topics,
+                :extra_notes
+            )
             RETURNING
                 *
-            """;
+        """;
         return jdbc.sql(sql)
                 .param("id", member.getId())
                 .param("full_name", member.getFullName())
