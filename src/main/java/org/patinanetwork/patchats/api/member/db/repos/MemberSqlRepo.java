@@ -1,5 +1,6 @@
 package org.patinanetwork.patchats.api.member.db.repos;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,9 +16,8 @@ public class MemberSqlRepo implements MemberRepo {
     private final JdbcClient jdbc;
 
     private Member parseResultSetToMember(final ResultSet rs) throws SQLException {
-        var id = rs.getString("id");
         return Member.builder()
-                .id(id)
+                .id(UUID.fromString(rs.getString("id")))
                 .fullName(rs.getString("full_name"))
                 .email(rs.getString("email"))
                 .linkedInUrl(rs.getString("linked_in_url"))
