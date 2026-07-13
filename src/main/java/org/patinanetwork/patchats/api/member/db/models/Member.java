@@ -48,7 +48,7 @@ public class Member {
     @Setter
     private String extraNotes;
 
-    private String createdAt;
+    private Instant createdAt;
 
-    private String updatedAt;
+    private Instant updatedAt;
 }
