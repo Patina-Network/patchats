@@ -1,6 +1,12 @@
+server.forward-headers-strategy: framework
 spring:
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:patchats}
+    username: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:}
+  flyway:
+    # Migrations run out-of-band via the Flyway Maven plugin (`just migrate`), never at startup.
+    enabled: false
   mail:
     host: ${SMTP_HOST:}
     port: ${SMTP_PORT:587}

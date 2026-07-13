@@ -298,6 +298,9 @@
                     <schemas>
                         <schema>public</schema>
                     </schemas>
+                    <locations>
+                        <location>filesystem:db/migration</location>
+                    </locations>
                     <validateMigrationNaming>true</validateMigrationNaming>
                 </configuration>
                 <dependencies>

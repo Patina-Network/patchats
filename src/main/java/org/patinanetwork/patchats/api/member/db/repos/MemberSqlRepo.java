@@ -73,7 +73,11 @@ public class MemberSqlRepo implements MemberRepo {
 
     @Override
     public Optional<Member> getMemberByEmail(String email) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        String sql = "SELECT * FROM members WHERE email = :email";
+        return jdbc.sql(sql)
+                .param("email", email)
+                .query((rs, rowNum) -> parseResultSetToMember(rs))
+                .optional();
     }
 
     @Override
