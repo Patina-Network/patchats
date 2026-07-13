@@ -5,14 +5,6 @@ export const MATCHING_PREFERENCES = [
   "No Preference - I am open to any type of match",
 ] as const;
 
-export const TALKING_POINTS = [
-  "Career journey",
-  "Advice",
-  "Current events",
-  "Hobbies",
-  "Other",
-] as const;
-
 export const INDUSTRIES = [
   "Technology",
   "Finance",
