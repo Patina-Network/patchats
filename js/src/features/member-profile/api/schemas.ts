@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-export const userProfileSchema = z.object({
+export const memberProfileSchema = z.object({
   fullName: z.string().min(1, "Full Name is required."),
   email: z
     .string()
     .min(1, "Email Address is required.")
     .email("Enter a valid email address."),
-  linkedin: z
+  linkedInUrl: z
     .string()
     .refine(
       (value) =>
@@ -25,13 +25,13 @@ export const userProfileSchema = z.object({
   referralSource: z
     .string()
     .max(200, "Referral source must be 200 characters or fewer."),
-  matchingPreference: z.string(),
-  industry: z.string(),
-  role: z.string().max(200, "Role Preference must be 200 characters or fewer."),
-  talkingPoints: z
+  matchingPref: z.string(),
+  industryPref: z.string(),
+  rolePref: z
     .string()
-    .max(200, "Talking points must be 200 characters or fewer."),
-  additionalInfo: z
+    .max(200, "Role Preference must be 200 characters or fewer."),
+  topics: z.string().max(200, "Topics must be 200 characters or fewer."),
+  extraNotes: z
     .string()
-    .max(500, "Additional info must be 500 characters or fewer."),
+    .max(500, "Extra notes must be 500 characters or fewer."),
 });
