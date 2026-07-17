@@ -156,7 +156,7 @@ jobs:
   updateK8sTag:
     name: Change Tag in K8s
     runs-on: ubuntu-latest
-    needs: [buildImage]
+    needs: [migrateDatabase]
 
     steps:
       - name: Checkout Repository
