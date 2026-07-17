@@ -10,6 +10,12 @@
 | GET | /api/matches/{year}/{month} | List pairings by month |
 | GET | /api/matches/member/{id} | List pairings by member id |
 
+/api/matches/list?query
+- The /year/month is too hardcoded 
+    * Start time and end time
+    * period 
+    * match cycles should be int
+    * search params instead of url 
 
   Response: `ApiResponder<Match[]>`
   ```typescript
