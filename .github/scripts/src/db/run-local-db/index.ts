@@ -75,10 +75,7 @@ async function waitForPostgres(): Promise<boolean> {
         .quiet()
         .nothrow();
 
-    if (
-      running.exitCode !== 0 ||
-      running.stdout.toString().trim() !== "true"
-    ) {
+    if (running.exitCode !== 0 || running.stdout.toString().trim() !== "true") {
       console.error("Postgres container exited before becoming ready.");
       return false;
     }
@@ -106,9 +103,7 @@ async function end(): Promise<void> {
   try {
     await printLogs();
   } finally {
-    const stopResult = await $`docker stop ${CONTAINER_NAME}`
-      .quiet()
-      .nothrow();
+    const stopResult = await $`docker stop ${CONTAINER_NAME}`.quiet().nothrow();
 
     if (stopResult.exitCode !== 0) {
       console.log("Postgres container was not running.");

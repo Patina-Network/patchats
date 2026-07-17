@@ -6,19 +6,18 @@ import { hideBin } from "yargs/helpers";
 
 process.env.TZ = "America/New_York";
 
-const { environment, githubOutputFile } =
-  await yargs(hideBin(process.argv))
-    .option("environment", {
-      type: "string",
-      choices: ["staging", "production"] satisfies Environment[],
-      demandOption: true,
-    })
-    .option("githubOutputFile", {
-      type: "string",
-      describe: "Path to GITHUB_OUTPUT (passed in automatically in CI)",
-      default: process.env.GITHUB_OUTPUT,
-    })
-    .parseAsync();
+const { environment, githubOutputFile } = await yargs(hideBin(process.argv))
+  .option("environment", {
+    type: "string",
+    choices: ["staging", "production"] satisfies Environment[],
+    demandOption: true,
+  })
+  .option("githubOutputFile", {
+    type: "string",
+    describe: "Path to GITHUB_OUTPUT (passed in automatically in CI)",
+    default: process.env.GITHUB_OUTPUT,
+  })
+  .parseAsync();
 
 const tagPrefix = environment === "staging" ? "staging-" : "";
 const serverProfiles = environment === "staging" ? "stg" : "prod";
