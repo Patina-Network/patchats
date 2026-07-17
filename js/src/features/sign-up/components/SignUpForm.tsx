@@ -20,7 +20,7 @@ import {
 import { useState } from "react";
 
 // Options for select fields. Defined in SignUpFormConfig
-const matchingPrefOptions = MATCHING_PREFERENCES.map((v) => ({
+const matchingPreferenceOptions = MATCHING_PREFERENCES.map((v) => ({
   value: v,
   label: v,
 }));
@@ -33,7 +33,7 @@ const initialFormValues: MemberProfileValues = {
   linkedInUrl: "",
   introduction: "",
   referralSource: "",
-  matchingPref: "",
+  matchPref: "",
   industryPref: "",
   rolePref: "",
   topics: "",
@@ -122,12 +122,24 @@ export function SignUpForm() {
 
     setIsSubmitting(true);
     try {
-      // TODO: replace with API call
-      await Promise.resolve();
-      setSuccessMessage("Your form was submitted successfully.");
+      const response = await fetch("/api/members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (response.ok) {
+        setSuccessMessage("Your form was submitted successfully.");
+        setValues({ ...initialFormValues });
+      } else {
+        const data = await response.json();
+        setSubmitError(
+          data.message ||
+            "An error occurred while submitting the form. Please try again later or contact an administrator.",
+        );
+      }
     } catch (_error) {
       setSubmitError(
-        "There was a problem submitting the form. Please try again.",
+        "Network error - please check your connection and try again",
       );
     } finally {
       setIsSubmitting(false);
@@ -206,16 +218,16 @@ export function SignUpForm() {
           <Select
             label="Matching Preference"
             placeholder="No Preference"
-            data={matchingPrefOptions}
-            value={values.matchingPref}
+            data={matchingPreferenceOptions}
+            value={values.matchPref}
             onChange={(value) =>
               handleFieldChange(
-                "matchingPref",
-                (value || "") as MemberProfileValues["matchingPref"],
+                "matchPref",
+                (value || "") as MemberProfileValues["matchPref"],
               )
             }
-            onBlur={() => handleFieldBlur("matchingPref")}
-            error={errors.matchingPref}
+            onBlur={() => handleFieldBlur("matchPref")}
+            error={errors.matchPref}
           />
           <Select
             label="What industry are you in, or looking to get into?"

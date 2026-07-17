@@ -4,7 +4,7 @@ export interface MemberProfileValues {
   linkedInUrl: string;
   introduction: string;
   referralSource: string;
-  matchingPref: string;
+  matchPref: string;
   industryPref: string;
   rolePref: string;
   topics: string;

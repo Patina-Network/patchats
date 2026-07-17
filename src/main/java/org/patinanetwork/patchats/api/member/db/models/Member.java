@@ -1,6 +1,6 @@
 package org.patinanetwork.patchats.api.member.db.models;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,6 +10,7 @@ import lombok.ToString;
 
 @Getter
 @Builder
+@Setter
 @ToString
 @EqualsAndHashCode
 public class Member {
@@ -49,7 +50,7 @@ public class Member {
     @Setter
     private String extraNotes;
 
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
 
-    private Instant updatedAt;
+    private OffsetDateTime updatedAt;
 }

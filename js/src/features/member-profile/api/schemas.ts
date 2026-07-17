@@ -25,7 +25,7 @@ export const memberProfileSchema = z.object({
   referralSource: z
     .string()
     .max(200, "Referral source must be 200 characters or fewer."),
-  matchingPref: z.string(),
+  matchPref: z.string(),
   industryPref: z.string(),
   rolePref: z
     .string()
