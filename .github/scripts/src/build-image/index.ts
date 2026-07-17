@@ -6,23 +6,12 @@ import { hideBin } from "yargs/helpers";
 
 process.env.TZ = "America/New_York";
 
-const { environment, dockerUpload, getGhaOutput, githubOutputFile } =
+const { environment, githubOutputFile } =
   await yargs(hideBin(process.argv))
     .option("environment", {
       type: "string",
       choices: ["staging", "production"] satisfies Environment[],
       demandOption: true,
-    })
-    .option("dockerUpload", {
-      type: "boolean",
-      default: false,
-      demandOption: true,
-    })
-    .option("getGhaOutput", {
-      type: "boolean",
-      describe:
-        "Enable GitHub Actions output to receive latest built tag version",
-      default: false,
     })
     .option("githubOutputFile", {
       type: "string",
@@ -85,14 +74,12 @@ async function main() {
     await $`docker buildx use patchats-builder`;
   }
 
-  const buildMode = dockerUpload ? "--push" : "--load";
-
   const viteStagingArg =
     serverProfiles === "stg" ? ["--build-arg", "VITE_STAGING=true"] : [];
 
   const tagArgs = tags.flatMap((tag) => ["--tag", tag]);
 
-  await $`docker buildx build ${buildMode} \
+  await $`docker buildx build --push \
             --platform linux/amd64 \
             --file infra/Dockerfile \
             --build-arg SERVER_PROFILES=${serverProfiles} \
@@ -105,7 +92,7 @@ async function main() {
 
   console.log("Image pushed successfully.");
 
-  if (getGhaOutput && githubOutputFile) {
+  if (githubOutputFile) {
     console.log("Outputting image tag...");
     const w = Bun.file(githubOutputFile).writer();
     await w.write(`tag<<EOF\n${tagPrefix}${gitSha}\nEOF\n`);

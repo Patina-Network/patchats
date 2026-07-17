@@ -83,7 +83,6 @@ jobs:
         uses: ./.github/composite/build-image
         with:
           ENVIRONMENT: staging
-          DOCKER_UPLOAD: true
 
   migrateDatabase:
     name: Migrate Staging Database

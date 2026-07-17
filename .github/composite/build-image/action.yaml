@@ -1,11 +1,7 @@
 name: "Build & Upload Docker Image"
-description: "Build & (optionally) upload Docker Image to Docker Registry"
+description: "Build & upload Docker Image to Docker Registry"
 
 inputs:
-  DOCKER_UPLOAD:
-    description: "Boolean indicating whether the image should be uploaded to Docker registry or not."
-    required: false
-    default: "true"
   ENVIRONMENT:
     description: "'staging' or 'production'"
     required: true
@@ -50,4 +46,4 @@ runs:
     - name: Run script
       id: build-image
       shell: bash
-      run: bun run .github/scripts/src/build-image --environment "${{ inputs.ENVIRONMENT }}" --docker-upload=${{ inputs.DOCKER_UPLOAD }} --getGhaOutput=true
+      run: bun run .github/scripts/src/build-image --environment "${{ inputs.ENVIRONMENT }}"
