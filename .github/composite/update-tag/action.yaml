@@ -1,0 +1,14 @@
+name: Update K8s Tag
+description: Updates K8s tag in the Patina Network manifest
+
+inputs:
+  ENVIRONMENT:
+    description: "'staging' or 'production'"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Run script
+      shell: bash
+      run: bun run .github/scripts/src/update-tag --environment "${{ inputs.ENVIRONMENT }}"
