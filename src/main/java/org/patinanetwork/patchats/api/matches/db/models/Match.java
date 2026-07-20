@@ -1,0 +1,41 @@
+package org.patinanetwork.patchats.api.matches.db.models;
+
+import java.time.Instant;
+import java.util.UUID;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Builder
+@ToString
+@EqualsAndHashCode(of = "id")
+public class Match {
+
+    private UUID id;
+
+    @Setter
+    private UUID memberAId;
+
+    @Setter
+    private UUID memberBId;
+
+    @Setter
+    private Integer cycleId;
+
+    @Setter
+    private Double matchScore;
+
+    @Setter
+    private String status;
+
+    @Setter
+    private String feedbackA;
+
+    @Setter
+    private String feedbackB;
+
+    private Instant createdAt;
+}
