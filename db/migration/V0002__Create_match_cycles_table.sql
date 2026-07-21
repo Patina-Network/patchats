@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS "match_cycles" (
-    id UUID PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     period TEXT,
     run_at TIMESTAMPTZ NOT NULL,
     total_members INT,
