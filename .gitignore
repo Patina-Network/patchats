@@ -9,6 +9,8 @@ ivy-cache
 argfile*
 activemq-data/
 classes/
+example.md
+
 
 # Log files
 jxl.log
@@ -28,7 +30,7 @@ spring-test/test-output/
 
 # Maven artifacts
 /target/
-target_test*/
+/target_test*/
 
 # Eclipse artifacts, including WTP generated manifests
 bin

@@ -1,0 +1,43 @@
+package org.patinanetwork.patchats.api.match.db.repos;
+
+import java.util.List;
+import java.util.Optional;
+import org.patinanetwork.patchats.api.match.db.models.MatchCycle;
+
+public interface MatchCycleRepo {
+    /**
+     * @note - The provided object's methods will be overridden with any returned data from the database.
+     * @param matchCycle - required fields:
+     *     <ul>
+     *       <li>id
+     *       <li>runAt
+     *     </ul>
+     *     Optional fields:
+     *     <ul>
+     *       <li>period
+     *       <li>totalMembers
+     *       <li>totalMatched
+     *       <li>unmatchedIds
+     *     </ul>
+     */
+    MatchCycle createMatchCycle(MatchCycle matchCycle);
+
+    /**
+     * @note - The provided object's methods will be overridden with any returned data from the database.
+     * @param matchCycle - overridden fields:
+     *     <ul>
+     *       <li>period
+     *       <li>runAt
+     *       <li>totalMembers
+     *       <li>totalMatched
+     *       <li>unmatchedIds
+     *     </ul>
+     */
+    Optional<MatchCycle> updateMatchCycle(MatchCycle matchCycle);
+
+    Optional<MatchCycle> getMatchCycleById(Integer id);
+
+    Optional<MatchCycle> deleteMatchCycleById(Integer id);
+
+    List<MatchCycle> filterMatchCycles(MatchCycleFilterCriteria criteria);
+}
