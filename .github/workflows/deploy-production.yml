@@ -16,8 +16,19 @@ permissions:
   checks: write
 
 jobs:
-  backend-pretest:
+  verify-main:
+    name: Verify Main Branch
     runs-on: ubuntu-latest
+
+    if: github.ref_name == 'main'
+
+    steps:
+      - run: echo "Branch is main. Proceeding..."
+
+  backend-pretest:
+    name: Backend Pretests
+    runs-on: ubuntu-latest
+    needs: verify-main
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -26,7 +37,9 @@ jobs:
         uses: ./.github/composite/test/backend-pretest
 
   frontend-pretest:
+    name: Frontend Pretests
     runs-on: ubuntu-latest
+    needs: verify-main
     defaults:
       run:
         working-directory: js
@@ -61,12 +74,77 @@ jobs:
       - name: Run workflow
         uses: ./.github/composite/test/frontend-test
 
+  run-local-db:
+    name: Test Run Database Locally
+    runs-on: ubuntu-latest
+    needs: backend-test
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check for database changes
+        id: dbChanges
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git diff --quiet "${{ github.event.before }}" "${{ github.sha }}" -- db; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run workflow
+        if: steps.dbChanges.outputs.changed == 'true'
+        uses: ./.github/composite/db/run-local-db
+
+      - name: Skipping database test
+        if: steps.dbChanges.outputs.changed != 'true'
+        shell: bash
+        run: echo "skipping db test"
+
+
+  run-backend-instance:
+    name: Test Run Backend Instance
+    runs-on: ubuntu-latest
+    needs: backend-test
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Run workflow
+        uses: ./.github/composite/run-backend-instance
+
+  build-image:
+    name: Build Docker Image & Upload to Registry
+    runs-on: ubuntu-latest
+    needs: [frontend-test, run-local-db, run-backend-instance]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup CI
+        uses: ./.github/composite/setup-ci
+        with:
+          SECRETS: ${{ toJSON(secrets) }}
+
+      - name: Run workflow
+        uses: ./.github/composite/build-image
+        with:
+          ENVIRONMENT: production
+
   migrate-database:
     name: Migrate production database
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-test]
-
-    if: github.ref_name == 'main'
+    needs: [build-image]
 
     steps:
       - name: Checkout Repository
@@ -82,5 +160,24 @@ jobs:
 
       - name: Run workflow
         uses: ./.github/composite/db/migrate
+        with:
+          ENVIRONMENT: production
+
+  update-k8s-tag:
+    name: Change Tag in K8s
+    runs-on: ubuntu-latest
+    needs: [migrate-database]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup CI
+        uses: ./.github/composite/setup-ci
+        with:
+          SECRETS: ${{ toJSON(secrets) }}
+
+      - name: Run Workflow
+        uses: ./.github/composite/update-tag
         with:
           ENVIRONMENT: production
