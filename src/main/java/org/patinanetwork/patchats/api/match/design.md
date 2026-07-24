@@ -177,38 +177,6 @@ public class UpdateMatchFeedbackRequest {
 }
 ```
 
-## /api/matches/{year}
-* Join on match_cycles, filtered by run_at within year
-```sql
-   SELECT m.id, m.member_a_id, m.member_b_id, m.status,
-          to_char(c.run_at, 'YYYY-MM') AS month
-   FROM matches m
-   JOIN match_cycles c ON m.cycle_id = c.id
-   WHERE c.run_at >= TIMESTAMPTZ '2026-01-01'
-     AND c.run_at <  TIMESTAMPTZ '2027-01-01';
- ```
- 
-## /api/matches/{year}/{month}
-* Join on match_cycles, filtered by run_at within month
-```sql
-   SELECT m.id, m.member_a_id, m.member_b_id, m.status,
-          to_char(c.run_at, 'YYYY-MM') AS month
-   FROM matches m
-   JOIN match_cycles c ON m.cycle_id = c.id
-   WHERE c.run_at >= TIMESTAMPTZ '2026-01-01'
-     AND c.run_at <  TIMESTAMPTZ '2026-02-01';
-```
-
-## /api/matches/member/{id}
-* Filter matches by member id
-```sql
-   SELECT m.id, m.member_a_id, m.member_b_id, m.status,
-          to_char(c.run_at, 'YYYY-MM') AS month
-   FROM matches m
-   JOIN match_cycles c ON m.cycle_id = c.id
-   WHERE m.member_a_id = :id
-     OR  m.member_b_id = :id
-```
 
 ### Layering
 

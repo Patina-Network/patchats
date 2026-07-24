@@ -23,7 +23,6 @@ public interface MatchCycleRepo {
      */
     MatchCycle createMatchCycle(MatchCycle matchCycle);
 
-
     /**
      * @note - The provided object's methods will be overridden with any returned data from the database.
      * @param matchCycle - overridden fields:
