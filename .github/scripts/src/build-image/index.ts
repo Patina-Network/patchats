@@ -30,7 +30,7 @@ const { environment, getGhaOutput, githubOutputFile, dockerFileName } =
     })
     .option("dockerFileName", {
       type: "string",
-      default: "Dockerfile.web",
+      default: "Dockerfile",
     })
     .strict()
     .parse();
