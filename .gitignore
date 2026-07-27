@@ -28,6 +28,7 @@ spring-test/test-output/
 
 # Maven artifacts
 /target/
+target_test*/
 
 # Eclipse artifacts, including WTP generated manifests
 bin

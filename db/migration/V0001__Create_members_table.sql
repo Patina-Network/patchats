@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS "members" (
     id UUID PRIMARY KEY,
-    full_name TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     linked_url TEXT,
     bio TEXT,
