@@ -2,6 +2,9 @@ package org.patinanetwork.patchats.common.web;
 
 import java.util.stream.Collectors;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
+import org.patinanetwork.patchats.common.web.exception.EmailNotFoundException;
+import org.patinanetwork.patchats.common.web.exception.EmailNotResendableException;
+import org.patinanetwork.patchats.common.web.exception.EmailTemplateNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -31,6 +34,21 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(MemberDuplicateException.class)
     public ResponseEntity<ApiResponder<Void>> handleMemberDuplicate(final MemberDuplicateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailTemplateNotFoundException.class)
+    public ResponseEntity<ApiResponder<Void>> handleEmailTemplateNotFound(final EmailTemplateNotFoundException ex) {
+        return ResponseEntity.badRequest().body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailNotFoundException.class)
+    public ResponseEntity<ApiResponder<Void>> handleEmailNotFound(final EmailNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailNotResendableException.class)
+    public ResponseEntity<ApiResponder<Void>> handleEmailNotResendable(final EmailNotResendableException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponder.failure(ex.getMessage()));
     }
 

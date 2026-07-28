@@ -29,6 +29,18 @@ class EmailControllerTest {
     @MockitoBean
     private EmailService emailService;
 
+    @MockitoBean
+    private EmailEnqueueService enqueueService;
+
+    @MockitoBean
+    private EmailProgressService progressService;
+
+    @MockitoBean
+    private EmailDrainer drainer;
+
+    @MockitoBean
+    private org.patinanetwork.patchats.email.db.repos.EmailTemplateRepo templateRepo;
+
     @Test
     void returnsOkAndApiResponderOnSuccess() throws Exception {
         when(emailService.send(any()))

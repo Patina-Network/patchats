@@ -37,3 +37,96 @@ export interface SendRequest {
     }[];
   }[];
 }
+
+// Async email flow with template ID (replaces SendRequest for new code)
+export interface SendAsyncRequest {
+  templateId: string;
+  replyTo?: string | null;
+  messages: {
+    recipients: {
+      email: string;
+      variableToValue: Record<string, string>;
+    }[];
+  }[];
+}
+
+// Async email flow types
+
+export interface EnqueueEmailRequest {
+  templateId: string;
+  replyTo?: string | null;
+  messages: {
+    recipients: {
+      email: string;
+      variableToValue: Record<string, string>;
+    }[];
+  }[];
+}
+
+export interface EnqueueEmailResponse {
+  requestId: string;
+  accepted: number;
+}
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EmailProgress {
+  total: number;
+  pending: number;
+  processing: number;
+  sent: number;
+  error: number;
+  emails: EmailRow[];
+}
+
+export interface EmailRow {
+  id: string;
+  recipients: string[];
+  status: "PENDING" | "PROCESSING" | "SENT" | "ERROR";
+  error: string | null;
+  sentAt: string | null;
+}
+
+export interface EmailRequestSummary {
+  id: string;
+  source: "MANUAL" | "MATCHING";
+  template_id: string | null;
+  created_at: string;
+  total_count: number;
+  sent: number;
+  error: number;
+  in_flight: number;
+  terminal: boolean;
+}
+
+// Matching send types
+
+export interface PairUser {
+  name: string;
+  email: string;
+  bio?: string;
+  industry?: string;
+  role?: string;
+  topics?: string;
+  linkedUrl?: string;
+}
+
+export interface SelectedPair {
+  matchesId?: string;
+  per1: PairUser;
+  per2: PairUser;
+}
+
+export interface MatchingSendRequest {
+  templateId: string;
+  replyTo?: string | null;
+  pairs: SelectedPair[];
+  sharedVariables?: Record<string, string>;
+}

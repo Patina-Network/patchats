@@ -1,6 +1,6 @@
 import type {
   MessagePreview,
-  SendRequest,
+  SendAsyncRequest,
 } from "@/features/emails/dto/emailDto";
 
 import { sendToPreviewApi } from "@/features/emails/api/emailAPI";
@@ -14,10 +14,8 @@ import { useEffect } from "react";
 /**
  * Component that displays the rendered emails returned by the /api/email/preview endpoint in a carousel.
  *
- * Note: this takes the *rendered* previews (MessagePreview[]), not the raw object from dataToSendRequest.
- * dataToSendRequest returns a SendEmailRequest whose subject/body still contain unresolved ${...} placeholders;
- * passing that here would show literal template syntax. Render it first via previewEmails(request), then
- * pass the result in so the user sees exactly what will be sent.
+ * Note: this takes the *rendered* previews (MessagePreview[]), not the SendAsyncRequest.
+ * The request is passed for query key dependency only.
  */
 export function EmailPreviewer({
   previews,
@@ -26,7 +24,7 @@ export function EmailPreviewer({
 }: {
   previews: MessagePreview[] | null;
   setPreviews: React.Dispatch<React.SetStateAction<MessagePreview[] | null>>;
-  request: SendRequest | null;
+  request: SendAsyncRequest | null;
 }) {
   const { data, status } = useQuery({
     queryKey: ["preview", request],

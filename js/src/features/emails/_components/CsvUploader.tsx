@@ -1,10 +1,10 @@
-import type { Pair, SendRequest, User } from "@/features/emails/dto/emailDto";
+import type {
+  Pair,
+  SendAsyncRequest,
+  User,
+} from "@/features/emails/dto/emailDto";
 
 import { showEmailError } from "@/features/emails/api/emailError";
-import {
-  EmailTemplate,
-  emailTemplateMap,
-} from "@/features/emails/api/emailTemplate";
 import {
   dataToSendRequest,
   parseUserFile,
@@ -13,13 +13,11 @@ import {
 import {
   FileInput,
   Button,
-  NativeSelect,
   Flex,
   Box,
   ScrollArea,
   Text,
   Table,
-  Spoiler,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
 
@@ -33,31 +31,32 @@ const rowStyle = {
 
 /**
  * Main component for user and pairing CSV file uploaders, an email template dropdown, and email generation button.
- * @param setRequest - A function to set the SendRequest object in the parent component.
- * @returns  A component that allows users to upload CSV files, select an email template, and generate a SendRequest object.
+ * @param setRequest - A function to set the SendAsyncRequest object in the parent component.
+ * @returns  A component that allows users to upload CSV files, select an email template, and generate a SendAsyncRequest object.
  */
 export function CsvUploader({
+  templateId,
   setRequest,
 }: {
-  setRequest: React.Dispatch<React.SetStateAction<SendRequest | null>>;
+  templateId: string | null;
+  setRequest: React.Dispatch<React.SetStateAction<SendAsyncRequest | null>>;
 }) {
   const [userMap, setUserMap] = useState<Map<string, User>>(new Map());
   const [pairList, setPairList] = useState<Pair[]>([]);
   const [userFile, setUserFile] = useState<File | null>(null);
   const [pairingFile, setPairingFile] = useState<File | null>(null);
-  const [template, setTemplate] = useState("");
 
   const handleCSV = async () => {
     if (!userMap || userMap.size === 0) {
       showEmailError("Missing file", "Please upload a User CSV.");
       return;
     }
-    if (template === "") {
+    if (!templateId) {
       showEmailError("Missing template", "Please select a template.");
       return;
     }
     try {
-      const req = await dataToSendRequest(userMap, pairList, template);
+      const req = await dataToSendRequest(userMap, pairList, templateId);
       setRequest(req);
     } catch (err) {
       showEmailError("Error when processing CSV", `${err}`);
@@ -76,10 +75,7 @@ export function CsvUploader({
         setPairFile={setPairingFile}
         setPairs={setPairList}
       />
-      <TemplateSelect selection={template} setSelection={setTemplate} />
-      <Button onClick={() => void handleCSV()}>
-        Process Files and Template
-      </Button>
+      <Button onClick={() => void handleCSV()}>Process Files</Button>
     </Flex>
   );
 }
@@ -254,53 +250,5 @@ export function PairingCsvUpload({
         </ScrollArea>
       : <Text></Text>}
     </Box>
-  );
-}
-
-/**
- * Component for email template selection.
- * @param selection - The currently selected email template. (undefined if no template is selected)
- * @param setSelection - A function to handle changes to the selected email template.
- * @returns Email template selection dropdown and template text preview.
- */
-export function TemplateSelect({
-  selection,
-  setSelection,
-}: {
-  selection: string | undefined;
-  setSelection: React.Dispatch<React.SetStateAction<string>>;
-}) {
-  const [template, setTemplate] = useState<EmailTemplate>();
-
-  useEffect(() => {
-    if (selection) {
-      // Display the appropriate template
-      const template = emailTemplateMap[selection];
-      setTemplate(template);
-    } else {
-      setTemplate(undefined);
-    }
-  }, [selection]);
-
-  return (
-    <Flex gap="xxs" direction="column">
-      <NativeSelect
-        value={selection}
-        onChange={(event) => setSelection(event.currentTarget.value)}
-        label="Email Templates"
-        description="Select an email template"
-        data={[{ label: "Select a template", value: "" }, "Pair", "Reminder"]}
-      />
-      <Flex>
-        <Spoiler maxHeight={0} showLabel="Preview Template" hideLabel="Hide">
-          <Text size="xs">Subject: {template ? template.subject : ""}</Text>
-          <br />
-          <Text size="xs" style={{ whiteSpace: "pre-line" }}>
-            Body:{" "}
-            {template ? template.body : "Select a template to see its content."}
-          </Text>
-        </Spoiler>
-      </Flex>
-    </Flex>
   );
 }

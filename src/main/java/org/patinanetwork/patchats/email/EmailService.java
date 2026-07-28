@@ -37,7 +37,7 @@ public class EmailService {
                     .map(SendEmailRequest.Recipient::email)
                     .toList();
             try {
-                final Map<String, String> variables = mergeVariables(message);
+                final Map<String, String> variables = mergeVariables(message.variables(), message.recipients());
                 final String subject = renderer.render(request.subject(), variables);
                 final String body = renderer.render(request.body(), variables);
                 sender.send(new OutgoingEmail(recipients, subject, body, replyTo));
@@ -65,7 +65,7 @@ public class EmailService {
                     .map(SendEmailRequest.Recipient::email)
                     .toList();
             try {
-                final Map<String, String> variables = mergeVariables(message);
+                final Map<String, String> variables = mergeVariables(message.variables(), message.recipients());
                 final String subject = renderer.render(request.subject(), variables);
                 final String body = renderer.render(request.body(), variables);
                 previews.add(new PreviewEmailResponse.MessagePreview(recipients, subject, body, null));
@@ -78,14 +78,15 @@ public class EmailService {
 
     /**
      * Flattens a message's variables into one map: message-level variables un-prefixed, and each recipient's variables
-     * under a positional {@code per1.}/{@code per2.} prefix.
+     * under a positional {@code per1.}/{@code per2.} prefix. Shared by the sync send/preview paths and the async
+     * enqueue pipeline so the stored {@code template_values} match exactly what a preview renders.
      */
-    private static Map<String, String> mergeVariables(final SendEmailRequest.Message message) {
+    public static Map<String, String> mergeVariables(
+            final Map<String, String> messageVariables, final List<SendEmailRequest.Recipient> recipients) {
         final Map<String, String> merged = new HashMap<>();
-        if (message.variables() != null) {
-            merged.putAll(message.variables());
+        if (messageVariables != null) {
+            merged.putAll(messageVariables);
         }
-        final List<SendEmailRequest.Recipient> recipients = message.recipients();
         for (int i = 0; i < recipients.size(); i++) {
             final String prefix = "per" + (i + 1) + ".";
             final Map<String, String> vars = recipients.get(i).variableToValue();
