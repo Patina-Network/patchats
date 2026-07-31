@@ -40,22 +40,35 @@ public class MemberService {
     }
 
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {
-        if (memberRepo.getMemberById(id).isEmpty()) {
-            throw new MemberNotFoundException(id);
+        Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
+
+        if (request.fullName() != null) {
+            member.setFullName(request.fullName());
         }
-        // TODO: Implement partial update instead of full update
-        Member member = Member.builder()
-                .id(id)
-                .fullName(request.fullName())
-                .email(request.email())
-                .linkedInUrl(request.linkedInUrl())
-                .introduction(request.introduction())
-                .matchPref(request.matchPref())
-                .industryPref(request.industryPref())
-                .rolePref(request.rolePref())
-                .topics(request.topics())
-                .extraNotes(request.extraNotes())
-                .build();
+        if (request.email() != null) {
+            member.setEmail(request.email());
+        }
+        if (request.linkedInUrl() != null) {
+            member.setLinkedInUrl(request.linkedInUrl());
+        }
+        if (request.introduction() != null) {
+            member.setIntroduction(request.introduction());
+        }
+        if (request.matchPref() != null) {
+            member.setMatchPref(request.matchPref());
+        }
+        if (request.industryPref() != null) {
+            member.setIndustryPref(request.industryPref());
+        }
+        if (request.rolePref() != null) {
+            member.setRolePref(request.rolePref());
+        }
+        if (request.topics() != null) {
+            member.setTopics(request.topics());
+        }
+        if (request.extraNotes() != null) {
+            member.setExtraNotes(request.extraNotes());
+        }
         Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
         return MemberDto.from(updatedMember);
     }
