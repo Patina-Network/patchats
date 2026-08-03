@@ -2,7 +2,7 @@ import { memberProfileSchema } from "@/features/member-profile/api/schemas";
 import { MemberProfileValues } from "@/features/member-profile/types";
 import {
   INDUSTRIES,
-  MATCHING_PREFERENCES,
+  MATCH_PREFS,
 } from "@/features/sign-up/components/signUpFormConfig";
 import {
   Alert,
@@ -20,7 +20,7 @@ import {
 import { useState } from "react";
 
 // Options for select fields. Defined in SignUpFormConfig
-const matchingPreferenceOptions = MATCHING_PREFERENCES.map((v) => ({
+const matchPrefOptions = MATCH_PREFS.map((v) => ({
   value: v,
   label: v,
 }));
@@ -218,7 +218,7 @@ export function SignUpForm() {
           <Select
             label="Matching Preference"
             placeholder="No Preference"
-            data={matchingPreferenceOptions}
+            data={matchPrefOptions}
             value={values.matchPref}
             onChange={(value) =>
               handleFieldChange(
