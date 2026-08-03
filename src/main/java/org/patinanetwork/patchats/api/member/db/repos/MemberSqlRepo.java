@@ -2,6 +2,7 @@ package org.patinanetwork.patchats.api.member.db.repos;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +30,8 @@ public class MemberSqlRepo implements MemberRepo {
                 .rolePref(rs.getString("role_pref"))
                 .topics(rs.getString("topics"))
                 .extraNotes(rs.getString("extra_notes"))
-                .createdAt(rs.getTimestamp("created_at").toInstant())
-                .updatedAt(rs.getTimestamp("updated_at").toInstant())
+                .createdAt(rs.getObject("created_at", OffsetDateTime.class))
+                .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
                 .build();
     }
 

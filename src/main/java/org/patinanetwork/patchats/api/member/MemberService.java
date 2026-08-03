@@ -9,9 +9,7 @@ import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -58,9 +56,7 @@ public class MemberService {
                 .topics(request.topics())
                 .extraNotes(request.extraNotes())
                 .build();
-        Member updatedMember = memberRepo
-                .updateMember(member)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
+        Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
         return MemberDto.from(updatedMember);
     }
 
@@ -72,9 +68,9 @@ public class MemberService {
     //             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
     // }
 
-    // public MemberDto deactivateMemberById(UUID id) {
+    // public MemberDto deactivateMember(UUID id) {
     //     return memberRepo
-    //             .deactivateMemberById(id)
+    //             .deactivateMember(id)
     //             .map(MemberDto::from)
     //             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
     // }
