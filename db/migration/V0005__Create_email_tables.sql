@@ -48,7 +48,7 @@ INSERT INTO "email_templates" (id, name, subject, body) VALUES
         '00000000-0000-0000-0000-000000000001',
         'Pair',
         replace(
-            '[PatChats ' || to_char(now(), 'Month') || '] $${per1.firstName} and $${per2.firstName}, you''ve been paired for PatChats!',
+            '[PatChats $${month}] $${per1.firstName} and $${per2.firstName}, you''ve been paired for PatChats!',
             '$${',
             '$' || '{'
         ),
@@ -61,7 +61,11 @@ INSERT INTO "email_templates" (id, name, subject, body) VALUES
     (
         '00000000-0000-0000-0000-000000000002',
         'Reminder',
-        '[PatChats ' || to_char(now(), 'Month') || '] Reminder: Have you had your PatChat yet?',
+        replace(
+            '[PatChats $${month}] Reminder: Have you had your PatChat yet?',
+            '$${',
+            '$' || '{'
+        ),
         replace(
             E'Hi $${per1.firstName} and $${per2.firstName},\n\nJust a friendly reminder that you were paired for PatChats this month!\nIf you haven''t had your 30 minute coffee chat or video call yet, now''s a great time to schedule it.\nDon''t forget to share a screenshot or selfie in the #pat-chats channel on the Discord server!\n\n$${per1.name} ($${per1.email})\n$${per2.name} ($${per2.email})\n\nLet me know if you''d like to update your pairing information or be taken off the list.\n\nCheers,\nPatina Network',
             '$${',

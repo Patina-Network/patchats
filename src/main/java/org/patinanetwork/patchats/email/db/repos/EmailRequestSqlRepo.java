@@ -15,16 +15,21 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class EmailRequestSqlRepo implements EmailRequestRepo {
 
+    private static final String TEMPLATE_ID = "template_id";
+    private static final String SOURCE = "source";
+    private static final String TOTAL_COUNT = "total_count";
+
     private final JdbcClient jdbc;
 
     static EmailRequest parseResultSet(final ResultSet rs) throws SQLException {
+        final String templateId = rs.getString(TEMPLATE_ID);
         return EmailRequest.builder()
                 .id(UUID.fromString(rs.getString("id")))
                 .label(rs.getString("label"))
                 .senderEmail(rs.getString("sender_email"))
-                .source(EmailSource.valueOf(rs.getString("source")))
-                .templateId(rs.getString("template_id") == null ? null : UUID.fromString(rs.getString("template_id")))
-                .totalCount(rs.getInt("total_count"))
+                .source(EmailSource.valueOf(rs.getString(SOURCE)))
+                .templateId(templateId == null ? null : UUID.fromString(templateId))
+                .totalCount(rs.getInt(TOTAL_COUNT))
                 .createdAt(rs.getTimestamp("created_at").toInstant())
                 .build();
     }
@@ -40,9 +45,9 @@ public class EmailRequestSqlRepo implements EmailRequestRepo {
                 .param("id", request.getId())
                 .param("label", request.getLabel())
                 .param("sender_email", request.getSenderEmail())
-                .param("source", request.getSource().name())
-                .param("template_id", request.getTemplateId())
-                .param("total_count", request.getTotalCount())
+                .param(SOURCE, request.getSource().name())
+                .param(TEMPLATE_ID, request.getTemplateId())
+                .param(TOTAL_COUNT, request.getTotalCount())
                 .query((rs, rowNum) -> parseResultSet(rs))
                 .single();
     }
@@ -60,15 +65,18 @@ public class EmailRequestSqlRepo implements EmailRequestRepo {
                  ORDER BY r.created_at DESC
                 """;
         return jdbc.sql(sql)
-                .query((rs, rowNum) -> new EmailRequestCounts(
-                        UUID.fromString(rs.getString("id")),
-                        EmailSource.valueOf(rs.getString("source")),
-                        rs.getString("template_id") == null ? null : UUID.fromString(rs.getString("template_id")),
-                        rs.getTimestamp("created_at").toInstant(),
-                        rs.getInt("total_count"),
-                        rs.getInt("sent"),
-                        rs.getInt("error"),
-                        rs.getInt("in_flight")))
+                .query((rs, rowNum) -> {
+                    final String templateId = rs.getString(TEMPLATE_ID);
+                    return new EmailRequestCounts(
+                            UUID.fromString(rs.getString("id")),
+                            EmailSource.valueOf(rs.getString(SOURCE)),
+                            templateId == null ? null : UUID.fromString(templateId),
+                            rs.getTimestamp("created_at").toInstant(),
+                            rs.getInt(TOTAL_COUNT),
+                            rs.getInt("sent"),
+                            rs.getInt("error"),
+                            rs.getInt("in_flight"));
+                })
                 .list();
     }
 }

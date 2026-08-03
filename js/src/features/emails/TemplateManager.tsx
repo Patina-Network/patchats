@@ -34,6 +34,11 @@ import { IconTrash, IconPlus } from "@tabler/icons-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+/**
+ * UNREACHABLE: This component is currently not reachable in the app's UI. It is intended for future implementation in managing email templates.
+ * TemplateManager component allows users to view, create, and delete email templates.
+ * It also provides a preview feature to visualize how the email will look with sample data.
+ */
 export function TemplateManager() {
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -93,7 +98,7 @@ export function TemplateManager() {
     }
 
     try {
-      // Create fake messages with sample variabls to preview
+      // Create fake messages with sample variables to preview
       const request: SendRequest = {
         subject: formData.subject,
         body: formData.body,

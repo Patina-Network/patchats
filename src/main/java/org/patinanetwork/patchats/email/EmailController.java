@@ -146,6 +146,10 @@ public class EmailController {
     public ResponseEntity<ApiResponder<EnqueueEmailResponse>> sendMatching(
             @Valid @RequestBody final MatchingSendRequest request) {
         final EnqueueEmailResponse response = matchingSendService.send(request);
+        if (response.requestId() == null) {
+            return ResponseEntity.ok(
+                    ApiResponder.success("No emails sent — all selected pairs were already sent", response));
+        }
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(ApiResponder.success("Accepted %d pairing emails".formatted(response.accepted()), response));
     }

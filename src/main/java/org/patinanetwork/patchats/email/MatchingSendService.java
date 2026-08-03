@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.patinanetwork.patchats.email.db.models.EmailSource;
@@ -87,10 +86,11 @@ public class MatchingSendService {
             messages.add(new EnqueueEmailRequest.Message(pair.matchesId(), variables, recipients));
         }
 
-        // Enqueue all messages with source=MATCHING
+        // Enqueue all messages with source=MATCHING. If the dedup guard filtered every pair, there is nothing to
+        // enqueue: return a null requestId (no session was created) rather than a phantom one the caller can't poll.
         if (messages.isEmpty()) {
-            log.info("No messages to enqueue after dedup filtering");
-            return new EnqueueEmailResponse(UUID.randomUUID(), 0);
+            log.info("No messages to enqueue — all selected pairs were already sent");
+            return new EnqueueEmailResponse(null, 0);
         }
 
         final EnqueueEmailRequest enqueueRequest =

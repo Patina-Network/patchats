@@ -49,7 +49,7 @@ export function MatchingSendPage() {
         (idx) => {
           const pair = pairs[idx];
           return {
-            matchesId: undefined, // TODO: get from CSV if available
+            matchesId: undefined, // TODO: get from CSV if available (future feature that will prevent same pairing being emailed twice)
             per1: {
               name: pair.fullNameA,
               email: pair.emailA,
@@ -63,7 +63,7 @@ export function MatchingSendPage() {
       );
 
       const request: MatchingSendRequest = {
-        templateId: selectedTemplateId, // TODO: validate UUID format
+        templateId: selectedTemplateId, // TODO: validate UUID format (future feature will validate UUID, but for now we just check that the user has selected a template)
         replyTo: null,
         pairs: selectedPairsList,
         sharedVariables: sharedVars,
@@ -74,6 +74,14 @@ export function MatchingSendPage() {
       return response;
     },
     onSuccess: (response) => {
+      if (!response.requestId) {
+        // No session was created — every selected pair had already been sent. Don't open a phantom progress view.
+        showEmailSuccess(
+          "Nothing to Send",
+          "All selected pairs were already sent",
+        );
+        return;
+      }
       showEmailSuccess(
         "Pairing Emails Queued",
         `Accepted ${response.accepted} pairing emails`,

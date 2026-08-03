@@ -24,6 +24,12 @@ export async function sendToEmailApi(body: unknown) {
   return response.json();
 }
 
+/**
+ * Used in main email flow to preview emails with CSV data before sending.
+ * @param body- The request body containing templateId, sample variables, and CSV data for the email preview.
+ * @returns  preview of the email messages generated from the template ID with CSV data, or null if no previews are generated.
+ * @throws Error if the API request fails or returns a non-OK response.
+ */
 export async function sendToPreviewApi(
   body: SendAsyncRequest,
 ): Promise<MessagePreview[] | null> {
@@ -45,6 +51,13 @@ export async function sendToPreviewApi(
   return json.payload.previews;
 }
 
+/**
+ * Used in TemplateManager.tsx to preview email templates with sample data not in main email flow.
+ * Takes in raw subject/body rather than templateID.
+ * @param body- The request body containing subject, body, and sample variables for the email template.
+ * @returns  preview of the email messages generated from the template with sample data, or null if no previews are generated.
+ * @throws Error if the API request fails or returns a non-OK response.
+ */
 export async function sendToLegacyPreviewApi(
   body: SendRequest,
 ): Promise<MessagePreview[] | null> {

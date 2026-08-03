@@ -15,6 +15,11 @@ import org.springframework.web.server.ResponseStatusException;
 /**
  * Manages template CRUD (Increment 5): validates syntax, enforces uniqueness, and protects referenced templates from
  * deletion. Templates are immutable — no edit endpoint.
+ *
+ * <p>Fully wired and tested on the backend: reachable via {@code POST}/{@code DELETE /api/email/templates} (see
+ * {@link EmailController}). Not yet reachable through the running UI — the frontend component that calls these
+ * endpoints ({@code TemplateManager.tsx}) is built but not mounted in any route or in {@code EmailAdminPage}, so the
+ * create/delete flow is currently exercised only by HTTP clients and tests.
  */
 @Service
 @RequiredArgsConstructor
@@ -38,6 +43,7 @@ public class TemplateManagementService {
 
         // Validate syntax by attempting a dry-run render with sample + shared variables
         final Map<String, String> sampleVars = Map.ofEntries(
+                Map.entry("month", "Sample Month"),
                 Map.entry("per1.name", "Sample Person One"),
                 Map.entry("per1.email", "sample.one@example.com"),
                 Map.entry("per1.bio", "Sample bio for person one"),

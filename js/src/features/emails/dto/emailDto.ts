@@ -64,7 +64,8 @@ export interface EnqueueEmailRequest {
 }
 
 export interface EnqueueEmailResponse {
-  requestId: string;
+  // null when nothing was enqueued (e.g. every matching pair was already sent) — there is no session to poll.
+  requestId: string | null;
   accepted: number;
 }
 
@@ -97,12 +98,12 @@ export interface EmailRow {
 export interface EmailRequestSummary {
   id: string;
   source: "MANUAL" | "MATCHING";
-  template_id: string | null;
-  created_at: string;
-  total_count: number;
+  templateId: string | null;
+  createdAt: string;
+  total: number;
   sent: number;
   error: number;
-  in_flight: number;
+  inFlight: number;
   terminal: boolean;
 }
 

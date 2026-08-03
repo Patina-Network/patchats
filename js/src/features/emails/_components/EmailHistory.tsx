@@ -48,7 +48,7 @@ export function EmailHistory() {
       className="hover:bg-gray-50"
     >
       <Table.Td>
-        <Text size="sm">{new Date(req.created_at).toLocaleString()}</Text>
+        <Text size="sm">{new Date(req.createdAt).toLocaleString()}</Text>
       </Table.Td>
       <Table.Td>
         <Badge size="sm" variant="light">
@@ -56,7 +56,7 @@ export function EmailHistory() {
         </Badge>
       </Table.Td>
       <Table.Td>
-        <Text size="sm">{req.total_count}</Text>
+        <Text size="sm">{req.total}</Text>
       </Table.Td>
       <Table.Td>
         <Group gap="xs">

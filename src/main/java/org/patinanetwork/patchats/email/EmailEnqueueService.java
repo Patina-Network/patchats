@@ -1,7 +1,11 @@
 package org.patinanetwork.patchats.email;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +39,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class EmailEnqueueService {
 
+    /** US East Coast zone; {@code America/New_York} tracks the EST/EDT daylight-saving switch automatically. */
+    private static final ZoneId EAST_COAST = ZoneId.of("America/New_York");
+
     private final EmailTemplateRepo templateRepo;
     private final EmailRequestRepo requestRepo;
     private final EmailRepo emailRepo;
@@ -55,10 +62,15 @@ public class EmailEnqueueService {
                 .totalCount(request.messages().size())
                 .build());
 
+        // Fill in the send-time month once for the whole batch so ${month} resolves consistently. Callers can
+        // still override it by passing an explicit "month" variable (putIfAbsent below leaves theirs untouched).
+        final String currentMonth = LocalDate.now(EAST_COAST).getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+
         final List<Email> emails = new ArrayList<>(request.messages().size());
         for (final EnqueueEmailRequest.Message message : request.messages()) {
             final Map<String, String> variables =
                     EmailService.mergeVariables(message.variables(), message.recipients());
+            variables.putIfAbsent("month", currentMonth);
             final List<SendEmailRequest.Recipient> recipients = message.recipients();
             emails.add(Email.builder()
                     .id(UUID.randomUUID())
@@ -94,6 +106,8 @@ public class EmailEnqueueService {
             try {
                 final Map<String, String> variables =
                         EmailService.mergeVariables(message.variables(), message.recipients());
+                variables.putIfAbsent(
+                        "month", LocalDate.now(EAST_COAST).getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH));
                 final EmailRenderer.RenderedEmail rendered = renderer.render(template, variables);
                 previews.add(
                         new PreviewEmailResponse.MessagePreview(recipients, rendered.subject(), rendered.body(), null));
