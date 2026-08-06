@@ -18,7 +18,10 @@ public class Member {
     private UUID id;
 
     @Setter
-    private String fullName;
+    private String firstName;
+
+    @Setter
+    private String lastName;
 
     @Setter
     private String email;

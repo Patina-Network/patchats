@@ -1,5 +1,6 @@
 export interface MemberProfileValues {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   linkedInUrl: string;
   introduction: string;

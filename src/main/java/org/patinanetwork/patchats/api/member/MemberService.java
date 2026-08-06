@@ -23,7 +23,8 @@ public class MemberService {
         }
         Member member = Member.builder()
                 .id(UUID.randomUUID())
-                .fullName(request.fullName())
+                .firstName(request.firstName())
+                .lastName(request.lastName())
                 .email(request.email())
                 .linkedInUrl(request.linkedInUrl())
                 .introduction(request.introduction())
@@ -42,8 +43,11 @@ public class MemberService {
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {
         Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
 
-        if (request.fullName() != null) {
-            member.setFullName(request.fullName());
+        if (request.firstName() != null) {
+            member.setFirstName(request.firstName());
+        }
+        if (request.lastName() != null) {
+            member.setLastName(request.lastName());
         }
         if (request.email() != null) {
             member.setEmail(request.email());

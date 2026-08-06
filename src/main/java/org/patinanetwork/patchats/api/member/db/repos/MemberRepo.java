@@ -10,7 +10,8 @@ public interface MemberRepo {
      * @param member - required fields:
      *     <ul>
      *       <li>id
-     *       <li>fullName
+     *       <li>firstName
+     *       <li>lastName
      *       <li>email
      *       <li>introduction
      *       <li>active
@@ -24,7 +25,8 @@ public interface MemberRepo {
      * @note - The provided object's methods will be overridden with any returned data from the database.
      * @param member - overridden fields:
      *     <ul>
-     *       <li>fullName
+     *       <li>firstName
+     *       <li>lastName
      *       <li>email
      *       <li>linkedInUrl
      *       <li>introduction
