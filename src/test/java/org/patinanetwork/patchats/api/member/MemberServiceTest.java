@@ -156,7 +156,7 @@ class MemberServiceTest {
         final Member updatedMember = Member.builder()
                 .id(id)
                 .firstName("UpdatedFirstName")
-                .lastName("UpdatedLastName")
+                .lastName("OldLastName")
                 .email("old@example.com")
                 .linkedInUrl("https://linkedin.com/in/old")
                 .introduction("Old intro")
