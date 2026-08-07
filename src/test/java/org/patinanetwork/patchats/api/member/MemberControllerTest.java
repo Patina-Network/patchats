@@ -34,7 +34,8 @@ class MemberControllerTest {
     @Test
     void createMember_ReturnsOkAndMemberDto() throws Exception {
         final CreateMemberRequest request = new CreateMemberRequest(
-                "John Doe",
+                "John",
+                "Doe",
                 "john.doe@example.com",
                 "https://www.linkedin.com/in/johndoe",
                 "Hello, I'm John!",
@@ -48,7 +49,8 @@ class MemberControllerTest {
         when(memberService.createMember(any()))
                 .thenReturn(MemberDto.builder()
                         .id(UUID.randomUUID())
-                        .fullName(request.fullName())
+                        .firstName(request.firstName())
+                        .lastName(request.lastName())
                         .email(request.email())
                         .linkedInUrl(request.linkedInUrl())
                         .introduction(request.introduction())
@@ -64,10 +66,11 @@ class MemberControllerTest {
                         post("/api/members")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
-                                        "{\"fullName\":\"John Doe\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
+                                        "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.payload.fullName").value(request.fullName()))
+                .andExpect(jsonPath("$.payload.firstName").value(request.firstName()))
+                .andExpect(jsonPath("$.payload.lastName").value(request.lastName()))
                 .andExpect(jsonPath("$.payload.email").value(request.email()))
                 .andExpect(jsonPath("$.payload.linkedInUrl").value(request.linkedInUrl()))
                 .andExpect(jsonPath("$.payload.introduction").value(request.introduction()))
@@ -82,12 +85,12 @@ class MemberControllerTest {
     }
 
     @Test
-    void createMember_returnsBadRequestWhenFullNameIsBlank() throws Exception {
+    void createMember_returnsBadRequestWhenFirstNameIsBlank() throws Exception {
         mockMvc.perform(
                         post("/api/members")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
-                                        "{\"fullName\":\"\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
+                                        "{\"firstName\":\"\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -99,7 +102,7 @@ class MemberControllerTest {
                         post("/api/members")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
-                                        "{\"fullName\":\"John Doe\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
+                                        "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.success").value(false));
     }

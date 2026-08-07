@@ -28,7 +28,8 @@ const industryPrefOptions = INDUSTRIES.map((v) => ({ value: v, label: v }));
 
 // Define initial values
 const initialFormValues: MemberProfileValues = {
-  fullName: "",
+  firstName: "",
+  lastName: "",
   email: "",
   linkedInUrl: "",
   introduction: "",
@@ -153,14 +154,24 @@ export function SignUpForm() {
           <Title order={3}>Contact</Title>
           <TextInput
             required
-            label="Full Name"
-            value={values.fullName}
+            label="First Name"
+            value={values.firstName}
             onChange={(event) =>
-              handleFieldChange("fullName", event.target.value)
+              handleFieldChange("firstName", event.target.value)
             }
-            onBlur={() => handleFieldBlur("fullName")}
-            error={errors.fullName}
+            onBlur={() => handleFieldBlur("firstName")}
+            error={errors.firstName}
             autoFocus
+          />
+          <TextInput
+            required
+            label="Last Name"
+            value={values.lastName}
+            onChange={(event) =>
+              handleFieldChange("lastName", event.target.value)
+            }
+            onBlur={() => handleFieldBlur("lastName")}
+            error={errors.lastName}
           />
           <TextInput
             required

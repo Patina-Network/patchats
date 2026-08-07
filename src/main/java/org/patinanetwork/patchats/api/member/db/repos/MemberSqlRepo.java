@@ -19,7 +19,8 @@ public class MemberSqlRepo implements MemberRepo {
     private Member parseResultSetToMember(final ResultSet rs) throws SQLException {
         return Member.builder()
                 .id(UUID.fromString(rs.getString("id")))
-                .fullName(rs.getString("full_name"))
+                .firstName(rs.getString("first_name"))
+                .lastName(rs.getString("last_name"))
                 .email(rs.getString("email"))
                 .linkedInUrl(rs.getString("linked_in_url"))
                 .introduction(rs.getString("introduction"))
@@ -40,7 +41,8 @@ public class MemberSqlRepo implements MemberRepo {
         String sql = """
             INSERT INTO "members" (
                 "id",
-                "full_name",
+                "first_name",
+                "last_name",
                 "email",
                 "linked_in_url",
                 "introduction",
@@ -54,7 +56,8 @@ public class MemberSqlRepo implements MemberRepo {
             )
             VALUES(
                 :id,
-                :full_name,
+                :first_name,
+                :last_name,
                 :email,
                 :linked_in_url,
                 :introduction,
@@ -71,7 +74,8 @@ public class MemberSqlRepo implements MemberRepo {
         """;
         return jdbc.sql(sql)
                 .param("id", member.getId())
-                .param("full_name", member.getFullName())
+                .param("first_name", member.getFirstName())
+                .param("last_name", member.getLastName())
                 .param("email", member.getEmail())
                 .param("linked_in_url", member.getLinkedInUrl())
                 .param("introduction", member.getIntroduction())

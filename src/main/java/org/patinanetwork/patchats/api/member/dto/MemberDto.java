@@ -19,7 +19,10 @@ public class MemberDto {
     private UUID id;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    private String fullName;
+    private String firstName;
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    private String lastName;
 
     // TODO: Changes to email require verification after authentication is implemented
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -61,7 +64,8 @@ public class MemberDto {
     public static MemberDto from(final Member member) {
         return MemberDto.builder()
                 .id(member.getId())
-                .fullName(member.getFullName())
+                .firstName(member.getFirstName())
+                .lastName(member.getLastName())
                 .email(member.getEmail())
                 .linkedInUrl(member.getLinkedInUrl())
                 .introduction(member.getIntroduction())

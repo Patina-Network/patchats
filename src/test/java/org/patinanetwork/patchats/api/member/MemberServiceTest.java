@@ -29,7 +29,8 @@ class MemberServiceTest {
     @Test
     void createMember_successWithAllFieldsFilled() {
         final CreateMemberRequest request = new CreateMemberRequest(
-                "John Doe",
+                "John",
+                "Doe",
                 "john.doe@example.com",
                 "https://www.linkedin.com/in/johndoe",
                 "Hello, I'm John!",
@@ -44,7 +45,8 @@ class MemberServiceTest {
         when(memberRepo.createMember(any()))
                 .thenReturn(Member.builder()
                         .id(UUID.randomUUID())
-                        .fullName(request.fullName())
+                        .firstName(request.firstName())
+                        .lastName(request.lastName())
                         .email(request.email())
                         .linkedInUrl(request.linkedInUrl())
                         .introduction(request.introduction())
@@ -58,7 +60,8 @@ class MemberServiceTest {
                         .build());
         final MemberDto response = memberService.createMember(request);
 
-        assertEquals(request.fullName(), response.getFullName());
+        assertEquals(request.firstName(), response.getFirstName());
+        assertEquals(request.lastName(), response.getLastName());
         assertEquals(request.email(), response.getEmail());
         assertEquals(request.linkedInUrl(), response.getLinkedInUrl());
         assertEquals(request.introduction(), response.getIntroduction());
@@ -76,7 +79,8 @@ class MemberServiceTest {
     @Test
     void createMember_throwsExceptionWhenEmailAlreadyExists() {
         final CreateMemberRequest request = new CreateMemberRequest(
-                "John Doe",
+                "John",
+                "Doe",
                 "john.doe@example.com",
                 "https://www.linkedin.com/in/johndoe",
                 "Hello, I'm John!",
@@ -90,7 +94,8 @@ class MemberServiceTest {
         when(memberRepo.getMemberByEmail(any()))
                 .thenReturn(Optional.of(Member.builder()
                         .id(UUID.randomUUID())
-                        .fullName(request.fullName())
+                        .firstName(request.firstName())
+                        .lastName(request.lastName())
                         .email(request.email())
                         .linkedInUrl(request.linkedInUrl())
                         .introduction(request.introduction())
@@ -111,7 +116,8 @@ class MemberServiceTest {
     void updateMember_throwsExceptionWhenMemberNotFound() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
-                "Updated Name",
+                "UpdatedFirstName",
+                "UpdatedLastName",
                 "updated@example.com",
                 "https://linkedin.com/in/updated",
                 "Updated intro",
@@ -131,11 +137,12 @@ class MemberServiceTest {
     void updateMember_successWithOnlyNameField() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request =
-                new UpdateMemberRequest("Updated Name", null, null, null, null, null, null, null, null);
+                new UpdateMemberRequest("UpdatedFirstName", null, null, null, null, null, null, null, null, null);
 
         final Member existingMember = Member.builder()
                 .id(id)
-                .fullName("Old Name")
+                .firstName("OldFirstName")
+                .lastName("OldLastName")
                 .email("old@example.com")
                 .linkedInUrl("https://linkedin.com/in/old")
                 .introduction("Old intro")
@@ -148,7 +155,8 @@ class MemberServiceTest {
 
         final Member updatedMember = Member.builder()
                 .id(id)
-                .fullName("Updated Name")
+                .firstName("UpdatedFirstName")
+                .lastName("OldLastName")
                 .email("old@example.com")
                 .linkedInUrl("https://linkedin.com/in/old")
                 .introduction("Old intro")
@@ -164,7 +172,7 @@ class MemberServiceTest {
 
         final MemberDto response = memberService.updateMember(request, id);
 
-        assertEquals("Updated Name", response.getFullName());
+        assertEquals("UpdatedFirstName", response.getFirstName());
         assertEquals("old@example.com", response.getEmail());
         assertEquals("https://linkedin.com/in/old", response.getLinkedInUrl());
         assertEquals("Old intro", response.getIntroduction());
@@ -174,11 +182,12 @@ class MemberServiceTest {
     void updateMember_successWithAllNullFields() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request =
-                new UpdateMemberRequest(null, null, null, null, null, null, null, null, null);
+                new UpdateMemberRequest(null, null, null, null, null, null, null, null, null, null);
 
         final Member existingMember = Member.builder()
                 .id(id)
-                .fullName("Name")
+                .firstName("OldFirstName")
+                .lastName("OldLastName")
                 .email("email@example.com")
                 .linkedInUrl("https://linkedin.com/in/john")
                 .introduction("intro")
@@ -194,7 +203,8 @@ class MemberServiceTest {
 
         final MemberDto response = memberService.updateMember(request, id);
 
-        assertEquals("Name", response.getFullName());
+        assertEquals("OldFirstName", response.getFirstName());
+        assertEquals("OldLastName", response.getLastName());
         assertEquals("email@example.com", response.getEmail());
         assertEquals("https://linkedin.com/in/john", response.getLinkedInUrl());
         assertEquals("intro", response.getIntroduction());
@@ -204,7 +214,8 @@ class MemberServiceTest {
     void updateMember_successWithAllFields() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
-                "Updated Name",
+                "UpdatedFirstName",
+                "UpdatedLastName",
                 "updated@example.com",
                 "https://linkedin.com/in/updated",
                 "Updated intro",
@@ -216,7 +227,8 @@ class MemberServiceTest {
 
         final Member existingMember = Member.builder()
                 .id(id)
-                .fullName("Old Name")
+                .firstName("OldFirstName")
+                .lastName("OldLastName")
                 .email("old@example.com")
                 .linkedInUrl("https://linkedin.com/in/old")
                 .introduction("Old intro")
@@ -229,7 +241,8 @@ class MemberServiceTest {
 
         final Member updatedMember = Member.builder()
                 .id(id)
-                .fullName(request.fullName())
+                .firstName(request.firstName())
+                .lastName(request.lastName())
                 .email(request.email())
                 .linkedInUrl(request.linkedInUrl())
                 .introduction(request.introduction())
@@ -245,7 +258,8 @@ class MemberServiceTest {
 
         final MemberDto response = memberService.updateMember(request, id);
 
-        assertEquals(request.fullName(), response.getFullName());
+        assertEquals(request.firstName(), response.getFirstName());
+        assertEquals(request.lastName(), response.getLastName());
         assertEquals(request.email(), response.getEmail());
         assertEquals(request.linkedInUrl(), response.getLinkedInUrl());
         assertEquals(request.introduction(), response.getIntroduction());
