@@ -92,6 +92,17 @@ public class EmailService {
             final Map<String, String> vars = recipients.get(i).variableToValue();
             if (vars != null) {
                 vars.forEach((key, value) -> merged.put(prefix + key, value));
+
+                // manually add per#.name
+                final String firstName = vars.get("firstName");
+                final String lastName = vars.get("lastName");
+                if (firstName != null && lastName != null) {
+                    merged.put(prefix + "name", firstName + " " + lastName);
+                } else if (firstName != null) {
+                    merged.put(prefix + "name", firstName);
+                } else if (lastName != null) {
+                    merged.put(prefix + "name", lastName);
+                }
             }
         }
         return merged;

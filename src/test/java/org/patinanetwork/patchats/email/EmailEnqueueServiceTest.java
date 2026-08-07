@@ -64,7 +64,6 @@ class EmailEnqueueServiceTest {
                 TEMPLATE_ID,
                 "reply@x.com",
                 List.of(new EnqueueEmailRequest.Message(
-                        null,
                         Map.of("period", "July"),
                         List.of(new SendEmailRequest.Recipient("ann@x.com", Map.of("name", "Ann"))))));
 
@@ -92,9 +91,9 @@ class EmailEnqueueServiceTest {
                 null,
                 List.of(
                         new EnqueueEmailRequest.Message(
-                                null, Map.of(), List.of(new SendEmailRequest.Recipient("a@x.com", Map.of()))),
+                                Map.of(), List.of(new SendEmailRequest.Recipient("a@x.com", Map.of()))),
                         new EnqueueEmailRequest.Message(
-                                null, Map.of(), List.of(new SendEmailRequest.Recipient("b@x.com", Map.of())))));
+                                Map.of(), List.of(new SendEmailRequest.Recipient("b@x.com", Map.of())))));
 
         service.enqueue(request, EmailSource.MANUAL);
 
@@ -114,7 +113,7 @@ class EmailEnqueueServiceTest {
                 missing,
                 null,
                 List.of(new EnqueueEmailRequest.Message(
-                        null, Map.of(), List.of(new SendEmailRequest.Recipient("a@x.com", Map.of())))));
+                        Map.of(), List.of(new SendEmailRequest.Recipient("a@x.com", Map.of())))));
 
         assertThrows(EmailTemplateNotFoundException.class, () -> service.enqueue(request, EmailSource.MANUAL));
         verify(emailRepo, org.mockito.Mockito.never()).insertAll(any());

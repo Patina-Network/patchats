@@ -1,6 +1,5 @@
 package org.patinanetwork.patchats.email;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -15,7 +14,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.patinanetwork.patchats.common.web.ApiExceptionHandler;
 import org.patinanetwork.patchats.email.db.models.EmailTemplate;
-import org.patinanetwork.patchats.email.dto.EnqueueEmailResponse;
 import org.patinanetwork.patchats.email.dto.SendEmailResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -49,9 +47,6 @@ class EmailControllerTest {
     private org.patinanetwork.patchats.email.db.repos.EmailTemplateRepo templateRepo;
 
     @MockitoBean
-    private MatchingSendService matchingSendService;
-
-    @MockitoBean
     private TemplateManagementService templateManagementService;
 
     @Test
@@ -77,45 +72,6 @@ class EmailControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         "{\"subject\":\"S\",\"body\":\"B\",\"messages\":[{\"recipients\":[{\"email\":\"not-an-email\"}]}]}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false));
-    }
-
-    @Test
-    void sendMatchingReturnsAcceptedWithCount() throws Exception {
-        when(matchingSendService.send(any())).thenReturn(new EnqueueEmailResponse(UUID.randomUUID(), 2));
-
-        mockMvc.perform(post("/api/email/matching/send")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"templateId\":\"" + UUID.randomUUID()
-                                + "\",\"pairs\":[{\"per1\":{\"name\":\"Alice\",\"email\":\"alice@x.com\"},"
-                                + "\"per2\":{\"name\":\"Bob\",\"email\":\"bob@x.com\"}}]}"))
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.payload.accepted").value(2));
-    }
-
-    @Test
-    void sendMatchingReturnsOkNoOpWhenAllPairsAlreadySent() throws Exception {
-        // Dedup guard filtered every pair: service returns a null requestId, controller reports a 200 no-op.
-        when(matchingSendService.send(any())).thenReturn(new EnqueueEmailResponse(null, 0));
-
-        mockMvc.perform(post("/api/email/matching/send")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"templateId\":\"" + UUID.randomUUID()
-                                + "\",\"pairs\":[{\"per1\":{\"name\":\"Alice\",\"email\":\"alice@x.com\"},"
-                                + "\"per2\":{\"name\":\"Bob\",\"email\":\"bob@x.com\"}}]}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.payload.requestId").value(nullValue()))
-                .andExpect(jsonPath("$.payload.accepted").value(0));
-    }
-
-    @Test
-    void sendMatchingReturnsBadRequestOnEmptyPairs() throws Exception {
-        mockMvc.perform(post("/api/email/matching/send")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"templateId\":\"" + UUID.randomUUID() + "\",\"pairs\":[]}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
     }

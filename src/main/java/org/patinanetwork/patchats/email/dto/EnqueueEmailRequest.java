@@ -18,12 +18,8 @@ public record EnqueueEmailRequest(
         @Email String replyTo,
         @NotEmpty @Valid List<Message> messages) {
 
-    /**
-     * One outgoing email addressed to 1–2 recipients who share the rendered body. {@code matchesId} is optional and
-     * only set by the matching producer (Increment 4) to power the dedup guard.
-     */
+    /** One outgoing email addressed to 1–2 recipients who share the rendered body. */
     public record Message(
-            UUID matchesId,
             Map<String, String> variables,
             @NotEmpty @Size(max = 2) @Valid List<SendEmailRequest.Recipient> recipients) {}
 }

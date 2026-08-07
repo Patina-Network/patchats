@@ -64,8 +64,7 @@ export interface EnqueueEmailRequest {
 }
 
 export interface EnqueueEmailResponse {
-  // null when nothing was enqueued (e.g. every matching pair was already sent) — there is no session to poll.
-  requestId: string | null;
+  requestId: string;
   accepted: number;
 }
 
@@ -105,29 +104,4 @@ export interface EmailRequestSummary {
   error: number;
   inFlight: number;
   terminal: boolean;
-}
-
-// Matching send types
-
-export interface PairUser {
-  name: string;
-  email: string;
-  bio?: string;
-  industry?: string;
-  role?: string;
-  topics?: string;
-  linkedUrl?: string;
-}
-
-export interface SelectedPair {
-  matchesId?: string;
-  per1: PairUser;
-  per2: PairUser;
-}
-
-export interface MatchingSendRequest {
-  templateId: string;
-  replyTo?: string | null;
-  pairs: SelectedPair[];
-  sharedVariables?: Record<string, string>;
 }

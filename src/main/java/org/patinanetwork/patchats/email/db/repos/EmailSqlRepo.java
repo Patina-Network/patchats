@@ -30,11 +30,9 @@ public class EmailSqlRepo implements EmailRepo {
 
     private Email parseResultSet(final ResultSet rs) throws SQLException {
         final Timestamp sentAt = rs.getTimestamp("sent_at");
-        final String matchesId = rs.getString("matches_id");
         return Email.builder()
                 .id(UUID.fromString(rs.getString("id")))
                 .requestId(UUID.fromString(rs.getString("request_id")))
-                .matchesId(matchesId == null ? null : UUID.fromString(matchesId))
                 .recipient1(rs.getString("recipient_1"))
                 .recipient2(rs.getString("recipient_2"))
                 .replyTo(rs.getString("reply_to"))
@@ -59,10 +57,10 @@ public class EmailSqlRepo implements EmailRepo {
     public void insertAll(final List<Email> emails) {
         final String sql = """
                 INSERT INTO "emails" (
-                    id, request_id, matches_id, recipient_1, recipient_2, reply_to,
+                    id, request_id, recipient_1, recipient_2, reply_to,
                     template_id, template_values, status
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
@@ -70,14 +68,13 @@ public class EmailSqlRepo implements EmailRepo {
                 final Email email = emails.get(i);
                 ps.setObject(1, email.getId());
                 ps.setObject(2, email.getRequestId());
-                ps.setObject(3, email.getMatchesId());
-                ps.setString(4, email.getRecipient1());
-                ps.setString(5, email.getRecipient2());
-                ps.setString(6, email.getReplyTo());
-                ps.setObject(7, email.getTemplateId());
-                ps.setObject(8, jsonbObject(jsonb.toJson(email.getTemplateValues())));
+                ps.setString(3, email.getRecipient1());
+                ps.setString(4, email.getRecipient2());
+                ps.setString(5, email.getReplyTo());
+                ps.setObject(6, email.getTemplateId());
+                ps.setObject(7, jsonbObject(jsonb.toJson(email.getTemplateValues())));
                 ps.setString(
-                        9,
+                        8,
                         email.getStatus() == null
                                 ? EmailStatus.PENDING.name()
                                 : email.getStatus().name());
@@ -129,14 +126,6 @@ public class EmailSqlRepo implements EmailRepo {
                                updated_at = now()
                          WHERE status = 'PROCESSING'
                         """).update();
-    }
-
-    @Override
-    public long countActiveByMatchesId(final UUID matchesId) {
-        return jdbc.sql("SELECT count(*) FROM emails WHERE matches_id = :mid AND status <> 'ERROR'")
-                .param("mid", matchesId)
-                .query(Long.class)
-                .single();
     }
 
     @Override

@@ -16,7 +16,6 @@ import org.patinanetwork.patchats.email.dto.EmailRequestSummary;
 import org.patinanetwork.patchats.email.dto.EmailTemplateResponse;
 import org.patinanetwork.patchats.email.dto.EnqueueEmailRequest;
 import org.patinanetwork.patchats.email.dto.EnqueueEmailResponse;
-import org.patinanetwork.patchats.email.dto.MatchingSendRequest;
 import org.patinanetwork.patchats.email.dto.PreviewEmailResponse;
 import org.patinanetwork.patchats.email.dto.PreviewTemplateRequest;
 import org.patinanetwork.patchats.email.dto.SendEmailRequest;
@@ -47,7 +46,6 @@ public class EmailController {
     private final EmailProgressService progressService;
     private final EmailDrainer drainer;
     private final EmailTemplateRepo templateRepo;
-    private final MatchingSendService matchingSendService;
     private final TemplateManagementService templateManagementService;
 
     @Operation(summary = "Send one or more templated plain-text emails (synchronous, legacy)")
@@ -139,18 +137,5 @@ public class EmailController {
         final PreviewEmailResponse response = emailService.preview(request);
         return ResponseEntity.ok(ApiResponder.success(
                 "Rendered %d emails".formatted(response.previews().size()), response));
-    }
-
-    @Operation(summary = "Send pairing notification emails from selected matches")
-    @PostMapping("/matching/send")
-    public ResponseEntity<ApiResponder<EnqueueEmailResponse>> sendMatching(
-            @Valid @RequestBody final MatchingSendRequest request) {
-        final EnqueueEmailResponse response = matchingSendService.send(request);
-        if (response.requestId() == null) {
-            return ResponseEntity.ok(
-                    ApiResponder.success("No emails sent — all selected pairs were already sent", response));
-        }
-        return ResponseEntity.status(HttpStatus.ACCEPTED)
-                .body(ApiResponder.success("Accepted %d pairing emails".formatted(response.accepted()), response));
     }
 }

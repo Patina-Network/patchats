@@ -75,7 +75,6 @@ public class EmailEnqueueService {
             emails.add(Email.builder()
                     .id(UUID.randomUUID())
                     .requestId(requestId)
-                    .matchesId(message.matchesId())
                     .recipient1(recipients.get(0).email())
                     .recipient2(recipients.size() > 1 ? recipients.get(1).email() : null)
                     .replyTo(request.replyTo())

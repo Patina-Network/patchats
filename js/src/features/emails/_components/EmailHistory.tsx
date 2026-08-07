@@ -6,10 +6,26 @@ import { Table, Text, Title, Badge, Stack, Group } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-export function EmailHistory() {
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
-    null,
-  );
+interface EmailHistoryProps {
+  detailRequestId?: string | null;
+  onSelectRequest?: (requestId: string) => void;
+  onBack?: () => void;
+}
+
+export function EmailHistory({
+  detailRequestId,
+  onSelectRequest,
+  onBack,
+}: EmailHistoryProps = {}) {
+  const [localSelectedRequestId, setLocalSelectedRequestId] = useState<
+    string | null
+  >(null);
+  const selectedRequestId = detailRequestId ?? localSelectedRequestId;
+
+  const handleSelectRequest =
+    onSelectRequest ??
+    ((requestId: string) => setLocalSelectedRequestId(requestId));
+  const handleBack = onBack ?? (() => setLocalSelectedRequestId(null));
 
   const {
     data: requests,
@@ -28,7 +44,7 @@ export function EmailHistory() {
         <Group>
           <Title order={3}>Batch Details</Title>
           <Badge
-            onClick={() => setSelectedRequestId(null)}
+            onClick={handleBack}
             style={{ cursor: "pointer" }}
             variant="light"
           >
@@ -43,7 +59,7 @@ export function EmailHistory() {
   const rows = (requests || []).map((req) => (
     <Table.Tr
       key={req.id}
-      onClick={() => setSelectedRequestId(req.id)}
+      onClick={() => handleSelectRequest(req.id)}
       style={{ cursor: "pointer" }}
       className="hover:bg-gray-50"
     >

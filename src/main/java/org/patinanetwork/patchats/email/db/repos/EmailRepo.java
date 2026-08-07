@@ -31,9 +31,6 @@ public interface EmailRepo {
      */
     int resetProcessingToError();
 
-    /** Counts non-{@code ERROR} rows tied to a match — the dedup guard for the matching flow (Increment 4). */
-    long countActiveByMatchesId(UUID matchesId);
-
     /** Per-status row counts for one batch ({@code GROUP BY status}); statuses with no rows are absent. */
     Map<EmailStatus, Integer> countByStatus(UUID requestId);
 

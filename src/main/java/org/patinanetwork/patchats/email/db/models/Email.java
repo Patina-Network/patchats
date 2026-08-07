@@ -24,8 +24,6 @@ public class Email {
 
     private UUID requestId;
 
-    private UUID matchesId;
-
     private String recipient1;
 
     private String recipient2;

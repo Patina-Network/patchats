@@ -35,10 +35,10 @@ export function EmailProgress({ requestId }: EmailProgressProps) {
   const { data, isLoading, error, refetch } = useQuery<EmailProgress>({
     queryKey: ["emailProgress", requestId],
     queryFn: () => getProgress(requestId),
-    refetchInterval: (query) => {
-      const data = query.state.data;
+    refetchInterval: (data) => {
       // Stop polling when batch is terminal (no pending or processing emails)
-      if (data && data.pending + data.processing === 0) {
+      if (data) {
+        //&& data.pending + data.processing === 0
         setIsTerminal(true);
         return false; // stops polling
       }
