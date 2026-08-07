@@ -1,5 +1,6 @@
 import type {
   SendAsyncRequest,
+  SendRequest,
   MessagePreview,
   EnqueueEmailRequest,
   EnqueueEmailResponse,
@@ -43,6 +44,32 @@ export async function sendToPreviewApi(
   }
   // The backend wraps the result in ApiResponder: { success, message, payload: { previews: [...] } }.
   // Unwrap to the MessagePreview[] that EmailPreview expects.
+  const json = (await response.json()) as {
+    payload: { previews: MessagePreview[] };
+  };
+  return json.payload.previews;
+}
+
+/**
+ * Used in TemplateManager.tsx to preview email templates with sample data not in main email flow.
+ * Takes in raw subject/body rather than templateID.
+ * @param body- The request body containing subject, body, and sample variables for the email template.
+ * @returns  preview of the email messages generated from the template with sample data, or null if no previews are generated.
+ * @throws Error if the API request fails or returns a non-OK response.
+ */
+export async function sendToLegacyPreviewApi(
+  body: SendRequest,
+): Promise<MessagePreview[] | null> {
+  const response = await fetch("/api/email/preview/legacy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(
+      `Legacy preview API failed: ${response.status} ${response.statusText}`,
+    );
+  }
   const json = (await response.json()) as {
     payload: { previews: MessagePreview[] };
   };
