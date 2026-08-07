@@ -17,7 +17,9 @@ import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
+import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
+import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
 
 class MemberServiceTest {
 
@@ -105,20 +107,152 @@ class MemberServiceTest {
         verify(memberRepo, never()).createMember(any());
     }
 
-    // TODO: Implement test cases for MemberService methods after createMember
+    @Test
+    void updateMember_throwsExceptionWhenMemberNotFound() {
+        final UUID id = UUID.randomUUID();
+        final UpdateMemberRequest request = new UpdateMemberRequest(
+                "Updated Name",
+                "updated@example.com",
+                "https://linkedin.com/in/updated",
+                "Updated intro",
+                "Mentor - I am looking for guidance from someone with more experience",
+                "Technology",
+                "Software Engineer",
+                "AI,ML",
+                "Notes");
 
-    // @Test
-    // void testUpdateMember() {
-    //     // Implement test logic for updateMember method
-    // }
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.empty());
 
-    // @Test
-    // void testGetMemberById() {
-    //     // Implement test logic for getMemberById method
-    // }
+        assertThrows(MemberNotFoundException.class, () -> memberService.updateMember(request, id));
+        verify(memberRepo, never()).updateMember(any());
+    }
 
-    // @Test
-    // void testDeactivateMember() {
-    //     // Implement test logic for deactivateMember method
-    // }
+    @Test
+    void updateMember_successWithOnlyNameField() {
+        final UUID id = UUID.randomUUID();
+        final UpdateMemberRequest request =
+                new UpdateMemberRequest("Updated Name", null, null, null, null, null, null, null, null);
+
+        final Member existingMember = Member.builder()
+                .id(id)
+                .fullName("Old Name")
+                .email("old@example.com")
+                .linkedInUrl("https://linkedin.com/in/old")
+                .introduction("Old intro")
+                .matchPref("Mentor")
+                .industryPref("Finance")
+                .rolePref("Analyst")
+                .topics("Economics")
+                .extraNotes("Old notes")
+                .build();
+
+        final Member updatedMember = Member.builder()
+                .id(id)
+                .fullName("Updated Name")
+                .email("old@example.com")
+                .linkedInUrl("https://linkedin.com/in/old")
+                .introduction("Old intro")
+                .matchPref("Mentor")
+                .industryPref("Finance")
+                .rolePref("Analyst")
+                .topics("Economics")
+                .extraNotes("Old notes")
+                .build();
+
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any())).thenReturn(Optional.of(updatedMember));
+
+        final MemberDto response = memberService.updateMember(request, id);
+
+        assertEquals("Updated Name", response.getFullName());
+        assertEquals("old@example.com", response.getEmail());
+        assertEquals("https://linkedin.com/in/old", response.getLinkedInUrl());
+        assertEquals("Old intro", response.getIntroduction());
+    }
+
+    @Test
+    void updateMember_successWithAllNullFields() {
+        final UUID id = UUID.randomUUID();
+        final UpdateMemberRequest request =
+                new UpdateMemberRequest(null, null, null, null, null, null, null, null, null);
+
+        final Member existingMember = Member.builder()
+                .id(id)
+                .fullName("Name")
+                .email("email@example.com")
+                .linkedInUrl("https://linkedin.com/in/john")
+                .introduction("intro")
+                .matchPref("Friend")
+                .industryPref("Tech")
+                .rolePref("Engineer")
+                .topics("AI")
+                .extraNotes("notes")
+                .build();
+
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any())).thenReturn(Optional.of(existingMember));
+
+        final MemberDto response = memberService.updateMember(request, id);
+
+        assertEquals("Name", response.getFullName());
+        assertEquals("email@example.com", response.getEmail());
+        assertEquals("https://linkedin.com/in/john", response.getLinkedInUrl());
+        assertEquals("intro", response.getIntroduction());
+    }
+
+    @Test
+    void updateMember_successWithAllFields() {
+        final UUID id = UUID.randomUUID();
+        final UpdateMemberRequest request = new UpdateMemberRequest(
+                "Updated Name",
+                "updated@example.com",
+                "https://linkedin.com/in/updated",
+                "Updated intro",
+                "Mentor",
+                "Tech",
+                "Engineer",
+                "AI,ML",
+                "Notes");
+
+        final Member existingMember = Member.builder()
+                .id(id)
+                .fullName("Old Name")
+                .email("old@example.com")
+                .linkedInUrl("https://linkedin.com/in/old")
+                .introduction("Old intro")
+                .matchPref("Friend")
+                .industryPref("Finance")
+                .rolePref("Analyst")
+                .topics("Economics")
+                .extraNotes("Old notes")
+                .build();
+
+        final Member updatedMember = Member.builder()
+                .id(id)
+                .fullName(request.fullName())
+                .email(request.email())
+                .linkedInUrl(request.linkedInUrl())
+                .introduction(request.introduction())
+                .matchPref(request.matchPref())
+                .industryPref(request.industryPref())
+                .rolePref(request.rolePref())
+                .topics(request.topics())
+                .extraNotes(request.extraNotes())
+                .build();
+
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any())).thenReturn(Optional.of(updatedMember));
+
+        final MemberDto response = memberService.updateMember(request, id);
+
+        assertEquals(request.fullName(), response.getFullName());
+        assertEquals(request.email(), response.getEmail());
+        assertEquals(request.linkedInUrl(), response.getLinkedInUrl());
+        assertEquals(request.introduction(), response.getIntroduction());
+        assertEquals(request.matchPref(), response.getMatchPref());
+        assertEquals(request.industryPref(), response.getIndustryPref());
+        assertEquals(request.rolePref(), response.getRolePref());
+        assertEquals(request.topics(), response.getTopics());
+        assertEquals(request.extraNotes(), response.getExtraNotes());
+    }
 }
