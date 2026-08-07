@@ -37,6 +37,23 @@ public class MemberSqlRepo implements MemberRepo {
                 .build();
     }
 
+    private JdbcClient.StatementSpec bindMemberParams(JdbcClient.StatementSpec spec, Member member) {
+        return spec
+                .param("id", member.getId())
+                .param("first_name", member.getFirstName())
+                .param("last_name", member.getLastName())
+                .param("email", member.getEmail())
+                .param("linked_in_url", member.getLinkedInUrl())
+                .param("introduction", member.getIntroduction())
+                .param("referral_source", member.getReferralSource())
+                .param("active", member.isActive())
+                .param("match_pref", member.getMatchPref())
+                .param("industry_pref", member.getIndustryPref())
+                .param("role_pref", member.getRolePref())
+                .param("topics", member.getTopics())
+                .param("extra_notes", member.getExtraNotes());
+    }
+
     @Override
     public Member createMember(Member member) {
         String sql = """
@@ -73,20 +90,7 @@ public class MemberSqlRepo implements MemberRepo {
             RETURNING
                 *
         """;
-        return jdbc.sql(sql)
-                .param("id", member.getId())
-                .param("first_name", member.getFirstName())
-                .param("last_name", member.getLastName())
-                .param("email", member.getEmail())
-                .param("linked_in_url", member.getLinkedInUrl())
-                .param("introduction", member.getIntroduction())
-                .param("referral_source", member.getReferralSource())
-                .param("active", member.isActive())
-                .param("match_pref", member.getMatchPref())
-                .param("industry_pref", member.getIndustryPref())
-                .param("role_pref", member.getRolePref())
-                .param("topics", member.getTopics())
-                .param("extra_notes", member.getExtraNotes())
+        return bindMemberParams(jdbc.sql(sql), member)
                 .query((rs, rowNum) -> parseResultSetToMember(rs))
                 .single();
     }
@@ -99,12 +103,36 @@ public class MemberSqlRepo implements MemberRepo {
 
     @Override
     public Optional<Member> updateMember(Member member) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        String sql = """
+            UPDATE "members" SET
+                "first_name" = :first_name,
+                "last_name" = :last_name,
+                "email" = :email,
+                "linked_in_url" = :linked_in_url,
+                "introduction" = :introduction,
+                "referral_source" = :referral_source,
+                "active" = :active,
+                "match_pref" = :match_pref,
+                "industry_pref" = :industry_pref,
+                "role_pref" = :role_pref,
+                "topics" = :topics,
+                "extra_notes" = :extra_notes,
+                "updated_at" = NOW()
+            WHERE "id" = :id
+            RETURNING *
+        """;
+        return bindMemberParams(jdbc.sql(sql), member)
+                .query((rs, rowNum) -> parseResultSetToMember(rs))
+                .optional();
     }
 
     @Override
     public Optional<Member> getMemberById(UUID id) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        String sql = "SELECT * FROM members WHERE id = :id";
+        return jdbc.sql(sql)
+                .param("id", id)
+                .query((rs, rowNum) -> parseResultSetToMember(rs))
+                .optional();
     }
 
     @Override

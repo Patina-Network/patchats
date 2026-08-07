@@ -10,6 +10,7 @@ import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
+import org.patinanetwork.patchats.common.web.exception.ValidationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -48,36 +49,64 @@ public class MemberService {
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {
         Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
 
-        if (request.firstName() != null) {
-            member.setFirstName(request.firstName());
+        // Validate that required fields are not empty
+        if (request.firstName().isPresent()) {
+            String firstName = request.firstName().get();
+            if (firstName.isBlank()) {
+                throw new ValidationException("firstName cannot be empty");
+            }
+            member.setFirstName(firstName);
         }
-        if (request.lastName() != null) {
-            member.setLastName(request.lastName());
+
+        if (request.lastName().isPresent()) {
+            String lastName = request.lastName().get();
+            if (lastName.isBlank()) {
+                throw new ValidationException("lastName cannot be empty");
+            }
+            member.setLastName(lastName);
         }
-        if (request.email() != null) {
-            member.setEmail(request.email());
+
+        if (request.email().isPresent()) {
+            String email = request.email().get();
+            if (email.isBlank()) {
+                throw new ValidationException("email cannot be empty");
+            }
+            if (!email.equals(member.getEmail())) {
+                if (memberRepo.getMemberByEmail(email).isPresent()) {
+                    throw new MemberDuplicateException(email);
+                }
+            }
+            member.setEmail(email);
         }
-        if (request.linkedInUrl() != null) {
-            member.setLinkedInUrl(request.linkedInUrl());
+
+        if (request.introduction().isPresent()) {
+            String introduction = request.introduction().get();
+            if (introduction.isBlank()) {
+                throw new ValidationException("introduction cannot be empty");
+            }
+            member.setIntroduction(introduction);
         }
-        if (request.introduction() != null) {
-            member.setIntroduction(request.introduction());
+
+        // Update only the fields that are provided in the request
+        if (request.linkedInUrl().isPresent()) {
+            member.setLinkedInUrl(request.linkedInUrl().get());
         }
-        if (request.matchPref() != null) {
-            member.setMatchPref(request.matchPref());
+        if (request.matchPref().isPresent()) {
+            member.setMatchPref(request.matchPref().get());
         }
-        if (request.industryPref() != null) {
-            member.setIndustryPref(request.industryPref());
+        if (request.industryPref().isPresent()) {
+            member.setIndustryPref(request.industryPref().get());
         }
-        if (request.rolePref() != null) {
-            member.setRolePref(request.rolePref());
+        if (request.rolePref().isPresent()) {
+            member.setRolePref(request.rolePref().get());
         }
-        if (request.topics() != null) {
-            member.setTopics(request.topics());
+        if (request.topics().isPresent()) {
+            member.setTopics(request.topics().get());
         }
-        if (request.extraNotes() != null) {
-            member.setExtraNotes(request.extraNotes());
+        if (request.extraNotes().isPresent()) {
+            member.setExtraNotes(request.extraNotes().get());
         }
+
         Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
         return MemberDto.from(updatedMember);
     }

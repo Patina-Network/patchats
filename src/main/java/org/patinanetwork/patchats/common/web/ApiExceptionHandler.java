@@ -7,6 +7,7 @@ import org.patinanetwork.patchats.common.web.exception.EmailNotResendableExcepti
 import org.patinanetwork.patchats.common.web.exception.EmailTemplateNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
+import org.patinanetwork.patchats.common.web.exception.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -50,6 +51,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(EmailNotResendableException.class)
     public ResponseEntity<ApiResponder<Void>> handleEmailNotResendable(final EmailNotResendableException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiResponder<Void>> handleValidation(ValidationException ex) {
+        return ResponseEntity.badRequest().body(ApiResponder.failure(ex.getMessage()));
     }
 
     private String formatError(final FieldError error) {

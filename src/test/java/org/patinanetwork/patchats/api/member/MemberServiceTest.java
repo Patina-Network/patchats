@@ -116,16 +116,16 @@ class MemberServiceTest {
     void updateMember_throwsExceptionWhenMemberNotFound() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
-                "UpdatedFirstName",
-                "UpdatedLastName",
-                "updated@example.com",
-                "https://linkedin.com/in/updated",
-                "Updated intro",
-                "Mentor - I am looking for guidance from someone with more experience",
-                "Technology",
-                "Software Engineer",
-                "AI,ML",
-                "Notes");
+                Optional.of("UpdatedFirstName"),
+                Optional.of("UpdatedLastName"),
+                Optional.of("updated@example.com"),
+                Optional.of("https://linkedin.com/in/updated"),
+                Optional.of("Updated intro"),
+                Optional.of("Mentor - I am looking for guidance from someone with more experience"),
+                Optional.of("Technology"),
+                Optional.of("Software Engineer"),
+                Optional.of("AI,ML"),
+                Optional.of("Notes"));
 
         when(memberRepo.getMemberById(id)).thenReturn(Optional.empty());
 
@@ -136,8 +136,17 @@ class MemberServiceTest {
     @Test
     void updateMember_successWithOnlyNameField() {
         final UUID id = UUID.randomUUID();
-        final UpdateMemberRequest request =
-                new UpdateMemberRequest("UpdatedFirstName", null, null, null, null, null, null, null, null, null);
+        final UpdateMemberRequest request = new UpdateMemberRequest(
+                Optional.of("UpdatedFirstName"),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
 
         final Member existingMember = Member.builder()
                 .id(id)
@@ -181,8 +190,17 @@ class MemberServiceTest {
     @Test
     void updateMember_successWithAllNullFields() {
         final UUID id = UUID.randomUUID();
-        final UpdateMemberRequest request =
-                new UpdateMemberRequest(null, null, null, null, null, null, null, null, null, null);
+        final UpdateMemberRequest request = new UpdateMemberRequest(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
 
         final Member existingMember = Member.builder()
                 .id(id)
@@ -214,16 +232,16 @@ class MemberServiceTest {
     void updateMember_successWithAllFields() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
-                "UpdatedFirstName",
-                "UpdatedLastName",
-                "updated@example.com",
-                "https://linkedin.com/in/updated",
-                "Updated intro",
-                "Mentor",
-                "Tech",
-                "Engineer",
-                "AI,ML",
-                "Notes");
+                Optional.of("UpdatedFirstName"),
+                Optional.of("UpdatedLastName"),
+                Optional.of("updated@example.com"),
+                Optional.of("https://linkedin.com/in/updated"),
+                Optional.of("Updated intro"),
+                Optional.of("Mentor"),
+                Optional.of("Tech"),
+                Optional.of("Engineer"),
+                Optional.of("AI,ML"),
+                Optional.of("Notes"));
 
         final Member existingMember = Member.builder()
                 .id(id)
@@ -241,16 +259,16 @@ class MemberServiceTest {
 
         final Member updatedMember = Member.builder()
                 .id(id)
-                .firstName(request.firstName())
-                .lastName(request.lastName())
-                .email(request.email())
-                .linkedInUrl(request.linkedInUrl())
-                .introduction(request.introduction())
-                .matchPref(request.matchPref())
-                .industryPref(request.industryPref())
-                .rolePref(request.rolePref())
-                .topics(request.topics())
-                .extraNotes(request.extraNotes())
+                .firstName("UpdatedFirstName")
+                .lastName("UpdatedLastName")
+                .email("updated@example.com")
+                .linkedInUrl("https://linkedin.com/in/updated")
+                .introduction("Updated intro")
+                .matchPref("Mentor")
+                .industryPref("Tech")
+                .rolePref("Engineer")
+                .topics("AI,ML")
+                .extraNotes("Notes")
                 .build();
 
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
@@ -258,15 +276,86 @@ class MemberServiceTest {
 
         final MemberDto response = memberService.updateMember(request, id);
 
-        assertEquals(request.firstName(), response.getFirstName());
-        assertEquals(request.lastName(), response.getLastName());
-        assertEquals(request.email(), response.getEmail());
-        assertEquals(request.linkedInUrl(), response.getLinkedInUrl());
-        assertEquals(request.introduction(), response.getIntroduction());
-        assertEquals(request.matchPref(), response.getMatchPref());
-        assertEquals(request.industryPref(), response.getIndustryPref());
-        assertEquals(request.rolePref(), response.getRolePref());
-        assertEquals(request.topics(), response.getTopics());
-        assertEquals(request.extraNotes(), response.getExtraNotes());
+        assertEquals("UpdatedFirstName", response.getFirstName());
+        assertEquals("UpdatedLastName", response.getLastName());
+        assertEquals("updated@example.com", response.getEmail());
+        assertEquals("https://linkedin.com/in/updated", response.getLinkedInUrl());
+        assertEquals("Updated intro", response.getIntroduction());
+        assertEquals("Mentor", response.getMatchPref());
+        assertEquals("Tech", response.getIndustryPref());
+        assertEquals("Engineer", response.getRolePref());
+        assertEquals("AI,ML", response.getTopics());
+        assertEquals("Notes", response.getExtraNotes());
+    }
+
+    @Test
+    void updateMember_throwsExceptionWhenEmailIsDuplicate() {
+        final UUID id = UUID.randomUUID();
+        final UUID otherMemberId = UUID.randomUUID();
+        final UpdateMemberRequest request = new UpdateMemberRequest(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of("existing@example.com"),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
+
+        final Member existingMember = Member.builder()
+                .id(id)
+                .firstName("John")
+                .lastName("Doe")
+                .email("john@example.com")
+                .build();
+
+        final Member otherMember =
+                Member.builder().id(otherMemberId).email("existing@example.com").build();
+
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.getMemberByEmail("existing@example.com")).thenReturn(Optional.of(otherMember));
+
+        assertThrows(MemberDuplicateException.class, () -> memberService.updateMember(request, id));
+        verify(memberRepo, never()).updateMember(any());
+    }
+
+    @Test
+    void updateMember_successWhenUpdatingWithSameEmail() {
+        final UUID id = UUID.randomUUID();
+        final UpdateMemberRequest request = new UpdateMemberRequest(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of("john@example.com"),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
+
+        final Member existingMember = Member.builder()
+                .id(id)
+                .firstName("John")
+                .lastName("Doe")
+                .email("john@example.com")
+                .linkedInUrl("https://linkedin.com/in/john")
+                .introduction("intro")
+                .matchPref("Mentor")
+                .industryPref("Tech")
+                .rolePref("Engineer")
+                .topics("AI")
+                .extraNotes("notes")
+                .build();
+
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any())).thenReturn(Optional.of(existingMember));
+
+        final MemberDto response = memberService.updateMember(request, id);
+
+        assertEquals("john@example.com", response.getEmail());
+        verify(memberRepo, never()).getMemberByEmail(any());
     }
 }
