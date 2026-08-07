@@ -1,4 +1,4 @@
-export const MATCHING_PREFERENCES = [
+export const MATCH_PREFS = [
   "Mentor - I am looking for guidance from someone with more experience",
   "Mentee - I am looking to provide guidance to someone with less experience",
   "Peer - I am looking for someone at a similar level",
