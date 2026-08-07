@@ -1,5 +1,6 @@
 package org.patinanetwork.patchats.api.member.db.repos;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.patinanetwork.patchats.api.member.db.models.Member;
@@ -20,6 +21,8 @@ public interface MemberRepo {
      *     </ul>
      */
     Member createMember(Member member);
+
+    List<Member> getMembers();
 
     /**
      * @note - The provided object's methods will be overridden with any returned data from the database.

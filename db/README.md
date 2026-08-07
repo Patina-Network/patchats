@@ -42,9 +42,10 @@ erDiagram
         timestamp_with_time_zone created_at "{NOT_NULL}"
         text email UK "{NOT_NULL}"
         text extra_notes
-        text full_name "{NOT_NULL}"
+        text first_name "{NOT_NULL}"
         uuid id PK "{NOT_NULL}"
         text industry
+        text last_name "{NOT_NULL}"
         text linked_url
         text match_pref
         text referral_source

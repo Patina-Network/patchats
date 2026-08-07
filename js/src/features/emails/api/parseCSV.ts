@@ -22,11 +22,12 @@ export const dataToSendRequest = async (
       Object.entries(vars).filter(([, value]) => value?.trim()),
     );
 
-  // Turn a full User record into a recipient oject with their variables.
+  // Turn a User record into a recipient object with their variables.
   const toRecipient = (u: User) => ({
     email: u.email,
     variableToValue: withoutEmpty({
-      name: u.name,
+      firstName: u.firstName,
+      lastName: u.lastName,
       email: u.email,
       intro: u.intro,
       linkedIn: u.linkedIn,
@@ -34,14 +35,12 @@ export const dataToSendRequest = async (
       preferences: u.preferences,
       topics: u.topics,
       anything: u.anything,
-      firstName: (u.name ?? "").split(" ")[0],
-      lastName: (u.name ?? "").split(" ").slice(1).join(" "),
     }),
   });
 
   let messages;
   if (pairList.length > 0) {
-    // One message per pair, addressed to two recipients. The pairing file only gives us names + emails,
+    // One message per pair, addressed to two recipients. The pairing file only gives us names and emails,
     // so we look each person up in userMap to add the user with their full set of variables.
     messages = pairList.map((p) => {
       const userA = userMap.get(p.emailA);
@@ -98,7 +97,8 @@ export async function parseUserFile(
   // Check User CSV for required headers
   const headers = results.meta.fields ?? [];
   const requiredHeaders = [
-    "name",
+    "firstName",
+    "lastName",
     "email",
     "intro",
     "linkedIn",
@@ -119,10 +119,13 @@ export async function parseUserFile(
   for (const userData of results.data) {
     const emailValue = userData.email?.trim();
     if (!emailValue) {
-      throw new Error(`Missing email for user: ${userData.name}`);
+      throw new Error(
+        `Missing email for user: ${userData.firstName} ${userData.lastName}`,
+      );
     }
     const user: User = {
-      name: userData.name,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
       // Trim so trailing whitespace from the CSV doesn't fail backend email validation.
       email: emailValue,
       intro: userData.intro,
@@ -160,11 +163,13 @@ export async function parsePairingFile(pairFile: File): Promise<Pair[]> {
   const pairings = [];
   for (const pairData of results.data) {
     const pair: Pair = {
-      fullNameA: pairData[0],
+      firstNameA: pairData[0],
+      lastNameA: pairData[1],
       // Trim so emails match the trimmed userMap keys and pass backend validation.
-      emailA: pairData[1]?.trim(),
-      fullNameB: pairData[2],
-      emailB: pairData[3]?.trim(),
+      emailA: pairData[2]?.trim(),
+      firstNameB: pairData[3],
+      lastNameB: pairData[4],
+      emailB: pairData[5]?.trim(),
     };
     pairings.push(pair);
   }

@@ -32,7 +32,7 @@ class MemberControllerTest {
     private MemberService memberService;
 
     @Test
-    void createMember_ReturnsOkAndMemberDto() throws Exception {
+    void createMemberReturnsOkAndMemberDto() throws Exception {
         final CreateMemberRequest request = new CreateMemberRequest(
                 "John",
                 "Doe",
@@ -85,7 +85,7 @@ class MemberControllerTest {
     }
 
     @Test
-    void createMember_returnsBadRequestWhenFirstNameIsBlank() throws Exception {
+    void createMemberReturnsBadRequestWhenFirstNameIsBlank() throws Exception {
         mockMvc.perform(
                         post("/api/members")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -96,7 +96,7 @@ class MemberControllerTest {
     }
 
     @Test
-    void createMember_returnsConflictOnDuplicateEmail() throws Exception {
+    void createMemberReturnsConflictOnDuplicateEmail() throws Exception {
         when(memberService.createMember(any())).thenThrow(new MemberDuplicateException("john.doe@example.com"));
         mockMvc.perform(
                         post("/api/members")
