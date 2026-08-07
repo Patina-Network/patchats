@@ -3,55 +3,55 @@
 ```mermaid
 erDiagram
     flyway_schema_history {
-        integer checksum
-        character_varying description "{NOT_NULL}"
-        integer execution_time "{NOT_NULL}"
-        character_varying installed_by "{NOT_NULL}"
-        timestamp_without_time_zone installed_on "{NOT_NULL}"
         integer installed_rank PK "{NOT_NULL}"
-        character_varying script "{NOT_NULL}"
-        boolean success "{NOT_NULL}"
-        character_varying type "{NOT_NULL}"
         character_varying version
+        character_varying description "{NOT_NULL}"
+        character_varying type "{NOT_NULL}"
+        character_varying script "{NOT_NULL}"
+        integer checksum
+        character_varying installed_by "{NOT_NULL}"
+        timestamp installed_on "{NOT_NULL}"
+        integer execution_time "{NOT_NULL}"
+        boolean success "{NOT_NULL}"
     }
 
     match_cycles {
-        uuid id PK "{NOT_NULL}"
+        integer id PK "{NOT_NULL}"
         text period
-        timestamp_with_time_zone run_at "{NOT_NULL}"
-        integer total_matched
+        timestamptz run_at "{NOT_NULL}"
         integer total_members
-        ARRAY unmatched_id
+        integer total_matched
+        integer[] unmatched_id
     }
 
     matches {
-        timestamp_with_time_zone created_at "{NOT_NULL}"
-        uuid cycle_id FK "{NOT_NULL}"
-        integer feedback_a
-        integer feedback_b
         uuid id PK "{NOT_NULL}"
-        real match_score
         uuid member_a_id FK "{NOT_NULL}"
         uuid member_b_id FK "{NOT_NULL}"
+        integer cycle_id FK "{NOT_NULL}"
+        real match_score
         text status
+        text feedback_a
+        text feedback_b
+        timestamptz created_at "{NOT_NULL}"
     }
 
     members {
-        boolean active
-        text bio
-        timestamp_with_time_zone created_at "{NOT_NULL}"
-        text email UK "{NOT_NULL}"
-        text extra_notes
-        text first_name "{NOT_NULL}"
         uuid id PK "{NOT_NULL}"
-        text industry
+        text first_name "{NOT_NULL}"
         text last_name "{NOT_NULL}"
-        text linked_url
-        text match_pref
+        text email UK "{NOT_NULL}"
+        text linked_in_url
+        text introduction
         text referral_source
-        text role
+        boolean active
+        text match_pref
+        text industry_pref
+        text role_pref
         text topics
-        timestamp_with_time_zone updated_at "{NOT_NULL}"
+        text extra_notes
+        timestamptz created_at "{NOT_NULL}"
+        timestamptz updated_at "{NOT_NULL}"
     }
 
     matches }o--|| match_cycles : "cycle_id"
