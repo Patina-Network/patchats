@@ -38,8 +38,7 @@ public class MemberSqlRepo implements MemberRepo {
     }
 
     private JdbcClient.StatementSpec bindMemberParams(JdbcClient.StatementSpec spec, Member member) {
-        return spec
-                .param("id", member.getId())
+        return spec.param("id", member.getId())
                 .param("first_name", member.getFirstName())
                 .param("last_name", member.getLastName())
                 .param("email", member.getEmail())
