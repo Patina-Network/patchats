@@ -8,16 +8,19 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Getter
-@Builder
 @ToString
+@Builder
 @EqualsAndHashCode(of = "id")
 public class MatchCycle {
+  private Integer id;
 
-    private Integer id;
+  @Setter
+  private String period;
 
-    @Setter
-    private String period;
+  @Setter
+  private Instant runAt;
 
-    @Setter
-    private Instant runAt;
+  @Setter
+  @Builder.Default
+  private boolean isDraft = true;
 }
