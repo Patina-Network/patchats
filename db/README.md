@@ -99,7 +99,7 @@ Versioned migrations are under `db/migration/`
 
 - Versioned migrations will only run once.
 - You can use these migrations to define tables, schemas, columns (otherwise known as DDL) OR define insertions/updates/deletes of certain columns (otherwise known as DML).
-> If you need to generate mock data **that does not need to be in production**, please look at the docs on [repeatable migrations](#repeatable-migrations)
+> If you need mock data **only for local development**, see [local repeatable migrations](#local-repeatable-migrations).
 
 ### Naming Scheme
 
@@ -122,18 +122,17 @@ V0642__Insert_new_tag_enums.SQL
 V9999__Delete_user_table.SQL
 ```
 
-## Repeatable Migrations
+## Local Repeatable Migrations
 
-Repeated migrations are under `db/repeated/`
+Local repeatable migrations are under `db/repeated/`.
 
 > [!NOTE]
-> Repeatable migrations are only applied to local & CI databases. <br />
-> Repeatable migrations are **NOT** applied to the production & staging database.
+> `just migrate` explicitly includes this directory. Production and staging migrations only scan `db/migration`, so local seed data is never applied to remote databases.
 
 ### Explanation
 
 1. Instead of being run just once, repeatable migrations are (re-)applied to a database on [migrate](https://documentation.red-gate.com/fd/migrate-277578887.html) every time their checksum changes.
-1. Our main use for repeatable migrations are to generate mock data to use locally and in our CI database, but **is not needed for our production or staging database**.
+1. These migrations generate mock data for local development and are excluded from production and staging migrations.
 
 #### Requirements
 

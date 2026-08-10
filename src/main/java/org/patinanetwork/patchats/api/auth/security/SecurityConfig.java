@@ -11,7 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     /**
-     * Default/production chain. Sending email is admin-only.
+     * Default/production chain. Sending email and listing members are admin-only.
      *
      * <p>NOTE: authentication (OAuth2 login / roles) is not yet wired, so this rule currently fails closed — every
      * caller is denied because no security context is populated. Once the auth domain authenticates admins, the rule
@@ -22,6 +22,8 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/api/email/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/members")
                         .hasRole("ADMIN")
                         .anyRequest()
                         .permitAll())
