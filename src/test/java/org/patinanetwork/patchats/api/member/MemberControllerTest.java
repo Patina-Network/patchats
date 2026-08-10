@@ -40,6 +40,13 @@ class MemberControllerTest {
     @MockitoBean
     private MemberService memberService;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
+    void setUp() {
+        objectMapper.registerModule(new com.fasterxml.jackson.datatype.jdk8.Jdk8Module());
+    }
+
     @Test
     void createMember_returnsOkAndMemberDto() throws Exception {
         final CreateMemberRequest request = new CreateMemberRequest(
