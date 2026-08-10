@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
@@ -40,6 +41,11 @@ class MemberControllerTest {
     private MemberService memberService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
+    void setUp() {
+        objectMapper.registerModule(new com.fasterxml.jackson.datatype.jdk8.Jdk8Module());
+    }
 
     @Test
     void createMember_returnsOkAndMemberDto() throws Exception {
@@ -152,7 +158,7 @@ class MemberControllerTest {
 
         when(memberService.updateMember(any(UpdateMemberRequest.class), eq(id))).thenReturn(response);
 
-        mockMvc.perform(patch("/members/{id}", id)
+        mockMvc.perform(patch("/api/members/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -199,7 +205,7 @@ class MemberControllerTest {
 
         when(memberService.updateMember(any(UpdateMemberRequest.class), eq(id))).thenReturn(response);
 
-        mockMvc.perform(patch("/members/{id}", id)
+        mockMvc.perform(patch("/api/members/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -210,25 +216,25 @@ class MemberControllerTest {
     @Test
     void updateMember_badRequestWhenBlankRequiredField() throws Exception {
         final UUID id = UUID.randomUUID();
-        final String invalidRequest = """
-                {
-                    "firstName": "",
-                    "lastName": "UpdatedLastName",
-                    "email": "updated@example.com",
-                    "linkedInUrl": null,
-                    "introduction": null,
-                    "matchPref": null,
-                    "industryPref": null,
-                    "rolePref": null,
-                    "topics": null,
-                    "extraNotes": null
-                }
-                """;
+        final UpdateMemberRequest request = new UpdateMemberRequest(
+                Optional.of(""),
+                Optional.of("UpdatedLastName"),
+                Optional.of("updated@example.com"),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
 
-        mockMvc.perform(patch("/members/{id}", id)
+        when(memberService.updateMember(any(), any())).thenThrow(new ValidationException("firstName cannot be empty"));
+
+        mockMvc.perform(patch("/api/members/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidRequest))
-                .andExpect(status().isBadRequest());
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("firstName cannot be empty"));
     }
 
     @Test
@@ -249,7 +255,7 @@ class MemberControllerTest {
         when(memberService.updateMember(any(UpdateMemberRequest.class), eq(id)))
                 .thenThrow(new MemberNotFoundException(id));
 
-        mockMvc.perform(patch("/members/{id}", id)
+        mockMvc.perform(patch("/api/members/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
@@ -274,7 +280,7 @@ class MemberControllerTest {
         when(memberService.updateMember(any(UpdateMemberRequest.class), eq(id)))
                 .thenThrow(new MemberDuplicateException("existing@example.com"));
 
-        mockMvc.perform(patch("/members/{id}", id)
+        mockMvc.perform(patch("/api/members/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -299,7 +305,7 @@ class MemberControllerTest {
         when(memberService.updateMember(any(UpdateMemberRequest.class), eq(id)))
                 .thenThrow(new ValidationException("firstName cannot be empty"));
 
-        mockMvc.perform(patch("/members/{id}", id)
+        mockMvc.perform(patch("/api/members/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -321,7 +327,7 @@ class MemberControllerTest {
                 Optional.empty(),
                 Optional.empty());
 
-        mockMvc.perform(patch("/members/{id}", "invalid-uuid")
+        mockMvc.perform(patch("/api/members/{id}", "invalid-uuid")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
