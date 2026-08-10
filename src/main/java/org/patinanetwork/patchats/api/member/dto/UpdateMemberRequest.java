@@ -6,7 +6,6 @@ import java.util.Optional;
 public record UpdateMemberRequest(
         Optional<String> firstName,
         Optional<String> lastName,
-        // TODO: Changes to email require verification after authentication is implemented
         Optional<@Email String> email,
         Optional<String> linkedInUrl,
         Optional<String> introduction,
