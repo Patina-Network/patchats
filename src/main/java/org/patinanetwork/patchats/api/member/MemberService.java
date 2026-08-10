@@ -1,5 +1,6 @@
 package org.patinanetwork.patchats.api.member;
 
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
@@ -38,6 +39,10 @@ public class MemberService {
                 .build();
         Member createdMember = memberRepo.createMember(member);
         return MemberDto.from(createdMember);
+    }
+
+    public List<MemberDto> getMembers() {
+        return memberRepo.getMembers().stream().map(MemberDto::from).toList();
     }
 
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {

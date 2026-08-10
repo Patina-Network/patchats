@@ -3,6 +3,7 @@ package org.patinanetwork.patchats.api.member.db.repos;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +89,12 @@ public class MemberSqlRepo implements MemberRepo {
                 .param("extra_notes", member.getExtraNotes())
                 .query((rs, rowNum) -> parseResultSetToMember(rs))
                 .single();
+    }
+
+    @Override
+    public List<Member> getMembers() {
+        String sql = "SELECT * FROM members ORDER BY created_at DESC, id";
+        return jdbc.sql(sql).query((rs, rowNum) -> parseResultSetToMember(rs)).list();
     }
 
     @Override

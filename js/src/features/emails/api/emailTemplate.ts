@@ -9,7 +9,7 @@
  * Message-level variables are referenced un-prefixed (e.g. ${pair}); per-recipient
  * variables are referenced positionally as ${per.x} / ${per.x}.
  * 
- * Note: Users are refered to as per1.name even if the email is only sent to one 
+ * Note: Users are referred to as per1.firstName even if the email is only sent to one
  * user. Also, attributes such as 'intro' is reference without the perN prefix in 
  * emails sent to individual users, but would be referenced with the perN prefix 
  * if included in a message sent to multiple users. 
@@ -52,7 +52,7 @@ export function emailTemplate(
 export const SAMPLE_TEMPLATE: EmailTemplate = emailTemplate(
   "Sample",
   "You're paired!",
-  `Hi \${per1.name} and \${per2.name}.\n\nYou're paired with \${per1.name} & \${per2.name}.`,
+  `Hi \${per1.firstName} \${per1.lastName} and \${per2.firstName} \${per2.lastName}.\n\nYou're paired with \${per1.firstName} & \${per2.firstName}.`,
   "coordinator@patinanetwork.org",
 );
 
@@ -65,10 +65,10 @@ export const PAIR_TEMPLATE: EmailTemplate = emailTemplate(
   `Hey \${per1.firstName} and \${per2.firstName}! \n
 We've paired you two for PatChats this month! Find some time to have a 30 minute coffee chat or video call with your pairing!
 Share a screenshot or selfie of you two in the #pat-chats channel on the Discord server! \n
-\${per1.name} (\${per1.email}): 
+\${per1.firstName} \${per1.lastName} (\${per1.email}):
 \${per1.intro: ${INTRO_MISSING}} 
 \${per1.linkedin:}\n
-\${per2.name} (\${per2.email}): 
+\${per2.firstName} \${per2.lastName} (\${per2.email}):
 \${per2.intro: ${INTRO_MISSING}}
 \${per2.linkedin:}\n
 Let me know if you'd like to update your pairing information or want to be taken off the list.\n 
@@ -85,8 +85,8 @@ Just a friendly reminder that you were paired for PatChats this month!
 If you haven't had your 30 minute coffee chat or video call yet, now's a great time to schedule it.
 Don't forget to share a screenshot or selfie in the #pat-chats channel on the Discord server!
 
-\${per1.name} (\${per1.email})
-\${per2.name} (\${per2.email})
+\${per1.firstName} \${per1.lastName} (\${per1.email})
+\${per2.firstName} \${per2.lastName} (\${per2.email})
 
 Let me know if you'd like to update your pairing information or be taken off the list.
 

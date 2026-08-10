@@ -1,5 +1,6 @@
 export interface User {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   intro: string;
   linkedIn: string;
@@ -7,14 +8,14 @@ export interface User {
   preferences: string;
   topics: string;
   anything: string;
-  firstName?: string;
-  lastName?: string;
 }
 
 export interface Pair {
-  fullNameA: string;
+  firstNameA: string;
+  lastNameA: string;
   emailA: string;
-  fullNameB: string;
+  firstNameB: string;
+  lastNameB: string;
   emailB: string;
 }
 

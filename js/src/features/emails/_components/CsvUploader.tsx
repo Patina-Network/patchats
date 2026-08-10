@@ -108,7 +108,8 @@ export function UserCsvUpload({
           setRows(
             Array.from(users.values()).map((user) => (
               <Table.Tr key={user.email}>
-                <Table.Td style={rowStyle}>{user.name}</Table.Td>
+                <Table.Td style={rowStyle}>{user.firstName}</Table.Td>
+                <Table.Td style={rowStyle}>{user.lastName}</Table.Td>
                 <Table.Td style={rowStyle}>{user.email}</Table.Td>
                 <Table.Td style={rowStyle}>{user.intro}</Table.Td>
                 <Table.Td style={rowStyle}>{user.linkedIn}</Table.Td>
@@ -156,7 +157,8 @@ export function UserCsvUpload({
           >
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Name</Table.Th>
+                <Table.Th>First name</Table.Th>
+                <Table.Th>Last name</Table.Th>
                 <Table.Th>Email</Table.Th>
                 <Table.Th>Intro</Table.Th>
                 <Table.Th>Linked In</Table.Th>
@@ -198,9 +200,11 @@ export function PairingCsvUpload({
         setRows(
           Array.from(pairs.values()).map((pair) => (
             <Table.Tr key={`${pair.emailA}-${pair.emailB}`}>
-              <Table.Td>{pair.fullNameA}</Table.Td>
+              <Table.Td>{pair.firstNameA}</Table.Td>
+              <Table.Td>{pair.lastNameA}</Table.Td>
               <Table.Td>{pair.emailA}</Table.Td>
-              <Table.Td>{pair.fullNameB}</Table.Td>
+              <Table.Td>{pair.firstNameB}</Table.Td>
+              <Table.Td>{pair.lastNameB}</Table.Td>
               <Table.Td>{pair.emailB}</Table.Td>
             </Table.Tr>
           )),
@@ -237,9 +241,11 @@ export function PairingCsvUpload({
           >
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Name #1</Table.Th>
+                <Table.Th>First name #1</Table.Th>
+                <Table.Th>Last name #1</Table.Th>
                 <Table.Th>Email #1</Table.Th>
-                <Table.Th>Name #2</Table.Th>
+                <Table.Th>First name #2</Table.Th>
+                <Table.Th>Last name #2</Table.Th>
                 <Table.Th>Email #2</Table.Th>
               </Table.Tr>
             </Table.Thead>

@@ -27,7 +27,7 @@ class MemberServiceTest {
     private final MemberService memberService = new MemberService(memberRepo);
 
     @Test
-    void createMember_successWithAllFieldsFilled() {
+    void createMemberSuccessWithAllFieldsFilled() {
         final CreateMemberRequest request = new CreateMemberRequest(
                 "John",
                 "Doe",
@@ -77,7 +77,7 @@ class MemberServiceTest {
     }
 
     @Test
-    void createMember_throwsExceptionWhenEmailAlreadyExists() {
+    void createMemberThrowsExceptionWhenEmailAlreadyExists() {
         final CreateMemberRequest request = new CreateMemberRequest(
                 "John",
                 "Doe",
