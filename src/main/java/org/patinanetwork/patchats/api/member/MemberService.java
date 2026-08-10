@@ -1,7 +1,9 @@
 package org.patinanetwork.patchats.api.member;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
@@ -49,66 +51,51 @@ public class MemberService {
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {
         Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
 
-        // Validate that required fields are not empty
-        if (request.firstName().isPresent()) {
-            String firstName = request.firstName().get();
-            if (firstName.isBlank()) {
-                throw new ValidationException("firstName cannot be empty");
-            }
-            member.setFirstName(firstName);
-        }
+        validateAndUpdateRequired(member, request);
+        updateOptional(member, request);
 
-        if (request.lastName().isPresent()) {
-            String lastName = request.lastName().get();
-            if (lastName.isBlank()) {
-                throw new ValidationException("lastName cannot be empty");
-            }
-            member.setLastName(lastName);
-        }
+        Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
+        return MemberDto.from(updatedMember);
+    }
 
+    private void validateAndUpdateRequired(Member member, UpdateMemberRequest request) {
+        validateAndUpdate(request.firstName(), member::setFirstName, "firstName");
+        validateAndUpdate(request.lastName(), member::setLastName, "lastName");
+        validateAndUpdateEmail(member, request);
+        validateAndUpdate(request.introduction(), member::setIntroduction, "introduction");
+    }
+
+    private void validateAndUpdate(Optional<String> field, Consumer<String> setter, String fieldName) {
+        if (field.isPresent()) {
+            String value = field.get();
+            if (value.isBlank()) {
+                throw new ValidationException(fieldName + " cannot be empty");
+            }
+            setter.accept(value);
+        }
+    }
+
+    private void validateAndUpdateEmail(Member member, UpdateMemberRequest request) {
         if (request.email().isPresent()) {
             String email = request.email().get();
             if (email.isBlank()) {
                 throw new ValidationException("email cannot be empty");
             }
-            if (!email.equals(member.getEmail())) {
-                if (memberRepo.getMemberByEmail(email).isPresent()) {
-                    throw new MemberDuplicateException(email);
-                }
+            if (!email.equals(member.getEmail())
+                    && memberRepo.getMemberByEmail(email).isPresent()) {
+                throw new MemberDuplicateException(email);
             }
             member.setEmail(email);
         }
+    }
 
-        if (request.introduction().isPresent()) {
-            String introduction = request.introduction().get();
-            if (introduction.isBlank()) {
-                throw new ValidationException("introduction cannot be empty");
-            }
-            member.setIntroduction(introduction);
-        }
-
-        // Update only the fields that are provided in the request
-        if (request.linkedInUrl().isPresent()) {
-            member.setLinkedInUrl(request.linkedInUrl().get());
-        }
-        if (request.matchPref().isPresent()) {
-            member.setMatchPref(request.matchPref().get());
-        }
-        if (request.industryPref().isPresent()) {
-            member.setIndustryPref(request.industryPref().get());
-        }
-        if (request.rolePref().isPresent()) {
-            member.setRolePref(request.rolePref().get());
-        }
-        if (request.topics().isPresent()) {
-            member.setTopics(request.topics().get());
-        }
-        if (request.extraNotes().isPresent()) {
-            member.setExtraNotes(request.extraNotes().get());
-        }
-
-        Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
-        return MemberDto.from(updatedMember);
+    private void updateOptional(Member member, UpdateMemberRequest request) {
+        request.linkedInUrl().ifPresent(member::setLinkedInUrl);
+        request.matchPref().ifPresent(member::setMatchPref);
+        request.industryPref().ifPresent(member::setIndustryPref);
+        request.rolePref().ifPresent(member::setRolePref);
+        request.topics().ifPresent(member::setTopics);
+        request.extraNotes().ifPresent(member::setExtraNotes);
     }
 
     // TODO: Implement these methods after createMember and updateMember is fully functional and tested
