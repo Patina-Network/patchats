@@ -1,8 +1,10 @@
 package org.patinanetwork.patchats.api.member;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
@@ -29,6 +31,13 @@ public class MemberController {
     public ResponseEntity<ApiResponder<MemberDto>> createMember(@Valid @RequestBody final CreateMemberRequest request) {
         final MemberDto response = memberService.createMember(request);
         return ResponseEntity.ok(ApiResponder.success("Member created successfully", response));
+    }
+
+    @GetMapping
+    @Operation(summary = "List all members", description = "Returns every member ordered by creation date.")
+    public ResponseEntity<ApiResponder<List<MemberDto>>> getMembers() {
+        final List<MemberDto> response = memberService.getMembers();
+        return ResponseEntity.ok(ApiResponder.success("Members retrieved successfully", response));
     }
 
     @PatchMapping("/{id}")
