@@ -95,7 +95,7 @@ public class MemberSqlRepo implements MemberRepo {
     }
 
     @Override
-    public List<Member> getMembers() {
+    public List<Member> getAllMembers() {
         String sql = "SELECT * FROM members ORDER BY created_at DESC, id";
         return jdbc.sql(sql).query((rs, rowNum) -> parseResultSetToMember(rs)).list();
     }
