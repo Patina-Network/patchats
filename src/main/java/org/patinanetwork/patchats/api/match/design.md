@@ -55,7 +55,6 @@ public class MatchCycleResponse {
     private Instant runAt;
     private Integer totalMembers;
     private Integer totalMatched;
-    private List<String> unmatchedIds;  // UUIDs
 }
 
 // admin detail — cycle + filtered matches
@@ -70,7 +69,6 @@ public class CreateMatchCycleRequest {
     private String period;  // optional
     private Integer totalMembers;
     private Integer totalMatched;
-    private List<String> unmatchedIds;
 }
 
 // PATCH /api/admin/match_cycles/{id}
@@ -79,7 +77,6 @@ public class UpdateMatchCycleRequest {
     private String period;
     private Integer totalMembers;
     private Integer totalMatched;
-    private List<String> unmatchedIds;
 }
 
 // GET /api/admin/match_cycles (query params)
