@@ -21,7 +21,6 @@ erDiagram
         timestamptz run_at "{NOT_NULL}"
         integer total_members
         integer total_matched
-        integer[] unmatched_id
     }
 
     matches {
