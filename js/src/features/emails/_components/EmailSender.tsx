@@ -1,12 +1,14 @@
 import type { SendAsyncRequest } from "@/features/emails/dto/emailDto";
 
 import { sendToEmailApi } from "@/features/emails/api/emailAPI";
+import { enqueueEmails, triggerProcess } from "@/features/emails/api/emailAPI";
 import {
   showEmailError,
   showEmailPending,
   showEmailSuccess,
 } from "@/features/emails/api/emailError";
-import { Button, Flex, Text } from "@mantine/core";
+import { type EnqueueEmailRequest } from "@/features/emails/dto/emailDto";
+import { Button, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -16,7 +18,20 @@ import { useEffect } from "react";
  *  @param request - The SendRequest object containing the email data to be sent.
  *  @returns A button that, when clicked, opens a confirmation modal and sends the emails if confirmed.
  */
-export function EmailSender({ request }: { request: SendAsyncRequest | null }) {
+export function EmailSender({
+
+  request,
+  selectedTemplateId,
+  isSending,
+  setIsSending,
+  navigate,
+}: {
+  request: SendAsyncRequest | null;
+  selectedTemplateId: string | null;
+  isSending: boolean;
+  setIsSending: (isSending: boolean) => void;
+  navigate: (path: string) => void;
+}) {
   const mutation = useMutation({
     mutationFn: async (req: SendAsyncRequest) => sendToEmailApi(req),
   });
@@ -41,28 +56,53 @@ export function EmailSender({ request }: { request: SendAsyncRequest | null }) {
           "Cancel",
           `${request?.messages.length} Emails cancelled.`,
         ),
-      onConfirm: () => void handleSend(),
+      onConfirm: () => void handleAsyncSend(),
     });
 
-  const handleSend = async () => {
+  const handleAsyncSend = async () => {
+    if (!selectedTemplateId) {
+      showEmailError("Missing Template", "Please select a template");
+      return;
+    }
     if (!request) {
-      showEmailError("Preview first", "Preview before sending.");
+      showEmailError("Missing Request", "Please process CSV files first");
       return;
     }
 
+    setIsSending(true);
     try {
-      await mutation.mutateAsync(request);
-      showEmailSuccess("Success", "Emails sent.");
-    } catch {
-      showEmailError("Error", "Unable to send emails.");
+      // Transform the SendRequest to EnqueueEmailRequest
+      const enqueueRequest: EnqueueEmailRequest = {
+        templateId: selectedTemplateId,
+        replyTo: request.replyTo || undefined,
+        messages: request.messages,
+      };
+
+      const response = await enqueueEmails(enqueueRequest);
+      showEmailSuccess("Emails Queued", `Accepted ${response.accepted} emails`);
+
+      // Kick the runner to start draining
+      await triggerProcess();
+
+      navigate(`../progress/${response.requestId}`);
+    } catch (err) {
+      showEmailError(
+        "Send Failed",
+        err instanceof Error ? err.message : "Unknown error",
+      );
+    } finally {
+      setIsSending(false);
     }
   };
 
   return (
-    <Flex>
-      <Button fullWidth loading={mutation.isPending} onClick={openModal}>
-        Send Emails
-      </Button>
-    </Flex>
+    <Button
+      onClick={openModal}
+      disabled={!request || !selectedTemplateId}
+      loading={isSending}
+      fullWidth
+    >
+      Send Emails
+    </Button>
   );
 }
