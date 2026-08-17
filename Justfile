@@ -12,6 +12,10 @@ drop *args:
 backend-dev *args:
   dotenvx run -f .env -- ./mvnw -Dspring-boot.run.profiles=dev spring-boot:run {{args}}
 
+# Run the backend Spring server with real SMTP delivery instead of the logging email sender
+backend-smtp *args:
+  dotenvx run -f .env -- ./mvnw -Dspring-boot.run.profiles=smtp spring-boot:run {{args}}
+
 # Run the backend Spring server with an exposed debugger at :5005
 backend-dev-debug *args:
   dotenvx run -- ./mvnw \

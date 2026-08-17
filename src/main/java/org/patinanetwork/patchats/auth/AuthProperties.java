@@ -19,4 +19,11 @@ public class AuthProperties {
 
     /** How long an emailed magic link stays valid. */
     private Duration magicLinkTtl = Duration.ofMinutes(15);
+
+    /**
+     * How often expired magic-link rows are swept from the database. Declared here so the key is documented and shows
+     * up in config metadata; {@link MagicLinkTokenCleanup} resolves it as a {@code @Scheduled} placeholder, which
+     * cannot read a bound bean.
+     */
+    private Duration tokenCleanupInterval = Duration.ofHours(1);
 }

@@ -1,0 +1,22 @@
+# Local profile for exercising real SMTP delivery. Identical to `dev` except that it is not named `dev`, so
+# SmtpEmailSender (@Profile("!dev")) wins over LoggingEmailSender and mail actually leaves the machine.
+#
+# Defaults target a local Mailpit catcher (`mailpit`, SMTP :1025, inbox at http://localhost:8025), which takes no
+# credentials. Point SMTP_* at a real provider in .env to test genuine delivery — set SMTP_AUTH and SMTP_STARTTLS
+# back to true when you do.
+spring:
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:false}
+          starttls:
+            enable: ${SMTP_STARTTLS:false}
+
+app:
+  auth:
+    base-url: ${APP_BASE_URL:http://localhost:5173}
+    # Local runs are plain HTTP through the Vite proxy; a Secure cookie would be silently dropped.
+    cookie-secure: false

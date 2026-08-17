@@ -1,4 +1,7 @@
-import { rateLimitedResponse } from "@/features/auth/api/auth.mock";
+import {
+  rateLimitedResponse,
+  unregisteredEmailResponse,
+} from "@/features/auth/api/auth.mock";
 import LoginPage from "@/features/auth/Login.page";
 import { renderWithProviders, screen } from "@/lib/test/render";
 import { server } from "@/lib/test/server";
@@ -18,6 +21,35 @@ test("rejects an invalid email without calling the API", async () => {
   expect(
     await screen.findByText("Enter a valid email address"),
   ).toBeInTheDocument();
+});
+
+test("offers sign-up and a retry when the email has no account", async () => {
+  server.use(
+    http.post("/api/auth/request-link", () => unregisteredEmailResponse()),
+  );
+  const user = userEvent.setup();
+  renderWithProviders(<LoginPage />);
+
+  await user.type(screen.getByLabelText(/email/i), "stranger@example.com");
+  await user.click(
+    screen.getByRole("button", { name: /email me a sign-in link/i }),
+  );
+
+  expect(
+    await screen.findByText("No account for that email"),
+  ).toBeInTheDocument();
+  expect(screen.getByText("stranger@example.com")).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: /complete the sign-up form/i }),
+  ).toHaveAttribute("href", "/sign-up");
+
+  await user.click(
+    screen.getByRole("button", { name: /try a different email/i }),
+  );
+
+  expect(await screen.findByLabelText(/email/i)).toHaveValue(
+    "stranger@example.com",
+  );
 });
 
 test("shows the generic check-your-email panel after submitting", async () => {
