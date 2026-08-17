@@ -31,11 +31,5 @@ public class Match {
     @Setter
     private String status;
 
-    @Setter
-    private String feedbackA;
-
-    @Setter
-    private String feedbackB;
-
     private Instant createdAt;
 }
