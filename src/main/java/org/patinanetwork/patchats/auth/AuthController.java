@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    /** The response is identical whether or not the email has an account, so nothing can be enumerated. */
+    /** Success copy for a link that was actually sent; an unregistered email fails with 404 instead. */
     private static final String GENERIC_REQUEST_MESSAGE = "Check your email for a sign-in link.";
 
     private final AuthService authService;

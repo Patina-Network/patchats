@@ -13,9 +13,7 @@ import org.patinanetwork.patchats.email.db.models.EmailTemplate;
 import org.patinanetwork.patchats.email.db.repos.EmailRepo;
 import org.patinanetwork.patchats.email.db.repos.EmailTemplateRepo;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
@@ -112,18 +110,5 @@ public class EmailDrainer {
             log.warn("Email {} failed: {}", email.getId(), ex.getMessage());
             emailRepo.markError(email.getId(), ex.getMessage());
         }
-    }
-
-    /**
-     * On boot: reset orphaned {@code PROCESSING} rows to {@code ERROR} (at-most-once recovery, decision #9), then kick
-     * one drain to cover rows left {@code PENDING} before shutdown — the only safety net for a missed kick.
-     */
-    @EventListener(ApplicationReadyEvent.class)
-    public void onApplicationReady() {
-        final int reset = emailRepo.resetProcessingToError();
-        if (reset > 0) {
-            log.warn("Reset {} orphaned PROCESSING email(s) to ERROR on startup", reset);
-        }
-        trigger();
     }
 }

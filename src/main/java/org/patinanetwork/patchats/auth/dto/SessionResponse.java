@@ -10,6 +10,6 @@ public record SessionResponse(String id, String name, String email, boolean isAd
 
     public static SessionResponse of(final Member member) {
         final String name = "%s %s".formatted(member.getFirstName(), member.getLastName());
-        return new SessionResponse(member.getId().toString(), name, member.getEmail(), false);
+        return new SessionResponse(member.getId().toString(), name, member.getEmail(), true);
     }
 }

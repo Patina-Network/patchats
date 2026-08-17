@@ -25,12 +25,6 @@ public interface EmailRepo {
     /** Marks a row {@code ERROR} with the given message (no retry — terminal, decision #8). */
     void markError(UUID id, String errorMessage);
 
-    /**
-     * At-most-once crash recovery (decision #9): flips any orphaned {@code PROCESSING} rows to {@code ERROR}. Returns
-     * the number of rows reset.
-     */
-    int resetProcessingToError();
-
     /** Per-status row counts for one batch ({@code GROUP BY status}); statuses with no rows are absent. */
     Map<EmailStatus, Integer> countByStatus(UUID requestId);
 

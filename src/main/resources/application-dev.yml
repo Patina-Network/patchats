@@ -1,0 +1,5 @@
+app:
+  auth:
+    base-url: ${APP_BASE_URL:http://localhost:5173}
+    # Dev runs plain HTTP through the Vite proxy; a Secure cookie would be silently dropped.
+    cookie-secure: false

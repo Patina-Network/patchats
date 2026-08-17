@@ -6,6 +6,10 @@ spring:
   flyway:
     # Migrations run out-of-band via the Flyway Maven plugin (`just migrate`), never at startup.
     enabled: false
+  session:
+    timeout: 30d
+    jdbc:
+      initialize-schema: never
   mail:
     host: ${SMTP_HOST:}
     port: ${SMTP_PORT:587}
@@ -18,9 +22,18 @@ spring:
           starttls:
             enable: true
 
+server:
+  # Trust X-Forwarded-* from the reverse proxy so rate limiting sees real client IPs.
+  forward-headers-strategy: framework
+
 app:
   commit:
     sha: "@commit.sha@"
   email:
     from: ${EMAIL_FROM:coffeechats@patinanetwork.org}
     from-name: ${EMAIL_FROM_NAME:PatChats}
+  auth:
+    # Public origin of the SPA; magic links point at <base-url>/auth/verify?token=...
+    base-url: ${APP_BASE_URL:http://patchats.patinanetwork.org}
+    cookie-secure: ${AUTH_COOKIE_SECURE:true}
+    magic-link-ttl: 15m

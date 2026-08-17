@@ -16,9 +16,10 @@ import { zodResolver } from "mantine-form-zod-resolver";
 import { Link } from "react-router-dom";
 
 /**
- * Passwordless login: ask for an email, request a magic link, and show the
- * same "check your email" panel no matter what — account existence is never
- * revealed here.
+ * Passwordless login: ask for an email and request a magic link. Three states —
+ * the form, "check your email" once a link is on its way, and a dead end for an
+ * address with no account, which offers the only two ways forward (another
+ * address, or sign up).
  */
 export default function LoginPage() {
   const requestLink = useRequestLink();
@@ -28,9 +29,16 @@ export default function LoginPage() {
     validate: zodResolver(loginSchema),
   });
 
+  const submittedEmail = form.getValues().email.trim();
+
   const handleSubmit = form.onSubmit((values) => {
     requestLink.mutate(values.email.trim());
   });
+
+  /** The backend 404s an email with no member row; every other failure falls
+   * through to the alert inside the form. */
+  const isUnregistered =
+    requestLink.error instanceof ApiError && requestLink.error.status === 404;
 
   if (requestLink.isSuccess) {
     return (
@@ -39,7 +47,7 @@ export default function LoginPage() {
         <Text>
           If you entered a valid address, a sign-in link is on its way to{" "}
           <Text component="span" fw={700}>
-            {form.getValues().email.trim()}
+            {submittedEmail}
           </Text>
           . The link expires in 15 minutes and can only be used once.
         </Text>
@@ -55,6 +63,31 @@ export default function LoginPage() {
             request another link
           </Text>
           .
+        </Text>
+      </Stack>
+    );
+  }
+
+  if (isUnregistered) {
+    return (
+      <Stack gap="md">
+        <Title order={2}>No account for that email</Title>
+        <Text>
+          We couldn&apos;t find a PatChats account for{" "}
+          <Text component="span" fw={700}>
+            {submittedEmail}
+          </Text>
+          . Sign-in links are only sent to registered members.
+        </Text>
+        <Button onClick={() => requestLink.reset()}>
+          Try a different email
+        </Button>
+        <Text c="dimmed" size="sm">
+          Never signed up?{" "}
+          <Anchor component={Link} to="/sign-up" inherit>
+            Complete the sign-up form
+          </Anchor>{" "}
+          to join.
         </Text>
       </Stack>
     );

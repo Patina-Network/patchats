@@ -3,7 +3,7 @@ import { http, HttpResponse } from "msw";
 
 /**
  * MSW handlers for the auth domain, envelope-shaped like the real backend.
- * Defaults: request-link succeeds generically, verify signs in a member, and
+ * Defaults: request-link succeeds, verify signs in a member, and
  * there is no session (401). Tests override per case with `server.use(...)`
  * and the exported fixtures.
  */
@@ -23,6 +23,15 @@ export const invalidLinkResponse = () =>
         "This sign-in link is invalid or has expired. Request a new one.",
     },
     { status: 400 },
+  );
+
+export const unregisteredEmailResponse = () =>
+  HttpResponse.json(
+    {
+      success: false,
+      message: "We couldn't find an account for that email.",
+    },
+    { status: 404 },
   );
 
 export const rateLimitedResponse = () =>
