@@ -33,12 +33,14 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
             INSERT INTO "match_cycles" (
                 "period",
                 "run_at",
-                "is_draft"
+                "is_draft",
+                "total_members"
             )
             VALUES(
                 :period,
                 :run_at,
-                :is_draft
+                :is_draft,
+                :total_members
             )
             RETURNING
                 *,
