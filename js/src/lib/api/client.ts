@@ -22,16 +22,11 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly body: unknown,
   ) {
     super(message);
     this.name = "ApiError";
   }
-}
-
-interface ApiEnvelope<T> {
-  success: boolean;
-  message?: string;
-  payload?: T;
 }
 
 function readCookie(name: string): string | undefined {
@@ -63,17 +58,12 @@ export async function apiFetch<T>(
       ...init?.headers,
     },
   });
-
-  const envelope = (await response.json().catch(() => undefined)) as
-    | ApiEnvelope<T>
-    | undefined;
-
   if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      envelope?.message ?? `Request to ${path} failed`,
-    );
+    const body = await response.json().catch(() => undefined);
+    const message =
+      (body as ApiResponder<unknown> | undefined)?.message ??
+      `Request to ${path} failed`;
+    throw new ApiError(response.status, message, body);
   }
-
-  return envelope?.payload as T;
+  return response.json() as Promise<T>;
 }

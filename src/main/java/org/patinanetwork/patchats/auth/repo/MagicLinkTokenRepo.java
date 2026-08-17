@@ -3,7 +3,6 @@ package org.patinanetwork.patchats.auth.repo;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -11,21 +10,13 @@ import org.springframework.stereotype.Repository;
 /** Plain-SQL access to {@code magic_link_tokens}. Only token hashes ever touch this table. */
 @Repository
 @RequiredArgsConstructor
-public class MagicLinkTokenRepository {
+public class MagicLinkTokenRepo {
 
     private final JdbcClient jdbc;
 
-    /** Invalidates every outstanding link for an email; called before issuing a new one. */
-    public void deleteByEmail(final String email) {
-        jdbc.sql("DELETE FROM magic_link_tokens WHERE email = :email")
-                .param("email", email)
-                .update();
-    }
-
-    public void insertToken(final UUID id, final String email, final String tokenHash, final Instant expiresAt) {
-        jdbc.sql("INSERT INTO magic_link_tokens (id, email, token_hash, expires_at)"
-                        + " VALUES (:id, :email, :tokenHash, :expiresAt)")
-                .param("id", id)
+    public void insertToken(final String email, final String tokenHash, final Instant expiresAt) {
+        jdbc.sql("INSERT INTO magic_link_tokens (email, token_hash, expires_at)"
+                        + " VALUES (:email, :tokenHash, :expiresAt)")
                 .param("email", email)
                 .param("tokenHash", tokenHash)
                 .param("expiresAt", expiresAt.atOffset(ZoneOffset.UTC))

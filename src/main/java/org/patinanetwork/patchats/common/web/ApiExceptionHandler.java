@@ -3,6 +3,7 @@ package org.patinanetwork.patchats.common.web;
 import java.util.stream.Collectors;
 import org.patinanetwork.patchats.auth.InvalidMagicLinkException;
 import org.patinanetwork.patchats.auth.TooManyLinkRequestsException;
+import org.patinanetwork.patchats.auth.UnregisteredEmailException;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
 import org.patinanetwork.patchats.common.web.exception.EmailNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.EmailNotResendableException;
@@ -77,6 +78,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InvalidMagicLinkException.class)
     public ResponseEntity<ApiResponder<Void>> handleInvalidMagicLink(final InvalidMagicLinkException ex) {
         return ResponseEntity.badRequest().body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(UnregisteredEmailException.class)
+    public ResponseEntity<ApiResponder<Void>> handleUnregisteredEmail(final UnregisteredEmailException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponder.failure(ex.getMessage()));
     }
 
     @ExceptionHandler(TooManyLinkRequestsException.class)

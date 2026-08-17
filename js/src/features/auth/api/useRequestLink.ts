@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/api/client";
+import { ApiResponder } from "@/lib/api/client";
 import { useMutation } from "@tanstack/react-query";
 
 /**
@@ -8,7 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 export function useRequestLink() {
   return useMutation({
     mutationFn: (email: string) =>
-      apiFetch<null>("/auth/request-link", {
+      apiFetch<ApiResponder<null>>("/auth/request-link", {
         method: "POST",
         body: JSON.stringify({ email }),
       }),

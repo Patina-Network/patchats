@@ -1,4 +1,4 @@
-import { ApiError, apiFetch } from "@/lib/api/client";
+import { ApiError, apiFetch, ApiResponder } from "@/lib/api/client";
 import { useQuery } from "@tanstack/react-query";
 
 /**
@@ -23,7 +23,7 @@ export function useSession() {
     queryKey: sessionQueryKey,
     queryFn: async () => {
       try {
-        return await apiFetch<Session>("/session");
+        return (await apiFetch<ApiResponder<Session>>("/session")).payload;
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
           return null;

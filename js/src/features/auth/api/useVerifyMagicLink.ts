@@ -1,5 +1,5 @@
 import { Session, sessionQueryKey } from "@/features/auth/api/useSession";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, ApiResponder } from "@/lib/api/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
@@ -19,12 +19,12 @@ export function useVerifyMagicLink(token: string | null) {
   return useQuery({
     queryKey: ["auth", "verify", token],
     queryFn: async () => {
-      const session = await apiFetch<Session>("/auth/verify", {
+      const session = await apiFetch<ApiResponder<Session>>("/auth/verify", {
         method: "POST",
         body: JSON.stringify({ token }),
       });
-      queryClient.setQueryData(sessionQueryKey, session);
-      return session;
+      queryClient.setQueryData(sessionQueryKey, session.payload);
+      return session.payload;
     },
     enabled: token !== null,
     retry: false,

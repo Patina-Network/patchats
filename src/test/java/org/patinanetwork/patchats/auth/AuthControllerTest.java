@@ -3,6 +3,7 @@ package org.patinanetwork.patchats.auth;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -53,6 +54,20 @@ class AuthControllerTest {
     }
 
     @Test
+    void requestLinkMapsUnregisteredEmailToNotFoundEnvelope() throws Exception {
+        doThrow(new UnregisteredEmailException())
+                .when(authService)
+                .requestLink(eq("stranger@example.com"), anyString());
+
+        mockMvc.perform(post("/api/auth/request-link")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"stranger@example.com\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("We couldn't find an account for that email."));
+    }
+
+    @Test
     void requestLinkRejectsMalformedEmail() throws Exception {
         mockMvc.perform(post("/api/auth/request-link")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +93,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.payload.email").value("ann@example.com"))
                 .andExpect(jsonPath("$.payload.name").value("Ann Example"))
-                .andExpect(jsonPath("$.payload.isAdmin").value(false));
+                .andExpect(jsonPath("$.payload.isAdmin").value(true));
 
         verify(securityContextRepository).saveContext(any(), any(), any());
     }

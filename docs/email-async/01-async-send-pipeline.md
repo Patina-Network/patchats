@@ -5,7 +5,8 @@ actually deliver it — fully functional and testable via API + dev-profile logg
 See [00-overview.md](00-overview.md) for full context and the decision table.
 
 ## Decisions that apply here
-- **DB-as-queue (outbox), no SQS** (#1) — the `emails` table *is* the queue.
+
+- **DB-as-queue (outbox), no SQS** (#1) — the `emails` table _is_ the queue.
 - **Render at send-time** (#4) — store `template_id` + `template_values`; the runner renders `subject`/`body` per
   row just before sending (rendered text is **not** stored).
 - **Single instance** (#5) — no row-locking needed; deploys must be **stop-then-start**.
@@ -84,12 +85,14 @@ except where noted). Create `@Repository` classes:
 - `EmailTemplateRepo` — **read/list only** here (`findById`, `findAll`); writes arrive in Increment 5.
 
 Pattern:
+
 ```java
 jdbcClient.sql("SELECT * FROM email_templates WHERE id = :id")
           .param("id", id)
           .query(new EmailTemplateRowMapper())
           .optional();
 ```
+
 Map `JSONB` (`template_values`) ↔ Java via a small Jackson helper. For the **N-child batch insert**, drop to
 the underlying `JdbcTemplate.batchUpdate(...)` (JdbcClient has no batch API yet) — inject `JdbcTemplate`
 only in `EmailRepo` for that one method.
@@ -110,8 +113,8 @@ only in `EmailRepo` for that one method.
      happens later, in the runner (1e).
   - **The service does not start the runner.** After the `202` returns (transaction committed), the **caller**
     kicks the drain via `POST /api/email/process` (see below). This is the "manual/frontend kick only" model (#6).
-- *(Optional)* dry-run render at enqueue for **early validation only** — reject a template that can't render up
-  front. Only the *values* are stored, never the output. Skip it for the minimal path; otherwise render errors
+- _(Optional)_ dry-run render at enqueue for **early validation only** — reject a template that can't render up
+  front. Only the _values_ are stored, never the output. Skip it for the minimal path; otherwise render errors
   surface asynchronously as `ERROR` rows.
 - **Endpoints** (new `EmailAsyncController` or extend the existing controller):
   - `POST /api/email/send/async` → `enqueue(...)` with `source=MANUAL` → **`202 Accepted`** `{ requestId, accepted }`.
@@ -136,9 +139,9 @@ parses CSV ([parseCSV.ts](../../js/src/features/emails/api/parseCSV.ts)) and pos
 
 - **Bean:** a single-thread `ThreadPoolTaskExecutor` named `emailDrainExecutor` (core=max=1 so drains
   serialize and overlapping triggers coalesce), configured with `setWaitForTasksToCompleteOnShutdown(true)`
-  + an await timeout. `@EnableAsync` is already present on
-  [PatChatsApplication](../../src/main/java/org/patinanetwork/patchats/PatChatsApplication.java); **no**
-  `@EnableScheduling` / `TaskScheduler` is needed (there are no timed retries).
+  - an await timeout. `@EnableAsync` is already present on
+    [PatChatsApplication](../../src/main/java/org/patinanetwork/patchats/PatChatsApplication.java); **no**
+    `@EnableScheduling` / `TaskScheduler` is needed (there are no timed retries).
 - **`EmailDrainer.trigger()`** submits a drain job to `emailDrainExecutor` **only if one isn't already
   running** — guard with an `AtomicBoolean` via `compareAndSet`; if `trigger()` fires while a drain is
   running, set a `rerun` flag so the current drain loops again instead of exiting.
@@ -162,8 +165,8 @@ parses CSV ([parseCSV.ts](../../js/src/features/emails/api/parseCSV.ts)) and pos
      [`EmailSender.send`](../../src/main/java/org/patinanetwork/patchats/email/EmailSender.java). On success →
      `status='SENT'`, `sent_at=now()` (**commit per row** — keeps any duplicate window to ≤1 email). On failure —
      including a **render failure** (template edited into an invalid state, missing variable) — → `status='ERROR'`,
-     `error_message=ex.getMessage()` (**no retry**). *(Cache templates per drain to avoid reloading the same one
-     for every row in a batch.)*
+     `error_message=ex.getMessage()` (**no retry**). _(Cache templates per drain to avoid reloading the same one
+     for every row in a batch.)_
   3. Re-claim; when a claim returns 0 rows, stop (honor the `rerun` flag if set).
 
 **Runner tradeoffs:** on-demand kick (manual/frontend API request) + single-instance + sequential is chosen
@@ -178,6 +181,7 @@ or ShedLock for multi-instance.
 ---
 
 ## Files to touch
+
 - **Create:** `db/migration/V0004__Create_email_tables.sql`; `email/` — `EmailRepo`,
   `EmailRequestRepo`, `EmailTemplateRepo`, row mappers, a Jackson JSONB helper;
   `EmailEnqueueService`, `dto/EnqueueEmailRequest`, `dto/EnqueueEmailResponse`; `RecipientSource` (+ CSV impl);
@@ -188,6 +192,7 @@ or ShedLock for multi-instance.
   (add `/send/async`, `/templates` list, update `/preview`).
 
 ## Verification
+
 - **Unit** (fake `EmailSender`, like
   [EmailServiceTest](../../src/test/java/org/patinanetwork/patchats/email/EmailServiceTest.java)):
   - `EmailEnqueueServiceTest` — enqueue stores `template_id` + `template_values` (no rendered output); an unknown

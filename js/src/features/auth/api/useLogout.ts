@@ -1,5 +1,6 @@
 import { sessionQueryKey } from "@/features/auth/api/useSession";
 import { apiFetch } from "@/lib/api/client";
+import { ApiResponder } from "@/lib/api/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -9,7 +10,8 @@ export function useLogout() {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: () => apiFetch<null>("/auth/logout", { method: "POST" }),
+    mutationFn: () =>
+      apiFetch<ApiResponder<null>>("/auth/logout", { method: "POST" }),
     onSuccess: () => {
       queryClient.setQueryData(sessionQueryKey, null);
       navigate("/");
