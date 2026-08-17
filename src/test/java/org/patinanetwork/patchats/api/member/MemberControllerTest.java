@@ -389,7 +389,9 @@ class MemberControllerTest {
                 Optional.of("Peer"),
                 Optional.of("Technology"),
                 Optional.of("Software Engineer"),
-                Optional.of("Career Development"));
+                Optional.of("Career Development"),
+                2,
+                10);
         when(memberService.getMembersByFilters(criteria)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/members")
@@ -400,7 +402,9 @@ class MemberControllerTest {
                         .queryParam("matchPref", "Peer")
                         .queryParam("industryPref", "Technology")
                         .queryParam("rolePref", "Software Engineer")
-                        .queryParam("topics", "Career Development"))
+                        .queryParam("topics", "Career Development")
+                        .queryParam("page", "2")
+                        .queryParam("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.payload.length()").value(0));
@@ -414,6 +418,19 @@ class MemberControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Invalid value for query parameter 'active'"));
+    }
+
+    @Test
+    void getMembersReturnsBadRequestWhenPaginationIsOutOfRange() throws Exception {
+        mockMvc.perform(get("/api/members").queryParam("page", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Invalid query parameters"));
+
+        mockMvc.perform(get("/api/members").queryParam("pageSize", "101"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Invalid query parameters"));
     }
 
     private static String memberRequestJson(String firstName) {

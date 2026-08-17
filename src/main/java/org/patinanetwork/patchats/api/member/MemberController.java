@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,8 @@ public class MemberController {
     @GetMapping
     @Operation(
             summary = "List members",
-            description = "Returns members matching the supplied filters, ordered by creation date.")
+            description = "Returns a page of members matching the supplied filters, ordered by creation date. Pages "
+                    + "are one-based; pageSize defaults to 25 and cannot exceed 100.")
     public ResponseEntity<ApiResponder<List<MemberDto>>> getMembers(
             @RequestParam final Optional<String> firstName,
             @RequestParam final Optional<String> lastName,

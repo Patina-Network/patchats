@@ -27,6 +27,8 @@ export function MembersPage() {
     industryPref: searchParams.get("industryPref") ?? undefined,
     lastName: searchParams.get("lastName") ?? undefined,
     matchPref: searchParams.get("matchPref") ?? undefined,
+    page: searchParams.get("page") ?? undefined,
+    pageSize: searchParams.get("pageSize") ?? undefined,
     rolePref: searchParams.get("rolePref") ?? undefined,
     topics: searchParams.get("topics") ?? undefined,
   };

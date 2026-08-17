@@ -24,6 +24,10 @@ class MemberSqlRepoTest {
         ORDER BY
             created_at DESC,
             id
+        LIMIT
+            :page_size
+        OFFSET
+            :offset
         """;
     private static final String GET_FILTERED_MEMBERS_SQL = """
         SELECT
@@ -49,6 +53,10 @@ class MemberSqlRepoTest {
         ORDER BY
             created_at DESC,
             id
+        LIMIT
+            :page_size
+        OFFSET
+            :offset
         """;
 
     @Test
@@ -65,6 +73,8 @@ class MemberSqlRepoTest {
                 .build();
 
         when(jdbc.sql(GET_MEMBERS_SQL)).thenReturn(statement);
+        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
+                .thenReturn(statement);
         when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
         when(query.list()).thenReturn(List.of(member));
 
@@ -72,6 +82,8 @@ class MemberSqlRepoTest {
 
         assertEquals(List.of(member), result);
         verify(jdbc).sql(GET_MEMBERS_SQL);
+        verify(statement).param("page_size", MemberFilterCriteria.DEFAULT_PAGE_SIZE);
+        verify(statement).param("offset", 0L);
         verify(query).list();
     }
 
@@ -88,7 +100,9 @@ class MemberSqlRepoTest {
                 Optional.of("Peer"),
                 Optional.of("Technology"),
                 Optional.of("Engineering"),
-                Optional.of("Community"));
+                Optional.of("Community"),
+                3,
+                20);
 
         when(jdbc.sql(GET_FILTERED_MEMBERS_SQL)).thenReturn(statement);
         when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
@@ -108,6 +122,8 @@ class MemberSqlRepoTest {
         verify(statement).param("industry_pref", "Technology");
         verify(statement).param("role_pref", "Engineering");
         verify(statement).param("topics", "Community");
+        verify(statement).param("page_size", 20);
+        verify(statement).param("offset", 40L);
         verify(query).list();
     }
 }

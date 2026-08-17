@@ -1,4 +1,4 @@
-import MembersPage from "@/features/members/Members.page";
+import { MembersPage } from "@/features/members/Members.page";
 import { renderWithProviders, screen } from "@/lib/test/render";
 import { server } from "@/lib/test/server";
 import { http, HttpResponse } from "msw";
@@ -46,7 +46,7 @@ test("forwards URL parameters to the members API", async () => {
 
   renderWithProviders(<MembersPage />, {
     route:
-      "/admin/members?firstName=Alex&lastName=Morgan&email=alex%40example.com&active=true&matchPref=Peer&industryPref=Technology&rolePref=Engineering&topics=Community%20building&ignored=value",
+      "/admin/members?firstName=Alex&lastName=Morgan&email=alex%40example.com&active=true&matchPref=Peer&industryPref=Technology&rolePref=Engineering&topics=Community%20building&page=2&pageSize=10&ignored=value",
   });
 
   expect(await screen.findByText("No members found.")).toBeInTheDocument();
@@ -58,5 +58,7 @@ test("forwards URL parameters to the members API", async () => {
   expect(requestedUrl?.searchParams.get("industryPref")).toBe("Technology");
   expect(requestedUrl?.searchParams.get("rolePref")).toBe("Engineering");
   expect(requestedUrl?.searchParams.get("topics")).toBe("Community building");
+  expect(requestedUrl?.searchParams.get("page")).toBe("2");
+  expect(requestedUrl?.searchParams.get("pageSize")).toBe("10");
   expect(requestedUrl?.searchParams.has("ignored")).toBe(false);
 });
