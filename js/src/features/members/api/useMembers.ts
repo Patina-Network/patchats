@@ -32,6 +32,8 @@ export interface MemberFilters {
   industryPref?: string;
   lastName?: string;
   matchPref?: string;
+  page?: string;
+  pageSize?: string;
   rolePref?: string;
   topics?: string;
 }

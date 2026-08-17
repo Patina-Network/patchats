@@ -124,12 +124,17 @@ public class MemberSqlRepo implements MemberRepo {
             %sORDER BY
                 created_at DESC,
                 id
+            LIMIT
+                :page_size
+            OFFSET
+                :offset
             """.formatted(whereClause);
 
         JdbcClient.StatementSpec statement = jdbc.sql(sql);
         for (Map.Entry<String, Object> filter : filters.entrySet()) {
             statement = statement.param(filter.getKey(), filter.getValue());
         }
+        statement = statement.param("page_size", criteria.pageSize()).param("offset", criteria.offset());
 
         return statement.query((rs, rowNum) -> parseResultSetToMember(rs)).list();
     }

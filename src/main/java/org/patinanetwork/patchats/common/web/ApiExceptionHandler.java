@@ -14,6 +14,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /** Maps framework exceptions to the standard {@link ApiResponder} envelope. */
@@ -34,6 +35,11 @@ public class ApiExceptionHandler {
             final MethodArgumentTypeMismatchException ex) {
         final String message = "Invalid value for query parameter '" + ex.getName() + "'";
         return ResponseEntity.badRequest().body(ApiResponder.failure(message));
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ApiResponder<Void>> handleParameterValidation(final HandlerMethodValidationException ex) {
+        return ResponseEntity.badRequest().body(ApiResponder.failure("Invalid query parameters"));
     }
 
     @ExceptionHandler(MemberNotFoundException.class)
