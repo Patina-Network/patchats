@@ -34,6 +34,11 @@
 
 ## DTO 
 
+### Cycle field semantics
+
+- `runAt`: when the system acts for the cycle — pairs are generated and notifications are sent out.
+- `period`: which month the round is *for* (e.g. "2026-07"). Label used for display/filtering; normally derived from `runAt`, but may intentionally diverge if a run slips into another month.
+
 `MatchStatus`: PENDING | CONFIRMED | COMPLETED | CANCELLED | SKIPPED
 
 ### Admin Match Cycles

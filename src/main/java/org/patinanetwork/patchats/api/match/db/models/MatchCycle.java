@@ -20,10 +20,4 @@ public class MatchCycle {
 
     @Setter
     private Instant runAt;
-
-    @Setter
-    private Integer totalMembers;
-
-    @Setter
-    private Integer totalMatched;
 }
