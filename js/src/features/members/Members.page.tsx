@@ -1,4 +1,4 @@
-import { useMembers } from "@/features/members/api/useMembers";
+import { MemberFilters, useMembers } from "@/features/members/api/useMembers";
 import {
   Alert,
   Anchor,
@@ -12,6 +12,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import { useSearchParams } from "react-router-dom";
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",

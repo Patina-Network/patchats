@@ -9,7 +9,7 @@ import { MemoryRouter } from "react-router-dom";
  * A fresh QueryClient per render so tests never share cache. Retries are off so
  * failed requests surface immediately instead of hanging the test.
  */
-function createWrapper() {
+function createWrapper(route: string) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -18,19 +18,23 @@ function createWrapper() {
     return (
       <QueryClientProvider client={queryClient}>
         <MantineProvider theme={themeOverride} forceColorScheme="dark">
-          <MemoryRouter>{children}</MemoryRouter>
+          <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
         </MantineProvider>
       </QueryClientProvider>
     );
   };
 }
 
+interface RenderWithProvidersOptions extends Omit<RenderOptions, "wrapper"> {
+  route?: string;
+}
+
 /** Render a component wrapped in the app's providers (Query, Mantine, Router). */
 export function renderWithProviders(
   ui: ReactElement,
-  options?: Omit<RenderOptions, "wrapper">,
+  { route = "/", ...options }: RenderWithProvidersOptions = {},
 ) {
-  return render(ui, { wrapper: createWrapper(), ...options });
+  return render(ui, { wrapper: createWrapper(route), ...options });
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

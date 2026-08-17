@@ -22,7 +22,7 @@ public interface MemberRepo {
      */
     Member createMember(Member member);
 
-    List<Member> getMembers();
+    List<Member> getMembersByFilters(MemberFilterCriteria criteria);
 
     /**
      * @note - The provided object's methods will be overridden with any returned data from the database.
