@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.patinanetwork.patchats.api.member.db.repos.MemberFilterCriteria;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
@@ -366,7 +367,8 @@ class MemberControllerTest {
                 .email("jane.doe@example.com")
                 .active(false)
                 .build();
-        when(memberService.getMembers()).thenReturn(List.of(firstMember, secondMember));
+        when(memberService.getMembersByFilters(MemberFilterCriteria.empty()))
+                .thenReturn(List.of(firstMember, secondMember));
 
         mockMvc.perform(get("/api/members"))
                 .andExpect(status().isOk())
@@ -375,6 +377,43 @@ class MemberControllerTest {
                 .andExpect(jsonPath("$.payload[0].firstName").value("John"))
                 .andExpect(jsonPath("$.payload[0].lastName").value("Doe"))
                 .andExpect(jsonPath("$.payload[1].email").value("jane.doe@example.com"));
+    }
+
+    @Test
+    void getMembersCreatesCriteriaFromQueryParameters() throws Exception {
+        final MemberFilterCriteria criteria = new MemberFilterCriteria(
+                Optional.of("John"),
+                Optional.of("Doe"),
+                Optional.of("john.doe@example.com"),
+                Optional.of(true),
+                Optional.of("Peer"),
+                Optional.of("Technology"),
+                Optional.of("Software Engineer"),
+                Optional.of("Career Development"));
+        when(memberService.getMembersByFilters(criteria)).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/members")
+                        .queryParam("firstName", "John")
+                        .queryParam("lastName", "Doe")
+                        .queryParam("email", "john.doe@example.com")
+                        .queryParam("active", "true")
+                        .queryParam("matchPref", "Peer")
+                        .queryParam("industryPref", "Technology")
+                        .queryParam("rolePref", "Software Engineer")
+                        .queryParam("topics", "Career Development"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.payload.length()").value(0));
+
+        verify(memberService).getMembersByFilters(criteria);
+    }
+
+    @Test
+    void getMembersReturnsBadRequestWhenActiveIsInvalid() throws Exception {
+        mockMvc.perform(get("/api/members").queryParam("active", "tru"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Invalid value for query parameter 'active'"));
     }
 
     private static String memberRequestJson(String firstName) {

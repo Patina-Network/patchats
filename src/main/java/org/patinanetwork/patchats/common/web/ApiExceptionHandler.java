@@ -14,6 +14,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /** Maps framework exceptions to the standard {@link ApiResponder} envelope. */
 @RestControllerAdvice
@@ -25,6 +26,13 @@ public class ApiExceptionHandler {
                 .map(this::formatError)
                 .collect(Collectors.joining("; "));
         final String message = details.isBlank() ? "Validation failed" : details;
+        return ResponseEntity.badRequest().body(ApiResponder.failure(message));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponder<Void>> handleParameterTypeMismatch(
+            final MethodArgumentTypeMismatchException ex) {
+        final String message = "Invalid value for query parameter '" + ex.getName() + "'";
         return ResponseEntity.badRequest().body(ApiResponder.failure(message));
     }
 

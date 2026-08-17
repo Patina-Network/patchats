@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.patinanetwork.patchats.api.member.MemberTestFixtures.createMemberRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
+import org.patinanetwork.patchats.api.member.db.repos.MemberFilterCriteria;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
@@ -401,6 +403,8 @@ class MemberServiceTest {
 
     @Test
     void getMembers_returnsEveryMemberAsDto() {
+        final MemberFilterCriteria criteria = MemberFilterCriteria.empty();
+
         final Member firstMember = Member.builder()
                 .id(UUID.randomUUID())
                 .firstName("John")
@@ -415,9 +419,9 @@ class MemberServiceTest {
                 .email("jane.doe@example.com")
                 .active(false)
                 .build();
-        when(memberRepo.getMembers()).thenReturn(List.of(firstMember, secondMember));
+        when(memberRepo.getMembersByFilters(criteria)).thenReturn(List.of(firstMember, secondMember));
 
-        final List<MemberDto> response = memberService.getMembers();
+        final List<MemberDto> response = memberService.getMembersByFilters(criteria);
 
         assertEquals(2, response.size());
         assertEquals(firstMember.getId(), response.get(0).getId());
@@ -428,6 +432,7 @@ class MemberServiceTest {
 
     @Test
     void getMembersReturnsEveryMemberAsDto() {
+        final MemberFilterCriteria criteria = MemberFilterCriteria.empty();
         final Member firstMember = Member.builder()
                 .id(UUID.randomUUID())
                 .firstName("John")
@@ -442,9 +447,9 @@ class MemberServiceTest {
                 .email("jane.doe@example.com")
                 .active(false)
                 .build();
-        when(memberRepo.getMembers()).thenReturn(List.of(firstMember, secondMember));
+        when(memberRepo.getMembersByFilters(criteria)).thenReturn(List.of(firstMember, secondMember));
 
-        final List<MemberDto> response = memberService.getMembers();
+        final List<MemberDto> response = memberService.getMembersByFilters(criteria);
 
         assertEquals(2, response.size());
         assertEquals(firstMember.getId(), response.get(0).getId());

@@ -25,14 +25,34 @@ interface MembersResponse {
   success: boolean;
 }
 
+export interface MemberFilters {
+  active?: string;
+  email?: string;
+  firstName?: string;
+  industryPref?: string;
+  lastName?: string;
+  matchPref?: string;
+  rolePref?: string;
+  topics?: string;
+}
+
 export const membersQueryKey = ["members"] as const;
 
-/** Fetches every member for the admin members page. */
-export function useMembers() {
+/** Fetches members matching the supplied filters for the admin members page. */
+export function useMembers(filters: MemberFilters = {}) {
   return useQuery({
-    queryKey: membersQueryKey,
+    queryKey: [...membersQueryKey, filters],
     queryFn: async () => {
-      const response = await apiFetch<MembersResponse>("/members");
+      const searchParams = new URLSearchParams();
+      Object.entries(filters).forEach(([name, value]) => {
+        if (value !== undefined) {
+          searchParams.set(name, value);
+        }
+      });
+
+      const query = searchParams.toString();
+      const path = query ? `/members?${query}` : "/members";
+      const response = await apiFetch<MembersResponse>(path);
       return response.payload;
     },
   });

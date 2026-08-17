@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
+import org.patinanetwork.patchats.api.member.db.repos.MemberFilterCriteria;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
@@ -46,8 +47,10 @@ public class MemberService {
         return MemberDto.from(createdMember);
     }
 
-    public List<MemberDto> getMembers() {
-        return memberRepo.getMembers().stream().map(MemberDto::from).toList();
+    public List<MemberDto> getMembersByFilters(MemberFilterCriteria criteria) {
+        return memberRepo.getMembersByFilters(criteria).stream()
+                .map(MemberDto::from)
+                .toList();
     }
 
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {

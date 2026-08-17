@@ -3,9 +3,12 @@ package org.patinanetwork.patchats.api.member.db.repos;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -95,9 +98,40 @@ public class MemberSqlRepo implements MemberRepo {
     }
 
     @Override
-    public List<Member> getMembers() {
-        String sql = "SELECT * FROM members ORDER BY created_at DESC, id";
-        return jdbc.sql(sql).query((rs, rowNum) -> parseResultSetToMember(rs)).list();
+    public List<Member> getMembersByFilters(MemberFilterCriteria criteria) {
+        final Map<String, Object> filters = new LinkedHashMap<>();
+        criteria.firstName().ifPresent(value -> filters.put("first_name", value));
+        criteria.lastName().ifPresent(value -> filters.put("last_name", value));
+        criteria.email().ifPresent(value -> filters.put("email", value));
+        criteria.active().ifPresent(value -> filters.put("active", value));
+        criteria.matchPref().ifPresent(value -> filters.put("match_pref", value));
+        criteria.industryPref().ifPresent(value -> filters.put("industry_pref", value));
+        criteria.rolePref().ifPresent(value -> filters.put("role_pref", value));
+        criteria.topics().ifPresent(value -> filters.put("topics", value));
+
+        final String whereClause = filters.isEmpty()
+                ? ""
+                : filters.keySet().stream()
+                        .map(column -> "active".equals(column)
+                                ? "    active = :active"
+                                : "    LOWER(" + column + ") = LOWER(:" + column + ")")
+                        .collect(Collectors.joining("\nAND\n", "WHERE\n", "\n"));
+        final String sql = """
+            SELECT
+                *
+            FROM
+                members
+            %sORDER BY
+                created_at DESC,
+                id
+            """.formatted(whereClause);
+
+        JdbcClient.StatementSpec statement = jdbc.sql(sql);
+        for (Map.Entry<String, Object> filter : filters.entrySet()) {
+            statement = statement.param(filter.getKey(), filter.getValue());
+        }
+
+        return statement.query((rs, rowNum) -> parseResultSetToMember(rs)).list();
     }
 
     @Override
