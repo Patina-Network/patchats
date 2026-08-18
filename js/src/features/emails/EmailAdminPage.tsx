@@ -2,14 +2,14 @@ import { CsvUploader } from "@/features/emails/_components/CsvUploader";
 import { EmailPreviewer } from "@/features/emails/_components/EmailPreviewer";
 import { EmailSender } from "@/features/emails/_components/EmailSender";
 import {
+  SendAsyncRequest,
   type MessagePreview,
-  type SendRequest,
 } from "@/features/emails/dto/emailDto";
 import { Box, Flex, Stack } from "@mantine/core";
 import { useState } from "react";
 
 export default function EmailAdminPage() {
-  const [request, setRequest] = useState<SendRequest | null>(null);
+  const [request, setRequest] = useState<SendAsyncRequest | null>(null);
   const [previews, setPreviews] = useState<MessagePreview[] | null>(null);
 
   return (

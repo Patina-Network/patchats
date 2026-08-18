@@ -1,4 +1,4 @@
-import type { SendRequest } from "@/features/emails/dto/emailDto";
+import type { SendAsyncRequest } from "@/features/emails/dto/emailDto";
 
 import { sendToEmailApi } from "@/features/emails/api/emailAPI";
 import {
@@ -16,9 +16,9 @@ import { useEffect } from "react";
  *  @param request - The SendRequest object containing the email data to be sent.
  *  @returns A button that, when clicked, opens a confirmation modal and sends the emails if confirmed.
  */
-export function EmailSender({ request }: { request: SendRequest | null }) {
+export function EmailSender({ request }: { request: SendAsyncRequest | null }) {
   const mutation = useMutation({
-    mutationFn: async (req: SendRequest) => sendToEmailApi(req),
+    mutationFn: async (req: SendAsyncRequest) => sendToEmailApi(req),
   });
   useEffect(() => {
     if (mutation.status === "pending") {
