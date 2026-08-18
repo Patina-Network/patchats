@@ -15,17 +15,8 @@ export default function EmailAdminPage() {
   const navigate = useNavigate();
   const selectedTab = getSelectedTab(location.pathname);
   const handleTabChange = (value: string | null) => {
-    if (value === "send") {
-      navigate("send");
-      return;
-    }
-    if (value === "progress") {
-      navigate("progress");
-      return;
-    }
-    if (value === "history") {
-      navigate("history");
-    }
+    navigate(value || "");
+    return;
   };
   return (
     <Tabs value={selectedTab} onChange={handleTabChange}>

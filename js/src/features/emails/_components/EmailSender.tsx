@@ -19,7 +19,6 @@ import { useEffect } from "react";
  *  @returns A button that, when clicked, opens a confirmation modal and sends the emails if confirmed.
  */
 export function EmailSender({
-
   request,
   selectedTemplateId,
   isSending,

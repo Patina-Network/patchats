@@ -7,7 +7,11 @@ export function EmailProgressPage() {
   const navigate = useNavigate();
 
   if (!requestId) {
-    return <Text c="dimmed">Missing request ID.</Text>;
+    return (
+      <Text c="dimmed">
+        No Email Sending Session in progress. Please select a batch from history
+      </Text>
+    );
   }
 
   return (

@@ -8,25 +8,25 @@ import AdminLoginPage from "@/features/admin/AdminLogin.page";
 import EmailAdminPage from "@/features/emails/EmailAdminPage";
 import { EmailHistoryDetailPage } from "@/features/emails/EmailHistoryDetailPage";
 import { EmailHistoryPage } from "@/features/emails/EmailHistoryPage";
-import { EmailProgressFallbackPage } from "@/features/emails/EmailProgressFallbackPage";
 import { EmailProgressPage } from "@/features/emails/EmailProgressPage";
 import { EmailSendPage } from "@/features/emails/EmailSendPage";
 import HomePage from "@/features/home/Home.page";
 import SamplePage from "@/features/sample/Sample.page";
 import SampleAdminPage from "@/features/sample/SampleAdmin.page";
 import { SignUpPage } from "@/features/sign-up/SignUp.page";
-import { Navigate, createBrowserRouter } from "react-router-dom";
+import {
+  Navigate,
+  createBrowserRouter,
+  type RouteObject,
+} from "react-router-dom";
 
-function createEmailAdminTabRoutes() {
-  return [
-    { index: true, element: <Navigate to="send" replace /> },
-    { path: "send", element: <EmailSendPage /> },
-    { path: "progress", element: <EmailProgressFallbackPage /> },
-    { path: "progress/:requestId", element: <EmailProgressPage /> },
-    { path: "history", element: <EmailHistoryPage /> },
-    { path: "history/:requestId", element: <EmailHistoryDetailPage /> },
-  ];
-}
+const emailAdminTabRoutes: RouteObject[] = [
+  { index: true, element: <Navigate to="send" replace /> },
+  { path: "send", element: <EmailSendPage /> },
+  { path: "progress/:requestId?", element: <EmailProgressPage /> },
+  { path: "history", element: <EmailHistoryPage /> },
+  { path: "history/:requestId", element: <EmailHistoryDetailPage /> },
+];
 
 export const router = createBrowserRouter([
   // Public admin login: its page owns the full viewport.
@@ -44,7 +44,7 @@ export const router = createBrowserRouter([
   {
     path: "email",
     element: <EmailAdminPage />,
-    children: createEmailAdminTabRoutes(),
+    children: emailAdminTabRoutes,
   },
   // Authenticated: guard -> layout -> page. Admin nests a second guard + layout.
   {
@@ -64,7 +64,7 @@ export const router = createBrowserRouter([
               {
                 path: "admin/email",
                 element: <EmailAdminPage />,
-                children: createEmailAdminTabRoutes(),
+                children: emailAdminTabRoutes,
               },
               { path: "sample/admin", element: <SampleAdminPage /> },
             ],

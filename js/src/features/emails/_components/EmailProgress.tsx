@@ -35,10 +35,12 @@ export function EmailProgress({ requestId }: EmailProgressProps) {
   const { data, isLoading, error, refetch } = useQuery<EmailProgress>({
     queryKey: ["emailProgress", requestId],
     queryFn: () => getProgress(requestId),
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Stop polling when batch is terminal (no pending or processing emails)
-      if (data) {
-        //&& data.pending + data.processing === 0
+      if (
+        query.state.data &&
+        query.state.data.pending + query.state.data.processing === 0
+      ) {
         setIsTerminal(true);
         return false; // stops polling
       }
@@ -68,7 +70,7 @@ export function EmailProgress({ requestId }: EmailProgressProps) {
 
   if (isLoading) return <Text>Loading progress...</Text>;
   if (error)
-    return <Text color="red">Error loading progress: {error.message}</Text>;
+    return <Text c="red">Error loading progress: {error.message}</Text>;
   if (!data) return <Text>No progress data</Text>;
 
   const rows = data.emails.map((email) => (
@@ -116,7 +118,7 @@ export function EmailProgress({ requestId }: EmailProgressProps) {
         <div
           style={{
             padding: "12px",
-            border: "1px solid #dee2e6",
+            border: "1px solid white",
             borderRadius: "4px",
           }}
         >
@@ -130,7 +132,7 @@ export function EmailProgress({ requestId }: EmailProgressProps) {
         <div
           style={{
             padding: "12px",
-            border: "1px solid #dee2e6",
+            border: "1px solid white",
             borderRadius: "4px",
           }}
         >
@@ -144,7 +146,7 @@ export function EmailProgress({ requestId }: EmailProgressProps) {
         <div
           style={{
             padding: "12px",
-            border: "1px solid #dee2e6",
+            border: "1px solid white",
             borderRadius: "4px",
           }}
         >
@@ -158,7 +160,7 @@ export function EmailProgress({ requestId }: EmailProgressProps) {
         <div
           style={{
             padding: "12px",
-            border: "1px solid #dee2e6",
+            border: "1px solid white",
             borderRadius: "4px",
           }}
         >
@@ -172,7 +174,7 @@ export function EmailProgress({ requestId }: EmailProgressProps) {
         <div
           style={{
             padding: "12px",
-            border: "1px solid #dee2e6",
+            border: "1px solid white",
             borderRadius: "4px",
           }}
         >

@@ -95,7 +95,9 @@ export function EmailHistory({
   return (
     <Stack gap="lg">
       <Title order={3}>Email History</Title>
-      {error || (requests && requests.length === 0) ?
+      {error ?
+        <Text c="red">Error loading history: {error.message}</Text>
+      : requests && requests.length === 0 ?
         <Text c="dimmed">No email history yet.</Text>
       : <>
           <Text size="sm" c="dimmed">
