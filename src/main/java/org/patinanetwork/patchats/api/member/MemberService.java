@@ -2,6 +2,7 @@ package org.patinanetwork.patchats.api.member;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import java.util.UUID;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.ValidationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -51,6 +51,23 @@ public class MemberService {
 
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {
         Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
+
+        // Return early if no fields are present in the request to update
+        boolean hasNoUpdates = Stream.of(
+                                request.firstName(), 
+                                request.lastName(), 
+                                request.email(), 
+                                request.introduction(),
+                                request.linkedInUrl(), 
+                                request.matchPref(), 
+                                request.industryPref(),
+                                request.rolePref(), 
+                                request.topics(), 
+                                request.extraNotes())
+                            .noneMatch(Optional::isPresent);
+        if (hasNoUpdates) {
+            return MemberDto.from(member);
+        }
 
         validateAndUpdate(request.firstName(), member::setFirstName, "firstName", true);
         validateAndUpdate(request.lastName(), member::setLastName, "lastName", true);

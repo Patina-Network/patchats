@@ -177,21 +177,16 @@ class MemberServiceTest {
                 .extraNotes("notes")
                 .build();
 
-        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
-
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
-        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
 
-        memberService.updateMember(request, id);
+        final MemberDto response = memberService.updateMember(request, id);
+        assertEquals("OldFirstName", response.getFirstName());
+        assertEquals("OldLastName", response.getLastName());
+        assertEquals("email@example.com", response.getEmail());
+        assertEquals("https://linkedin.com/in/john", response.getLinkedInUrl());
+        assertEquals("intro", response.getIntroduction());
 
-        verify(memberRepo).updateMember(captor.capture());
-        final Member captured = captor.getValue();
-
-        assertEquals("OldFirstName", captured.getFirstName());
-        assertEquals("OldLastName", captured.getLastName());
-        assertEquals("email@example.com", captured.getEmail());
-        assertEquals("https://linkedin.com/in/john", captured.getLinkedInUrl());
-        assertEquals("intro", captured.getIntroduction());
+        verify(memberRepo, never()).updateMember(any());
     }
 
     @Test
