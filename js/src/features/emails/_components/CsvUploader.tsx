@@ -1,4 +1,8 @@
-import type { Pair, SendRequest, User } from "@/features/emails/dto/emailDto";
+import type {
+  Pair,
+  SendAsyncRequest,
+  User,
+} from "@/features/emails/dto/emailDto";
 
 import { showEmailError } from "@/features/emails/api/emailError";
 import {
@@ -39,7 +43,7 @@ const rowStyle = {
 export function CsvUploader({
   setRequest,
 }: {
-  setRequest: React.Dispatch<React.SetStateAction<SendRequest | null>>;
+  setRequest: React.Dispatch<React.SetStateAction<SendAsyncRequest | null>>;
 }) {
   const [userMap, setUserMap] = useState<Map<string, User>>(new Map());
   const [pairList, setPairList] = useState<Pair[]>([]);

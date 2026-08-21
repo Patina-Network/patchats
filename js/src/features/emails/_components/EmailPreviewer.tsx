@@ -1,6 +1,6 @@
 import type {
   MessagePreview,
-  SendRequest,
+  SendAsyncRequest,
 } from "@/features/emails/dto/emailDto";
 
 import { sendToPreviewApi } from "@/features/emails/api/emailAPI";
@@ -26,7 +26,7 @@ export function EmailPreviewer({
 }: {
   previews: MessagePreview[] | null;
   setPreviews: React.Dispatch<React.SetStateAction<MessagePreview[] | null>>;
-  request: SendRequest | null;
+  request: SendAsyncRequest | null;
 }) {
   const { data, status } = useQuery({
     queryKey: ["preview", request],

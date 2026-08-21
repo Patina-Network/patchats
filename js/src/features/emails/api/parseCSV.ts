@@ -1,20 +1,23 @@
-import type { User, Pair, SendRequest } from "@/features/emails/dto/emailDto";
+import type {
+  User,
+  Pair,
+  SendAsyncRequest,
+} from "@/features/emails/dto/emailDto";
 
-import { emailTemplateMap } from "@/features/emails/api/emailTemplate";
 import { parse, ParseResult } from "papaparse";
 
 /**
- * Takes parsed user/pair data and generates a SendRequest object based on the selected email template.
+ * Takes parsed user/pair data and generates a SendAsyncRequest object based on the selected template ID.
  * @param userMap - map of user data keyed by email address
  * @param pairList - list of user pairs
- * @param template - the selected email template
- * @returns SendRequest object to be sent to backend email API
+ * @param templateId - the selected template's ID (UUID string from backend)
+ * @returns SendAsyncRequest object to be sent to backend email API
  */
 export const dataToSendRequest = async (
   userMap: Map<string, User>,
   pairList: Pair[],
-  template: string,
-): Promise<SendRequest> => {
+  templateId: string,
+): Promise<SendAsyncRequest> => {
   // Drop empty/whitespace-only values so the key is absent from variableToValue. The backend
   // resolves missing keys (not empty strings) to a template default via ${x:default}
   const withoutEmpty = (vars: Record<string, string>): Record<string, string> =>
@@ -61,16 +64,13 @@ export const dataToSendRequest = async (
     }));
   }
 
-  const templateValue = emailTemplateMap[template];
-
-  const sendRequest = {
-    subject: templateValue.subject,
-    body: templateValue.body,
-    replyTo: templateValue.replyTo,
+  const sendAsyncRequest: SendAsyncRequest = {
+    templateId,
+    replyTo: null,
     messages,
   };
 
-  return sendRequest;
+  return sendAsyncRequest;
 };
 
 /**
