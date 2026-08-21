@@ -21,6 +21,7 @@ import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
+import org.springframework.dao.DuplicateKeyException;
 
 class MemberServiceTest {
 
@@ -237,7 +238,6 @@ class MemberServiceTest {
     @Test
     void updateMember_throwsExceptionWhenEmailIsDuplicate() {
         final UUID id = UUID.randomUUID();
-        final UUID otherMemberId = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
                 Optional.empty(),
                 Optional.empty(),
@@ -257,14 +257,9 @@ class MemberServiceTest {
                 .email("john@example.com")
                 .build();
 
-        final Member otherMember =
-                Member.builder().id(otherMemberId).email("existing@example.com").build();
-
+        when(memberRepo.updateMember(any(Member.class))).thenThrow(new DuplicateKeyException("Email already exists"));
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
-        when(memberRepo.getMemberByEmail("existing@example.com")).thenReturn(Optional.of(otherMember));
-
         assertThrows(MemberDuplicateException.class, () -> memberService.updateMember(request, id));
-        verify(memberRepo, never()).updateMember(any());
     }
 
     @Test

@@ -13,6 +13,7 @@ import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.ValidationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -51,51 +52,33 @@ public class MemberService {
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {
         Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
 
-        validateAndUpdateRequired(member, request);
-        updateOptional(member, request);
+        validateAndUpdate(request.firstName(), member::setFirstName, "firstName", true);
+        validateAndUpdate(request.lastName(), member::setLastName, "lastName", true);
+        validateAndUpdate(request.email(), member::setEmail, "email", true);
+        validateAndUpdate(request.introduction(), member::setIntroduction, "introduction", true);
+        validateAndUpdate(request.linkedInUrl(), member::setLinkedInUrl, "linkedInUrl", false);
+        validateAndUpdate(request.matchPref(), member::setMatchPref, "matchPref", false);
+        validateAndUpdate(request.industryPref(), member::setIndustryPref, "industryPref", false);
+        validateAndUpdate(request.rolePref(), member::setRolePref, "rolePref", false);
+        validateAndUpdate(request.topics(), member::setTopics, "topics", false);
+        validateAndUpdate(request.extraNotes(), member::setExtraNotes, "extraNotes", false);
 
-        Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
-        return MemberDto.from(updatedMember);
+        try {
+            Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
+            return MemberDto.from(updatedMember);
+        } catch (DuplicateKeyException e) {
+            throw new MemberDuplicateException(member.getEmail());
+        }
     }
 
-    private void validateAndUpdateRequired(Member member, UpdateMemberRequest request) {
-        validateAndUpdate(request.firstName(), member::setFirstName, "firstName");
-        validateAndUpdate(request.lastName(), member::setLastName, "lastName");
-        validateAndUpdateEmail(member, request);
-        validateAndUpdate(request.introduction(), member::setIntroduction, "introduction");
-    }
-
-    private void validateAndUpdate(Optional<String> field, Consumer<String> setter, String fieldName) {
+    private void validateAndUpdate(Optional<String> field, Consumer<String> setter, String fieldName, boolean required) {
         if (field.isPresent()) {
             String value = field.get();
-            if (value.isBlank()) {
+            if (value.isBlank() && required) {
                 throw new ValidationException(fieldName + " cannot be empty");
             }
             setter.accept(value);
         }
-    }
-
-    private void validateAndUpdateEmail(Member member, UpdateMemberRequest request) {
-        if (request.email().isPresent()) {
-            String email = request.email().get();
-            if (email.isBlank()) {
-                throw new ValidationException("email cannot be empty");
-            }
-            if (!email.equals(member.getEmail())
-                    && memberRepo.getMemberByEmail(email).isPresent()) {
-                throw new MemberDuplicateException(email);
-            }
-            member.setEmail(email);
-        }
-    }
-
-    private void updateOptional(Member member, UpdateMemberRequest request) {
-        request.linkedInUrl().ifPresent(member::setLinkedInUrl);
-        request.matchPref().ifPresent(member::setMatchPref);
-        request.industryPref().ifPresent(member::setIndustryPref);
-        request.rolePref().ifPresent(member::setRolePref);
-        request.topics().ifPresent(member::setTopics);
-        request.extraNotes().ifPresent(member::setExtraNotes);
     }
 
     // TODO: Implement these methods after createMember and updateMember is fully functional and tested
