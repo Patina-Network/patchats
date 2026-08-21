@@ -27,34 +27,9 @@ class MemberServiceTest {
     private final MemberRepo memberRepo = mock(MemberRepo.class);
     private final MemberService memberService = new MemberService(memberRepo);
 
-    private final CreateMemberRequest createRequestAllFields = new CreateMemberRequest(
-                "John",
-                "Doe",
-                "john.doe@example.com",
-                "https://www.linkedin.com/in/johndoe",
-                "Hello, I'm John!",
-                "Friend",
-                "Mentor - I am looking for guidance from someone with more experience",
-                "Technology",
-                "Software Engineer",
-                "College, Career Development",
-                "I want to be meet someone in person in NYC");
-
-    private final UpdateMemberRequest updateRequestAllFields = new UpdateMemberRequest(
-                Optional.of("UpdatedFirstName"),
-                Optional.of("UpdatedLastName"),
-                Optional.of("updated@example.com"),
-                Optional.of("https://linkedin.com/in/updated"),
-                Optional.of("Updated intro"),
-                Optional.of("Mentor - I am looking for guidance from someone with more experience"),
-                Optional.of("Technology"),
-                Optional.of("Software Engineer"),
-                Optional.of("AI,ML"),
-                Optional.of("Notes"));
-
     @Test
     void createMemberSuccessWithAllFieldsFilled() {
-        final CreateMemberRequest request = this.createRequestAllFields;
+        final CreateMemberRequest request = MemberTestFixtures.CREATE_REQUEST_ALL_FIELDS;
 
         when(memberRepo.getMemberByEmail(any())).thenReturn(Optional.empty());
         when(memberRepo.createMember(any()))
@@ -93,7 +68,7 @@ class MemberServiceTest {
 
     @Test
     void createMemberThrowsExceptionWhenEmailAlreadyExists() {
-        final CreateMemberRequest request = this.createRequestAllFields;
+        final CreateMemberRequest request = MemberTestFixtures.CREATE_REQUEST_ALL_FIELDS;
 
         when(memberRepo.getMemberByEmail(any()))
                 .thenReturn(Optional.of(Member.builder()
@@ -119,7 +94,7 @@ class MemberServiceTest {
     @Test
     void updateMember_throwsExceptionWhenMemberNotFound() {
         final UUID id = UUID.randomUUID();
-        final UpdateMemberRequest request = this.updateRequestAllFields;
+        final UpdateMemberRequest request = MemberTestFixtures.UPDATE_REQUEST_ALL_FIELDS;
 
         when(memberRepo.getMemberById(id)).thenReturn(Optional.empty());
 
@@ -221,7 +196,7 @@ class MemberServiceTest {
     @Test
     void updateMember_successWithAllFields() {
         final UUID id = UUID.randomUUID();
-        final UpdateMemberRequest request = this.updateRequestAllFields;
+        final UpdateMemberRequest request = MemberTestFixtures.UPDATE_REQUEST_ALL_FIELDS;
 
         final Member existingMember = Member.builder()
                 .id(id)

@@ -49,18 +49,7 @@ class MemberControllerTest {
 
     @Test
     void createMember_returnsOkAndMemberDto() throws Exception {
-        final CreateMemberRequest request = new CreateMemberRequest(
-                "John",
-                "Doe",
-                "john.doe@example.com",
-                "https://www.linkedin.com/in/johndoe",
-                "Hello, I'm John!",
-                "Friend",
-                "Mentor - I am looking for guidance from someone with more experience",
-                "Technology",
-                "Software Engineer",
-                "College, Career Development",
-                "I want to be meet someone in person in NYC");
+        final CreateMemberRequest request = MemberTestFixtures.CREATE_REQUEST_ALL_FIELDS;
 
         when(memberService.createMember(any()))
                 .thenReturn(MemberDto.builder()
@@ -126,17 +115,7 @@ class MemberControllerTest {
     @Test
     void updateMember_successWithValidRequest() throws Exception {
         final UUID id = UUID.randomUUID();
-        final UpdateMemberRequest request = new UpdateMemberRequest(
-                Optional.of("UpdatedFirstName"),
-                Optional.of("UpdatedLastName"),
-                Optional.of("updated@example.com"),
-                Optional.of("https://linkedin.com/in/updated"),
-                Optional.of("Updated intro"),
-                Optional.of("Mentor"),
-                Optional.of("Tech"),
-                Optional.of("Engineer"),
-                Optional.of("AI,ML"),
-                Optional.of("Notes"));
+        final UpdateMemberRequest request = MemberTestFixtures.UPDATE_REQUEST_ALL_FIELDS;
 
         final MemberDto response = MemberDto.builder()
                 .id(id)
