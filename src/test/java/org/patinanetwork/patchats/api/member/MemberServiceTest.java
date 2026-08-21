@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
@@ -26,9 +27,7 @@ class MemberServiceTest {
     private final MemberRepo memberRepo = mock(MemberRepo.class);
     private final MemberService memberService = new MemberService(memberRepo);
 
-    @Test
-    void createMemberSuccessWithAllFieldsFilled() {
-        final CreateMemberRequest request = new CreateMemberRequest(
+    private final CreateMemberRequest createRequestAllFields = new CreateMemberRequest(
                 "John",
                 "Doe",
                 "john.doe@example.com",
@@ -40,6 +39,22 @@ class MemberServiceTest {
                 "Software Engineer",
                 "College, Career Development",
                 "I want to be meet someone in person in NYC");
+
+    private final UpdateMemberRequest updateRequestAllFields = new UpdateMemberRequest(
+                Optional.of("UpdatedFirstName"),
+                Optional.of("UpdatedLastName"),
+                Optional.of("updated@example.com"),
+                Optional.of("https://linkedin.com/in/updated"),
+                Optional.of("Updated intro"),
+                Optional.of("Mentor - I am looking for guidance from someone with more experience"),
+                Optional.of("Technology"),
+                Optional.of("Software Engineer"),
+                Optional.of("AI,ML"),
+                Optional.of("Notes"));
+
+    @Test
+    void createMemberSuccessWithAllFieldsFilled() {
+        final CreateMemberRequest request = this.createRequestAllFields;
 
         when(memberRepo.getMemberByEmail(any())).thenReturn(Optional.empty());
         when(memberRepo.createMember(any()))
@@ -78,18 +93,7 @@ class MemberServiceTest {
 
     @Test
     void createMemberThrowsExceptionWhenEmailAlreadyExists() {
-        final CreateMemberRequest request = new CreateMemberRequest(
-                "John",
-                "Doe",
-                "john.doe@example.com",
-                "https://www.linkedin.com/in/johndoe",
-                "Hello, I'm John!",
-                "Friend",
-                "Mentor - I am looking for guidance from someone with more experience",
-                "Technology",
-                "Software Engineer",
-                "College, Career Development",
-                "I want to be meet someone in person in NYC");
+        final CreateMemberRequest request = this.createRequestAllFields;
 
         when(memberRepo.getMemberByEmail(any()))
                 .thenReturn(Optional.of(Member.builder()
@@ -115,17 +119,7 @@ class MemberServiceTest {
     @Test
     void updateMember_throwsExceptionWhenMemberNotFound() {
         final UUID id = UUID.randomUUID();
-        final UpdateMemberRequest request = new UpdateMemberRequest(
-                Optional.of("UpdatedFirstName"),
-                Optional.of("UpdatedLastName"),
-                Optional.of("updated@example.com"),
-                Optional.of("https://linkedin.com/in/updated"),
-                Optional.of("Updated intro"),
-                Optional.of("Mentor - I am looking for guidance from someone with more experience"),
-                Optional.of("Technology"),
-                Optional.of("Software Engineer"),
-                Optional.of("AI,ML"),
-                Optional.of("Notes"));
+        final UpdateMemberRequest request = this.updateRequestAllFields;
 
         when(memberRepo.getMemberById(id)).thenReturn(Optional.empty());
 
@@ -162,29 +156,20 @@ class MemberServiceTest {
                 .extraNotes("Old notes")
                 .build();
 
-        final Member updatedMember = Member.builder()
-                .id(id)
-                .firstName("UpdatedFirstName")
-                .lastName("OldLastName")
-                .email("old@example.com")
-                .linkedInUrl("https://linkedin.com/in/old")
-                .introduction("Old intro")
-                .matchPref("Mentor")
-                .industryPref("Finance")
-                .rolePref("Analyst")
-                .topics("Economics")
-                .extraNotes("Old notes")
-                .build();
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
 
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
-        when(memberRepo.updateMember(any())).thenReturn(Optional.of(updatedMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
 
-        final MemberDto response = memberService.updateMember(request, id);
+        memberService.updateMember(request, id);
 
-        assertEquals("UpdatedFirstName", response.getFirstName());
-        assertEquals("old@example.com", response.getEmail());
-        assertEquals("https://linkedin.com/in/old", response.getLinkedInUrl());
-        assertEquals("Old intro", response.getIntroduction());
+        verify(memberRepo).updateMember(captor.capture());
+        final Member captured = captor.getValue();
+
+        assertEquals("UpdatedFirstName", captured.getFirstName());
+        assertEquals("old@example.com", captured.getEmail());
+        assertEquals("https://linkedin.com/in/old", captured.getLinkedInUrl());
+        assertEquals("Old intro", captured.getIntroduction());
     }
 
     @Test
@@ -216,32 +201,27 @@ class MemberServiceTest {
                 .extraNotes("notes")
                 .build();
 
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
-        when(memberRepo.updateMember(any())).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
 
-        final MemberDto response = memberService.updateMember(request, id);
+        memberService.updateMember(request, id);
 
-        assertEquals("OldFirstName", response.getFirstName());
-        assertEquals("OldLastName", response.getLastName());
-        assertEquals("email@example.com", response.getEmail());
-        assertEquals("https://linkedin.com/in/john", response.getLinkedInUrl());
-        assertEquals("intro", response.getIntroduction());
+        verify(memberRepo).updateMember(captor.capture());
+        final Member captured = captor.getValue();
+
+        assertEquals("OldFirstName", captured.getFirstName());
+        assertEquals("OldLastName", captured.getLastName());
+        assertEquals("email@example.com", captured.getEmail());
+        assertEquals("https://linkedin.com/in/john", captured.getLinkedInUrl());
+        assertEquals("intro", captured.getIntroduction());
     }
 
     @Test
     void updateMember_successWithAllFields() {
         final UUID id = UUID.randomUUID();
-        final UpdateMemberRequest request = new UpdateMemberRequest(
-                Optional.of("UpdatedFirstName"),
-                Optional.of("UpdatedLastName"),
-                Optional.of("updated@example.com"),
-                Optional.of("https://linkedin.com/in/updated"),
-                Optional.of("Updated intro"),
-                Optional.of("Mentor"),
-                Optional.of("Tech"),
-                Optional.of("Engineer"),
-                Optional.of("AI,ML"),
-                Optional.of("Notes"));
+        final UpdateMemberRequest request = this.updateRequestAllFields;
 
         final Member existingMember = Member.builder()
                 .id(id)
@@ -257,35 +237,26 @@ class MemberServiceTest {
                 .extraNotes("Old notes")
                 .build();
 
-        final Member updatedMember = Member.builder()
-                .id(id)
-                .firstName("UpdatedFirstName")
-                .lastName("UpdatedLastName")
-                .email("updated@example.com")
-                .linkedInUrl("https://linkedin.com/in/updated")
-                .introduction("Updated intro")
-                .matchPref("Mentor")
-                .industryPref("Tech")
-                .rolePref("Engineer")
-                .topics("AI,ML")
-                .extraNotes("Notes")
-                .build();
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
 
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
-        when(memberRepo.updateMember(any())).thenReturn(Optional.of(updatedMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
 
-        final MemberDto response = memberService.updateMember(request, id);
+        memberService.updateMember(request, id);
 
-        assertEquals("UpdatedFirstName", response.getFirstName());
-        assertEquals("UpdatedLastName", response.getLastName());
-        assertEquals("updated@example.com", response.getEmail());
-        assertEquals("https://linkedin.com/in/updated", response.getLinkedInUrl());
-        assertEquals("Updated intro", response.getIntroduction());
-        assertEquals("Mentor", response.getMatchPref());
-        assertEquals("Tech", response.getIndustryPref());
-        assertEquals("Engineer", response.getRolePref());
-        assertEquals("AI,ML", response.getTopics());
-        assertEquals("Notes", response.getExtraNotes());
+        verify(memberRepo).updateMember(captor.capture());
+        final Member captured = captor.getValue();
+
+        assertEquals("UpdatedFirstName", captured.getFirstName());
+        assertEquals("UpdatedLastName", captured.getLastName());
+        assertEquals("updated@example.com", captured.getEmail());
+        assertEquals("https://linkedin.com/in/updated", captured.getLinkedInUrl());
+        assertEquals("Updated intro", captured.getIntroduction());
+        assertEquals("Mentor - I am looking for guidance from someone with more experience", captured.getMatchPref());
+        assertEquals("Technology", captured.getIndustryPref());
+        assertEquals("Software Engineer", captured.getRolePref());
+        assertEquals("AI,ML", captured.getTopics());
+        assertEquals("Notes", captured.getExtraNotes());
     }
 
     @Test
@@ -353,9 +324,12 @@ class MemberServiceTest {
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
         when(memberRepo.updateMember(any())).thenReturn(Optional.of(existingMember));
 
-        final MemberDto response = memberService.updateMember(request, id);
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+        memberService.updateMember(request, id);
+        verify(memberRepo).updateMember(captor.capture());
+        final Member captured = captor.getValue();
 
-        assertEquals("john@example.com", response.getEmail());
+        assertEquals("john@example.com", captured.getEmail());
         verify(memberRepo, never()).getMemberByEmail(any());
     }
 }
