@@ -10,7 +10,7 @@ const SHUTDOWN_TIMEOUT_MS = 2000;
 async function main(): Promise<void> {
   try {
     backendProcess = Bun.spawn(
-      ["./mvnw", "-Dspring-boot.run.profiles=ci", "spring-boot:run"],
+      ["./mvnw", "spring-boot:run"],
       {
         env: { ...process.env },
         stdin: "ignore",
