@@ -38,8 +38,6 @@ public class MatchCycleResponse {
                 .period(cycle.getPeriod())
                 .runAt(cycle.getRunAt())
                 .isDraft(cycle.isDraft())
-                .totalMembers(cycle.getTotalMembers())
-                .totalMatched(cycle.getTotalMatched())
                 .build();
     }
 }
