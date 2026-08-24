@@ -48,9 +48,9 @@ public class MatchSqlRepo implements MatchRepo {
                 :match_score,
                 :status
             )
-            RETURNING
-                *
+            RETURNING *
         """;
+
         return jdbc.sql(sql)
                 .param("id", match.getId())
                 .param("member_a_id", match.getMemberAId())
@@ -74,6 +74,7 @@ public class MatchSqlRepo implements MatchRepo {
           WHERE "id" = :id
           RETURNING *
         """;
+
         return jdbc.sql(sql)
                 .param("id", match.getId())
                 .param("member_a_id", match.getMemberAId())
@@ -104,6 +105,20 @@ public class MatchSqlRepo implements MatchRepo {
         return jdbc.sql(sql)
                 .param("id", id)
                 .param("status", status)
+                .query((rs, rowNum) -> parseResultSetToMatch(rs))
+                .optional();
+    }
+
+    @Override
+    public Optional<Match> setMatchScore(UUID id, Integer score) {
+        String sql = """
+          UPDATE "matches" SET "match_score" = :score
+          WHERE "id" = :id
+          RETURNING *
+        """;
+        return jdbc.sql(sql)
+                .param("id", id)
+                .param("score", score)
                 .query((rs, rowNum) -> parseResultSetToMatch(rs))
                 .optional();
     }
