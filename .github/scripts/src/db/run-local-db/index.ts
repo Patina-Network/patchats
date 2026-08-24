@@ -15,7 +15,7 @@ async function main() {
     DATABASE_NAME: database,
     DATABASE_USER: user,
     DATABASE_PASSWORD: password,
-  })`just migrate`;
+  })`./mvnw flyway:migrate -Dflyway.locations=filesystem:db`;
 }
 
 await main();
