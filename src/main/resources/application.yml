@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:patchats}
-    username: ${DATABASE_USER:postgres}
-    password: ${DATABASE_PASSWORD:}
+    url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
   flyway:
     # Migrations run out-of-band via the Flyway Maven plugin (`just migrate`), never at startup.
     enabled: false
@@ -11,10 +11,10 @@ spring:
     jdbc:
       initialize-schema: never
   mail:
-    host: ${SMTP_HOST:}
-    port: ${SMTP_PORT:587}
-    username: ${SMTP_USERNAME:}
-    password: ${SMTP_PASSWORD:}
+    host: ${SMTP_HOST}
+    port: 587
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
     properties:
       mail:
         smtp:
