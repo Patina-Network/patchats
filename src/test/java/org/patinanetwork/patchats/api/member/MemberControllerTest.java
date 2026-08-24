@@ -2,7 +2,9 @@ package org.patinanetwork.patchats.api.member;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -110,6 +112,47 @@ class MemberControllerTest {
                                         "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void getMemberById_returnsOkAndMemberDto() throws Exception {
+        final UUID id = UUID.randomUUID();
+        final MemberDto response = MemberDto.builder()
+                .id(id)
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@example.com")
+                .active(true)
+                .build();
+        when(memberService.getMemberById(id)).thenReturn(response);
+
+        mockMvc.perform(get("/api/members/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Member retrieved successfully"))
+                .andExpect(jsonPath("$.payload.id").value(id.toString()))
+                .andExpect(jsonPath("$.payload.firstName").value("John"))
+                .andExpect(jsonPath("$.payload.lastName").value("Doe"))
+                .andExpect(jsonPath("$.payload.email").value("john.doe@example.com"))
+                .andExpect(jsonPath("$.payload.active").value(true));
+
+        verify(memberService).getMemberById(id);
+    }
+
+    @Test
+    void getMemberById_returnsNotFoundWhenMemberDoesNotExist() throws Exception {
+        final UUID id = UUID.randomUUID();
+        when(memberService.getMemberById(id)).thenThrow(new MemberNotFoundException(id));
+
+        mockMvc.perform(get("/api/members/{id}", id))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Member with ID " + id + " not found"));
+    }
+
+    @Test
+    void getMemberById_returnsBadRequestWhenIdIsInvalid() throws Exception {
+        mockMvc.perform(get("/api/members/{id}", "invalid-uuid")).andExpect(status().isBadRequest());
     }
 
     @Test

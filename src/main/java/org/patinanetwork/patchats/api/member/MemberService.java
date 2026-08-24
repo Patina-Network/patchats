@@ -100,13 +100,10 @@ public class MemberService {
         }
     }
 
-    // TODO: Implement these methods after createMember and updateMember is fully functional and tested
-    // public MemberDto getMemberById(UUID id) {
-    //     return memberRepo
-    //             .getMemberById(id)
-    //             .map(MemberDto::from)
-    //             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
-    // }
+    public MemberDto getMemberById(UUID id) {
+        Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
+        return MemberDto.from(member);
+    }
 
     // public MemberDto deactivateMember(UUID id) {
     //     return memberRepo

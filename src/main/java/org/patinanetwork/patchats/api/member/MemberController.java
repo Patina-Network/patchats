@@ -9,6 +9,7 @@ import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,11 +38,11 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponder.success("Member updated successfully", response));
     }
 
-    // @GetMapping("/{id}")
-    // public ResponseEntity<ApiResponder<MemberDto>> getMember(@PathVariable final UUID id) {
-    //     final MemberDto response = memberService.getMemberById(id);
-    //     return ResponseEntity.ok(ApiResponder.success("Member retrieved successfully", response));
-    // }
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponder<MemberDto>> getMemberById(@PathVariable final UUID id) {
+        final MemberDto response = memberService.getMemberById(id);
+        return ResponseEntity.ok(ApiResponder.success("Member retrieved successfully", response));
+    }
 
     // @DeleteMapping("/{id}")
     // public ResponseEntity<ApiResponder<MemberDto>> deactivateMember(@PathVariable final UUID id) {
