@@ -1,5 +1,6 @@
 package org.patinanetwork.patchats.api.match;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class MatchCycleController {
 
     private final MatchCycleService matchCycleService;
 
+    @Operation(summary = "Create a match cycle")
     @PostMapping
     public ResponseEntity<ApiResponder<MatchCycleResponse>> createMatchCycle(
             @Valid @RequestBody final CreateMatchCycleRequest request) {
@@ -32,6 +34,7 @@ public class MatchCycleController {
         return ResponseEntity.ok(ApiResponder.success("Match Cycle created successfully", response));
     }
 
+    @Operation(summary = "Update a match cycle")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponder<MatchCycleResponse>> updateMatchCycle(
             @Valid @RequestBody final UpdateMatchCycleRequest request, @PathVariable final Integer id) {
@@ -39,12 +42,14 @@ public class MatchCycleController {
         return ResponseEntity.ok(ApiResponder.success("Match Cycle updated successfully", response));
     }
 
+    @Operation(summary = "Get a match cycle by ID")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponder<MatchCycleResponse>> getMatchCycleById(@PathVariable final Integer id) {
         final MatchCycleResponse response = matchCycleService.getMatchCycleById(id);
         return ResponseEntity.ok(ApiResponder.success("Match Cycle retrieved successfully", response));
     }
 
+    @Operation(summary = "Delete a match cycle")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponder<MatchCycleResponse>> deleteMatchCycle(@PathVariable final Integer id) {
         final MatchCycleResponse response = matchCycleService.deleteMatchCycleById(id);
