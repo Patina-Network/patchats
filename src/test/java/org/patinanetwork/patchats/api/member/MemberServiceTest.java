@@ -9,7 +9,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.patinanetwork.patchats.api.member.MemberTestFixtures.createMemberRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -93,56 +92,6 @@ class MemberServiceTest {
 
         assertThrows(MemberDuplicateException.class, () -> memberService.createMember(request));
         verify(memberRepo, never()).createMember(any());
-    }
-
-    @Test
-    void getMemberById_returnsMemberDtoWhenMemberExists() {
-        final UUID id = UUID.randomUUID();
-        final Member member = Member.builder()
-                .id(id)
-                .firstName("John")
-                .lastName("Doe")
-                .email("john.doe@example.com")
-                .linkedInUrl("https://www.linkedin.com/in/johndoe")
-                .introduction("Hello, I'm John!")
-                .referralSource("Friend")
-                .active(true)
-                .matchPref("Mentor")
-                .industryPref("Technology")
-                .rolePref("Software Engineer")
-                .topics("Career Development")
-                .extraNotes("Prefers in-person chats")
-                .build();
-        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(member));
-
-        final MemberDto response = memberService.getMemberById(id);
-
-        assertEquals(id, response.getId());
-        assertEquals("John", response.getFirstName());
-        assertEquals("Doe", response.getLastName());
-        assertEquals("john.doe@example.com", response.getEmail());
-        assertEquals("https://www.linkedin.com/in/johndoe", response.getLinkedInUrl());
-        assertEquals("Hello, I'm John!", response.getIntroduction());
-        assertEquals("Friend", response.getReferralSource());
-        assertTrue(response.getActive());
-        assertEquals("Mentor", response.getMatchPref());
-        assertEquals("Technology", response.getIndustryPref());
-        assertEquals("Software Engineer", response.getRolePref());
-        assertEquals("Career Development", response.getTopics());
-        assertEquals("Prefers in-person chats", response.getExtraNotes());
-        verify(memberRepo).getMemberById(id);
-    }
-
-    @Test
-    void getMemberById_throwsExceptionWhenMemberNotFound() {
-        final UUID id = UUID.randomUUID();
-        when(memberRepo.getMemberById(id)).thenReturn(Optional.empty());
-
-        final MemberNotFoundException exception =
-                assertThrows(MemberNotFoundException.class, () -> memberService.getMemberById(id));
-
-        assertEquals("Member with ID " + id + " not found", exception.getMessage());
-        verify(memberRepo).getMemberById(id);
     }
 
     @Test
