@@ -6,6 +6,11 @@
  * generics here can be tightened against `paths`.
  */
 
+export interface ApiResponder<T> {
+  success: boolean;
+  message: string;
+  payload: T;
+}
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
