@@ -1,7 +1,10 @@
 package org.patinanetwork.patchats.api.member;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
@@ -10,6 +13,8 @@ import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
+import org.patinanetwork.patchats.common.web.exception.ValidationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -48,38 +53,51 @@ public class MemberService {
     public MemberDto updateMember(UpdateMemberRequest request, UUID id) {
         Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
 
-        if (request.firstName() != null) {
-            member.setFirstName(request.firstName());
+        // Return early if no fields are present in the request to update
+        boolean hasNoUpdates = Stream.of(
+                        request.firstName(),
+                        request.lastName(),
+                        request.email(),
+                        request.introduction(),
+                        request.linkedInUrl(),
+                        request.matchPref(),
+                        request.industryPref(),
+                        request.rolePref(),
+                        request.topics(),
+                        request.extraNotes())
+                .noneMatch(Optional::isPresent);
+        if (hasNoUpdates) {
+            return MemberDto.from(member);
         }
-        if (request.lastName() != null) {
-            member.setLastName(request.lastName());
+
+        validateAndUpdate(request.firstName(), member::setFirstName, "firstName", true);
+        validateAndUpdate(request.lastName(), member::setLastName, "lastName", true);
+        validateAndUpdate(request.email(), member::setEmail, "email", true);
+        validateAndUpdate(request.introduction(), member::setIntroduction, "introduction", true);
+        validateAndUpdate(request.linkedInUrl(), member::setLinkedInUrl, "linkedInUrl", false);
+        validateAndUpdate(request.matchPref(), member::setMatchPref, "matchPref", false);
+        validateAndUpdate(request.industryPref(), member::setIndustryPref, "industryPref", false);
+        validateAndUpdate(request.rolePref(), member::setRolePref, "rolePref", false);
+        validateAndUpdate(request.topics(), member::setTopics, "topics", false);
+        validateAndUpdate(request.extraNotes(), member::setExtraNotes, "extraNotes", false);
+
+        try {
+            Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
+            return MemberDto.from(updatedMember);
+        } catch (DuplicateKeyException e) {
+            throw new MemberDuplicateException(member.getEmail());
         }
-        if (request.email() != null) {
-            member.setEmail(request.email());
+    }
+
+    private void validateAndUpdate(
+            Optional<String> field, Consumer<String> setter, String fieldName, boolean required) {
+        if (field.isPresent()) {
+            String value = field.get();
+            if (value.isBlank() && required) {
+                throw new ValidationException(fieldName + " cannot be empty");
+            }
+            setter.accept(value);
         }
-        if (request.linkedInUrl() != null) {
-            member.setLinkedInUrl(request.linkedInUrl());
-        }
-        if (request.introduction() != null) {
-            member.setIntroduction(request.introduction());
-        }
-        if (request.matchPref() != null) {
-            member.setMatchPref(request.matchPref());
-        }
-        if (request.industryPref() != null) {
-            member.setIndustryPref(request.industryPref());
-        }
-        if (request.rolePref() != null) {
-            member.setRolePref(request.rolePref());
-        }
-        if (request.topics() != null) {
-            member.setTopics(request.topics());
-        }
-        if (request.extraNotes() != null) {
-            member.setExtraNotes(request.extraNotes());
-        }
-        Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
-        return MemberDto.from(updatedMember);
     }
 
     // TODO: Implement these methods after createMember and updateMember is fully functional and tested
