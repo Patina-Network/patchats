@@ -8,7 +8,7 @@ import {
   showEmailSuccess,
 } from "@/features/emails/api/emailError";
 import { type EnqueueEmailRequest } from "@/features/emails/dto/emailDto";
-import { Button, Text } from "@mantine/core";
+import { Button, Text, Tooltip, Flex } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -42,11 +42,12 @@ export function EmailSender({
 
   const openModal = () =>
     modals.openConfirmModal({
-      title: "Email Send Confirmation",
+      title: "ASYNCHRONOUS Email Send Confirmation",
       children: (
         <Text size="sm">
           Please confirm that you want to send {request?.messages.length} email
-          {request?.messages.length === 1 ? "" : "s"}.
+          {request?.messages.length === 1 ? "" : "s"} asynchronously. Emails
+          will be queued up for send, then retried if an error occurs.
         </Text>
       ),
       labels: { confirm: "Confirm", cancel: "Cancel" },
@@ -95,13 +96,20 @@ export function EmailSender({
   };
 
   return (
-    <Button
-      onClick={openModal}
-      disabled={!request || !selectedTemplateId}
-      loading={isSending}
-      fullWidth
-    >
-      Send Emails
-    </Button>
+    <Flex>
+      <Tooltip
+        position="right"
+        label="Emails will be queued up for send, then retried if an error occurs."
+      >
+        <Button
+          onClick={openModal}
+          disabled={!request || !selectedTemplateId}
+          loading={isSending}
+          fullWidth
+        >
+          Send Asynchronous Emails (queues emails then sends)
+        </Button>
+      </Tooltip>
+    </Flex>
   );
 }
