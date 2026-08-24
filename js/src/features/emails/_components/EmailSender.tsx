@@ -42,11 +42,11 @@ export function EmailSender({
 
   const openModal = () =>
     modals.openConfirmModal({
-      title: "Email Send Confirmation",
+      title: "ASYNCHRONOUS Email Send Confirmation",
       children: (
         <Text size="sm">
           Please confirm that you want to send {request?.messages.length} email
-          {request?.messages.length === 1 ? "" : "s"}.
+          {request?.messages.length === 1 ? "" : "s"} asynchronously.
         </Text>
       ),
       labels: { confirm: "Confirm", cancel: "Cancel" },
@@ -101,7 +101,7 @@ export function EmailSender({
       loading={isSending}
       fullWidth
     >
-      Send Emails
+      Send Asynchronous Emails
     </Button>
   );
 }

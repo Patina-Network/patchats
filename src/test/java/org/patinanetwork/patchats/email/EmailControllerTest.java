@@ -51,6 +51,7 @@ class EmailControllerTest {
 
     @Test
     void returnsOkAndApiResponderOnSuccess() throws Exception {
+        final UUID templateId = UUID.randomUUID();
         when(emailService.send(any()))
                 .thenReturn(new SendEmailResponse(
                         1, 0, List.of(new SendEmailResponse.MessageResult(List.of("a@x.com"), true, null))));
@@ -59,7 +60,8 @@ class EmailControllerTest {
                         post("/api/email/send")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
-                                        "{\"subject\":\"S\",\"body\":\"B\",\"messages\":[{\"recipients\":[{\"email\":\"a@x.com\"}]}]}"))
+                                        "{\"templateId\":\"" + templateId
+                                                + "\",\"subject\":\"S\",\"body\":\"B\",\"messages\":[{\"recipients\":[{\"email\":\"a@x.com\"}]}]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.payload.sent").value(1));
@@ -67,11 +69,13 @@ class EmailControllerTest {
 
     @Test
     void returnsBadRequestOnInvalidEmail() throws Exception {
+        final UUID templateId = UUID.randomUUID();
         mockMvc.perform(
                         post("/api/email/send")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
-                                        "{\"subject\":\"S\",\"body\":\"B\",\"messages\":[{\"recipients\":[{\"email\":\"not-an-email\"}]}]}"))
+                                        "{\"templateId\":\"" + templateId
+                                                + "\",\"subject\":\"S\",\"body\":\"B\",\"messages\":[{\"recipients\":[{\"email\":\"not-an-email\"}]}]}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
     }

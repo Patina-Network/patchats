@@ -60,7 +60,7 @@ public class EmailController {
     @PostMapping("/send/async")
     public ResponseEntity<ApiResponder<EnqueueEmailResponse>> sendAsync(
             @Valid @RequestBody final EnqueueEmailRequest request) {
-        final EnqueueEmailResponse response = enqueueService.enqueue(request, EmailSource.MANUAL);
+        final EnqueueEmailResponse response = enqueueService.enqueue(request, EmailSource.ASYNCHRONOUS);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(ApiResponder.success("Accepted %d emails".formatted(response.accepted()), response));
     }
