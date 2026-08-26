@@ -19,6 +19,7 @@ import {
 import { useForm } from "@mantine/form";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { z } from "zod";
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -197,6 +198,7 @@ export function MembersPage() {
                 <Table.Th>Role</Table.Th>
                 <Table.Th>Topics</Table.Th>
                 <Table.Th>Joined</Table.Th>
+                <Table.Th>Profile</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -232,6 +234,11 @@ export function MembersPage() {
                   <Table.Td>{member.topics ?? "—"}</Table.Td>
                   <Table.Td>
                     {dateFormatter.format(new Date(member.createdAt))}
+                  </Table.Td>
+                  <Table.Td>
+                    <Anchor component={Link} to={`/profile/${member.id}`}>
+                      View
+                    </Anchor>
                   </Table.Td>
                 </Table.Tr>
               ))}

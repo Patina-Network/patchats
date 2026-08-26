@@ -161,7 +161,6 @@ export function SignUpForm() {
             }
             onBlur={() => handleFieldBlur("firstName")}
             error={errors.firstName}
-            autoFocus
           />
           <TextInput
             required
