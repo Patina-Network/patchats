@@ -6,6 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 export function useMemberProfile(id: string) {
   return useQuery({
     queryKey: ["member-profile", id] as const,
-    queryFn: () => apiFetch<ApiResponder<MemberProfile>>(`/members/${id}`).then(res => res.payload),
+    queryFn: () =>
+      apiFetch<ApiResponder<MemberProfile>>(`/members/${id}`).then(
+        (res) => res.payload,
+      ),
   });
 }

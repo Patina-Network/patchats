@@ -39,7 +39,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "sign-up", element: <SignUpPage /> },
-      { path: "profile/:id", element: <MemberProfilePage/> }
+      { path: "profile/:id", element: <MemberProfilePage /> },
     ],
   },
   // Temporary public email routes for TESTING (before auth is wired)
