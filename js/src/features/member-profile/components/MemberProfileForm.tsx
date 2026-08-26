@@ -49,7 +49,6 @@ export function MemberProfileForm({ id }: { id: string }) {
     if (member && !isEditing) setValues(toFormValues(member));
   }, [member, isEditing]);
 
-
   // Helper function
   const normalizeLinkedInUrl = (value: string): string => {
     const trimmed = value.trim();
