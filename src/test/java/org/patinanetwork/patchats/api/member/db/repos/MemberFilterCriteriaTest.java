@@ -11,6 +11,15 @@ import org.junit.jupiter.api.Test;
 class MemberFilterCriteriaTest {
 
     @Test
+    void defaultCriteriaHasDefaultPagination() {
+        final MemberFilterCriteria criteria = MemberFilterCriteria.builder().build();
+
+        assertAll(
+                () -> assertEquals(MemberFilterCriteria.DEFAULT_PAGE, criteria.page()),
+                () -> assertEquals(MemberFilterCriteria.DEFAULT_PAGE_SIZE, criteria.pageSize()));
+    }
+
+    @Test
     void criteriaWithoutFiltersHasExpectedValues() {
         final MemberFilterCriteria criteria =
                 criteriaWithPagination(MemberFilterCriteria.DEFAULT_PAGE, MemberFilterCriteria.DEFAULT_PAGE_SIZE);
@@ -47,15 +56,20 @@ class MemberFilterCriteriaTest {
     }
 
     @Test
+    void rejectsPageSizeGreaterThanMaxPageSize() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> criteriaWithPagination(
+                        MemberFilterCriteria.DEFAULT_PAGE, MemberFilterCriteria.MAX_PAGE_SIZE + 1));
+    }
+
+    @Test
     void rejectsInvalidPagination() {
         assertAll(
                 () -> assertThrows(
                         IllegalArgumentException.class,
                         () -> criteriaWithPagination(0, MemberFilterCriteria.DEFAULT_PAGE_SIZE)),
-                () -> assertThrows(IllegalArgumentException.class, () -> criteriaWithPagination(1, 0)),
-                () -> assertThrows(
-                        IllegalArgumentException.class,
-                        () -> criteriaWithPagination(1, MemberFilterCriteria.MAX_PAGE_SIZE + 1)));
+                () -> assertThrows(IllegalArgumentException.class, () -> criteriaWithPagination(1, 0)));
     }
 
     private static MemberFilterCriteria criteriaWithPagination(int page, int pageSize) {
