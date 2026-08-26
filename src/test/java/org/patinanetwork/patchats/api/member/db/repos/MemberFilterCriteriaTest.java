@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Test;
 class MemberFilterCriteriaTest {
 
     @Test
-    void emptyReturnsCriteriaWithoutFilters() {
-        final MemberFilterCriteria criteria = MemberFilterCriteria.empty();
+    void criteriaWithoutFiltersHasExpectedValues() {
+        final MemberFilterCriteria criteria =
+                criteriaWithPagination(MemberFilterCriteria.DEFAULT_PAGE, MemberFilterCriteria.DEFAULT_PAGE_SIZE);
 
         assertAll(
                 () -> assertTrue(criteria.firstName().isEmpty()),

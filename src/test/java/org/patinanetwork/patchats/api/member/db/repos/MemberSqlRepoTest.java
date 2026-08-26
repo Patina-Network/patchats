@@ -16,54 +16,12 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 
 class MemberSqlRepoTest {
 
-    private static final String GET_MEMBERS_SQL = """
-        SELECT
-            *
-        FROM
-            members
-        ORDER BY
-            created_at DESC,
-            id
-        LIMIT
-            :page_size
-        OFFSET
-            :offset
-        """;
-    private static final String GET_FILTERED_MEMBERS_SQL = """
-        SELECT
-            *
-        FROM
-            members
-        WHERE
-            LOWER(first_name) = LOWER(:first_name)
-        AND
-            LOWER(last_name) = LOWER(:last_name)
-        AND
-            LOWER(email) = LOWER(:email)
-        AND
-            active = :active
-        AND
-            LOWER(match_pref) = LOWER(:match_pref)
-        AND
-            LOWER(industry_pref) = LOWER(:industry_pref)
-        AND
-            LOWER(role_pref) = LOWER(:role_pref)
-        AND
-            LOWER(topics) = LOWER(:topics)
-        ORDER BY
-            created_at DESC,
-            id
-        LIMIT
-            :page_size
-        OFFSET
-            :offset
-        """;
-
     @Test
     void getMembersAllReturnsRowsFromDatabase() {
         final JdbcClient jdbc = mock(JdbcClient.class);
         final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
         final JdbcClient.MappedQuerySpec<Member> query = mock(JdbcClient.MappedQuerySpec.class);
+        final MemberFilterCriteria criteria = emptyCriteria();
         final Member member = Member.builder()
                 .id(UUID.randomUUID())
                 .firstName("Alex")
@@ -72,16 +30,16 @@ class MemberSqlRepoTest {
                 .active(true)
                 .build();
 
-        when(jdbc.sql(GET_MEMBERS_SQL)).thenReturn(statement);
+        when(jdbc.sql(MemberSqlRepo.buildGetMembersByFiltersSql(criteria))).thenReturn(statement);
         when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
                 .thenReturn(statement);
         when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
         when(query.list()).thenReturn(List.of(member));
 
-        final List<Member> result = new MemberSqlRepo(jdbc).getMembersByFilters(MemberFilterCriteria.empty());
+        final List<Member> result = new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
 
         assertEquals(List.of(member), result);
-        verify(jdbc).sql(GET_MEMBERS_SQL);
+        verify(jdbc).sql(MemberSqlRepo.buildGetMembersByFiltersSql(criteria));
         verify(statement).param("page_size", MemberFilterCriteria.DEFAULT_PAGE_SIZE);
         verify(statement).param("offset", 0L);
         verify(query).list();
@@ -104,7 +62,7 @@ class MemberSqlRepoTest {
                 3,
                 20);
 
-        when(jdbc.sql(GET_FILTERED_MEMBERS_SQL)).thenReturn(statement);
+        when(jdbc.sql(MemberSqlRepo.buildGetMembersByFiltersSql(criteria))).thenReturn(statement);
         when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
                 .thenReturn(statement);
         when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
@@ -113,7 +71,7 @@ class MemberSqlRepoTest {
         final List<Member> result = new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
 
         assertEquals(List.of(), result);
-        verify(jdbc).sql(GET_FILTERED_MEMBERS_SQL);
+        verify(jdbc).sql(MemberSqlRepo.buildGetMembersByFiltersSql(criteria));
         verify(statement).param("first_name", "Alex");
         verify(statement).param("last_name", "Morgan");
         verify(statement).param("email", "alex@example.com");
@@ -125,5 +83,19 @@ class MemberSqlRepoTest {
         verify(statement).param("page_size", 20);
         verify(statement).param("offset", 40L);
         verify(query).list();
+    }
+
+    private static MemberFilterCriteria emptyCriteria() {
+        return new MemberFilterCriteria(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
     }
 }

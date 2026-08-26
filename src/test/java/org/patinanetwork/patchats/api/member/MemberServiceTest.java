@@ -352,7 +352,7 @@ class MemberServiceTest {
 
     @Test
     void getMembers_returnsEveryMemberAsDto() {
-        final MemberFilterCriteria criteria = MemberFilterCriteria.empty();
+        final MemberFilterCriteria criteria = emptyCriteria();
 
         final Member firstMember = Member.builder()
                 .id(UUID.randomUUID())
@@ -381,7 +381,7 @@ class MemberServiceTest {
 
     @Test
     void getMembersReturnsEveryMemberAsDto() {
-        final MemberFilterCriteria criteria = MemberFilterCriteria.empty();
+        final MemberFilterCriteria criteria = emptyCriteria();
         final Member firstMember = Member.builder()
                 .id(UUID.randomUUID())
                 .firstName("John")
@@ -405,5 +405,19 @@ class MemberServiceTest {
         assertEquals("John", response.get(0).getFirstName());
         assertEquals("Doe", response.get(0).getLastName());
         assertEquals("jane.doe@example.com", response.get(1).getEmail());
+    }
+
+    private static MemberFilterCriteria emptyCriteria() {
+        return new MemberFilterCriteria(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
     }
 }
