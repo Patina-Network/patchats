@@ -12,6 +12,7 @@ import { EmailProgressPage } from "@/features/emails/EmailProgressPage";
 import { EmailSendPage } from "@/features/emails/EmailSendPage";
 import HomePage from "@/features/home/Home.page";
 import { MemberProfilePage } from "@/features/member-profile/MemberProfile.page";
+import { MembersPage } from "@/features/members/Members.page";
 import SamplePage from "@/features/sample/Sample.page";
 import SampleAdminPage from "@/features/sample/SampleAdmin.page";
 import { SignUpPage } from "@/features/sign-up/SignUp.page";
@@ -63,7 +64,7 @@ export const router = createBrowserRouter([
             element: <AdminLayout />,
             children: [
               { path: "admin", element: <AdminPage /> },
-              { path: "admin/members", element: <MemberProfilePage /> },
+              { path: "admin/members", element: <MembersPage /> },
               {
                 path: "admin/email",
                 element: <EmailAdminPage />,
