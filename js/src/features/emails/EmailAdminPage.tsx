@@ -1,30 +1,33 @@
-import { CsvUploader } from "@/features/emails/_components/CsvUploader";
-import { EmailPreviewer } from "@/features/emails/_components/EmailPreviewer";
-import { EmailSender } from "@/features/emails/_components/EmailSender";
-import {
-  SendAsyncRequest,
-  type MessagePreview,
-} from "@/features/emails/dto/emailDto";
-import { Box, Flex, Stack } from "@mantine/core";
-import { useState } from "react";
-
+import { Box, Tabs } from "@mantine/core";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+type EmailAdminTabValue = "send" | "progress" | "history";
+function getSelectedTab(pathname: string): EmailAdminTabValue {
+  if (pathname.includes("/history")) {
+    return "history";
+  }
+  if (pathname.includes("/progress")) {
+    return "progress";
+  }
+  return "send";
+}
 export default function EmailAdminPage() {
-  const [request, setRequest] = useState<SendAsyncRequest | null>(null);
-  const [previews, setPreviews] = useState<MessagePreview[] | null>(null);
-
+  const location = useLocation();
+  const navigate = useNavigate();
+  const selectedTab = getSelectedTab(location.pathname);
+  const handleTabChange = (value: string | null) => {
+    navigate(value || "");
+    return;
+  };
   return (
-    <Flex align="flex-start" gap="lg" wrap="nowrap">
-      <Stack w="30%" gap="lg">
-        <CsvUploader setRequest={setRequest} />
-        <EmailSender request={request} />
-      </Stack>
-      <Box w="70%">
-        <EmailPreviewer
-          previews={previews}
-          setPreviews={setPreviews}
-          request={request}
-        />
+    <Tabs value={selectedTab} onChange={handleTabChange}>
+      <Tabs.List>
+        <Tabs.Tab value="send">Send Emails</Tabs.Tab>
+        <Tabs.Tab value="progress">Live Progress</Tabs.Tab>
+        <Tabs.Tab value="history">History</Tabs.Tab>
+      </Tabs.List>
+      <Box pt="lg">
+        <Outlet />
       </Box>
-    </Flex>
+    </Tabs>
   );
 }

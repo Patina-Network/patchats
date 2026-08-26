@@ -14,10 +14,8 @@ import { useEffect } from "react";
 /**
  * Component that displays the rendered emails returned by the /api/email/preview endpoint in a carousel.
  *
- * Note: this takes the *rendered* previews (MessagePreview[]), not the raw object from dataToSendRequest.
- * dataToSendRequest returns a SendEmailRequest whose subject/body still contain unresolved ${...} placeholders;
- * passing that here would show literal template syntax. Render it first via previewEmails(request), then
- * pass the result in so the user sees exactly what will be sent.
+ * Note: this takes the *rendered* previews (MessagePreview[]), not the SendAsyncRequest.
+ * The request is passed for query key dependency only.
  */
 export function EmailPreviewer({
   previews,
