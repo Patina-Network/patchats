@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -89,9 +90,11 @@ public class MemberSqlRepo implements MemberRepo {
     public static final String GET_MEMBER_BY_ID_SQL = "SELECT * FROM members WHERE id = :id";
     public static final String GET_MEMBER_BY_EMAIL_SQL = "SELECT * FROM members WHERE email = :email";
 
+    private static final RowMapper<Member> MEMBER_ROW_MAPPER = (rs, rowNum) -> parseResultSetToMember(rs);
+
     private final JdbcClient jdbc;
 
-    private Member parseResultSetToMember(final ResultSet rs) throws SQLException {
+    private static Member parseResultSetToMember(final ResultSet rs) throws SQLException {
         return Member.builder()
                 .id(UUID.fromString(rs.getString("id")))
                 .firstName(rs.getString("first_name"))
@@ -130,7 +133,7 @@ public class MemberSqlRepo implements MemberRepo {
     @Override
     public Member createMember(Member member) {
         return bindMemberParams(jdbc.sql(CREATE_MEMBER_SQL), member)
-                .query((rs, rowNum) -> parseResultSetToMember(rs))
+                .query(MEMBER_ROW_MAPPER)
                 .single();
     }
 
@@ -139,16 +142,12 @@ public class MemberSqlRepo implements MemberRepo {
         final Map<String, Object> filters = getMemberFilters(criteria);
 
         JdbcClient.StatementSpec statement = jdbc.sql(buildGetMembersByFiltersSql(filters));
-        for (Map.Entry<String, Object> filter : filters.entrySet()) {
-            statement = statement.param(filter.getKey(), filter.getValue());
+        if (!filters.isEmpty()) {
+            statement = statement.params(filters);
         }
         statement = statement.param("page_size", criteria.pageSize()).param("offset", criteria.offset());
 
-        return statement.query((rs, rowNum) -> parseResultSetToMember(rs)).list();
-    }
-
-    public static String buildGetMembersByFiltersSql(MemberFilterCriteria criteria) {
-        return buildGetMembersByFiltersSql(getMemberFilters(criteria));
+        return statement.query(MEMBER_ROW_MAPPER).list();
     }
 
     private static Map<String, Object> getMemberFilters(MemberFilterCriteria criteria) {
@@ -178,7 +177,7 @@ public class MemberSqlRepo implements MemberRepo {
     @Override
     public Optional<Member> updateMember(Member member) {
         return bindMemberParams(jdbc.sql(UPDATE_MEMBER_SQL), member)
-                .query((rs, rowNum) -> parseResultSetToMember(rs))
+                .query(MEMBER_ROW_MAPPER)
                 .optional();
     }
 
@@ -186,7 +185,7 @@ public class MemberSqlRepo implements MemberRepo {
     public Optional<Member> getMemberById(UUID id) {
         return jdbc.sql(GET_MEMBER_BY_ID_SQL)
                 .param("id", id)
-                .query((rs, rowNum) -> parseResultSetToMember(rs))
+                .query(MEMBER_ROW_MAPPER)
                 .optional();
     }
 
@@ -194,7 +193,7 @@ public class MemberSqlRepo implements MemberRepo {
     public Optional<Member> getMemberByEmail(String email) {
         return jdbc.sql(GET_MEMBER_BY_EMAIL_SQL)
                 .param("email", email)
-                .query((rs, rowNum) -> parseResultSetToMember(rs))
+                .query(MEMBER_ROW_MAPPER)
                 .optional();
     }
 

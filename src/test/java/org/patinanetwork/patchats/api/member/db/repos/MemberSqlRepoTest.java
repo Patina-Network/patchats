@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,7 @@ class MemberSqlRepoTest {
                 .active(true)
                 .build();
 
-        when(jdbc.sql(MemberSqlRepo.buildGetMembersByFiltersSql(criteria))).thenReturn(statement);
+        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
         when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
                 .thenReturn(statement);
         when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
@@ -39,7 +40,7 @@ class MemberSqlRepoTest {
         final List<Member> result = new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
 
         assertEquals(List.of(member), result);
-        verify(jdbc).sql(MemberSqlRepo.buildGetMembersByFiltersSql(criteria));
+        verify(jdbc).sql(ArgumentMatchers.anyString());
         verify(statement).param("page_size", MemberFilterCriteria.DEFAULT_PAGE_SIZE);
         verify(statement).param("offset", 0L);
         verify(query).list();
@@ -62,7 +63,8 @@ class MemberSqlRepoTest {
                 3,
                 20);
 
-        when(jdbc.sql(MemberSqlRepo.buildGetMembersByFiltersSql(criteria))).thenReturn(statement);
+        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
+        when(statement.params(ArgumentMatchers.anyMap())).thenReturn(statement);
         when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
                 .thenReturn(statement);
         when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
@@ -71,15 +73,17 @@ class MemberSqlRepoTest {
         final List<Member> result = new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
 
         assertEquals(List.of(), result);
-        verify(jdbc).sql(MemberSqlRepo.buildGetMembersByFiltersSql(criteria));
-        verify(statement).param("first_name", "Alex");
-        verify(statement).param("last_name", "Morgan");
-        verify(statement).param("email", "alex@example.com");
-        verify(statement).param("active", true);
-        verify(statement).param("match_pref", "Peer");
-        verify(statement).param("industry_pref", "Technology");
-        verify(statement).param("role_pref", "Engineering");
-        verify(statement).param("topics", "Community");
+        verify(jdbc).sql(ArgumentMatchers.anyString());
+        verify(statement)
+                .params(Map.of(
+                        "first_name", "Alex",
+                        "last_name", "Morgan",
+                        "email", "alex@example.com",
+                        "active", true,
+                        "match_pref", "Peer",
+                        "industry_pref", "Technology",
+                        "role_pref", "Engineering",
+                        "topics", "Community"));
         verify(statement).param("page_size", 20);
         verify(statement).param("offset", 40L);
         verify(query).list();
