@@ -9,15 +9,12 @@ const SHUTDOWN_TIMEOUT_MS = 2000;
 
 async function main(): Promise<void> {
   try {
-    backendProcess = Bun.spawn(
-      ["./mvnw", "spring-boot:run"],
-      {
-        env: { ...process.env },
-        stdin: "ignore",
-        stdout: Bun.file("backend.log"),
-        stderr: Bun.file("backend-error.log"),
-      },
-    );
+    backendProcess = Bun.spawn(["./mvnw", "spring-boot:run"], {
+      env: { ...process.env },
+      stdin: "ignore",
+      stdout: Bun.file("backend.log"),
+      stderr: Bun.file("backend-error.log"),
+    });
 
     const ready = await waitForBackend();
 

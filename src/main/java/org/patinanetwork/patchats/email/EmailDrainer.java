@@ -14,6 +14,7 @@ import org.patinanetwork.patchats.email.db.repos.EmailRepo;
 import org.patinanetwork.patchats.email.db.repos.EmailTemplateRepo;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
+@Profile("!ci")
 public class EmailDrainer {
 
     private static final int BATCH_SIZE = 50;
