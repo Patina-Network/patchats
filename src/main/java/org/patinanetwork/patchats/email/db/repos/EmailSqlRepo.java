@@ -118,17 +118,6 @@ public class EmailSqlRepo implements EmailRepo {
     }
 
     @Override
-    public int resetProcessingToError() {
-        return jdbc.sql("""
-                        UPDATE emails
-                           SET status = 'ERROR',
-                               error_message = 'Reset on startup: orphaned PROCESSING row (at-most-once recovery)',
-                               updated_at = now()
-                         WHERE status = 'PROCESSING'
-                        """).update();
-    }
-
-    @Override
     public Map<EmailStatus, Integer> countByStatus(final UUID requestId) {
         final Map<EmailStatus, Integer> counts = new EnumMap<>(EmailStatus.class);
         jdbc.sql("SELECT status, count(*) AS cnt FROM emails WHERE request_id = :rid GROUP BY status")

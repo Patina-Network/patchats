@@ -148,9 +148,6 @@ parses CSV ([parseCSV.ts](../../js/src/features/emails/api/parseCSV.ts)) and pos
      committed, the rows are already visible — no `AFTER_COMMIT` event is needed. **There is no automatic
      enqueue-time trigger** (the accepted tradeoff of #6: if the kick is never issued, the batch waits for the next
      kick or a restart).
-  2. **On startup** — `@EventListener(ApplicationReadyEvent.class)` first resets `PROCESSING → ERROR`
-     (at-most-once recovery), then calls `trigger()` once (covers rows left `PENDING` before shutdown). This is the
-     only safety net for a missed kick.
 - **Drain job** (runs on the executor thread, loops until no rows, then the thread idles):
   1. **Claim** up to 50 `PENDING` rows atomically:
      ```sql

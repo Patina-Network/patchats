@@ -129,17 +129,6 @@ class EmailDrainerTest {
     }
 
     @Test
-    void startupResetsProcessingToErrorThenDrains() {
-        when(emailRepo.resetProcessingToError()).thenReturn(2);
-        when(emailRepo.claimBatch(50)).thenReturn(List.of());
-
-        drainer(SYNC).onApplicationReady();
-
-        verify(emailRepo).resetProcessingToError();
-        verify(emailRepo).claimBatch(50); // the startup kick still runs a drain pass
-    }
-
-    @Test
     void overlappingTriggersCoalesceToOneDrain() {
         // A manual executor that captures jobs without running them, to observe submission count.
         final List<Runnable> submitted = new ArrayList<>();
