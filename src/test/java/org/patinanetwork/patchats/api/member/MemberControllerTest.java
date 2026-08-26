@@ -367,8 +367,7 @@ class MemberControllerTest {
                 .email("jane.doe@example.com")
                 .active(false)
                 .build();
-        when(memberService.getMembersByFilters(MemberFilterCriteria.empty()))
-                .thenReturn(List.of(firstMember, secondMember));
+        when(memberService.getMembersByFilters(emptyCriteria())).thenReturn(List.of(firstMember, secondMember));
 
         mockMvc.perform(get("/api/members"))
                 .andExpect(status().isOk())
@@ -449,5 +448,19 @@ class MemberControllerTest {
                   "extraNotes": "I want to be meet someone in person in NYC"
                 }
                 """.formatted(firstName);
+    }
+
+    private static MemberFilterCriteria emptyCriteria() {
+        return new MemberFilterCriteria(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
     }
 }

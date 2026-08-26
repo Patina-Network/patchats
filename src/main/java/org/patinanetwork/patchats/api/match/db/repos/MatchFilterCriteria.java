@@ -11,16 +11,4 @@ public record MatchFilterCriteria(
         Optional<UUID> memberId,
         Optional<Integer> matchCycleId,
         Optional<String> memberIndustry,
-        Optional<String> status) {
-
-    public static MatchFilterCriteria empty() {
-        return new MatchFilterCriteria(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
-    }
-}
+        Optional<String> status) {}

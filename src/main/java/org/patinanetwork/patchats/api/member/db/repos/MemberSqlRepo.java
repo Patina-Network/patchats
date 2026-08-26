@@ -18,6 +18,77 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class MemberSqlRepo implements MemberRepo {
 
+    public static final String CREATE_MEMBER_SQL = """
+        INSERT INTO "members" (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "linked_in_url",
+            "introduction",
+            "referral_source",
+            "active",
+            "match_pref",
+            "industry_pref",
+            "role_pref",
+            "topics",
+            "extra_notes"
+        )
+        VALUES(
+            :id,
+            :first_name,
+            :last_name,
+            :email,
+            :linked_in_url,
+            :introduction,
+            :referral_source,
+            :active ,
+            :match_pref,
+            :industry_pref,
+            :role_pref,
+            :topics,
+            :extra_notes
+        )
+        RETURNING
+            *
+        """;
+
+    public static final String GET_MEMBERS_BY_FILTERS_SQL = """
+        SELECT
+            *
+        FROM
+            members
+        %sORDER BY
+            created_at DESC,
+            id
+        LIMIT
+            :page_size
+        OFFSET
+            :offset
+        """;
+
+    public static final String UPDATE_MEMBER_SQL = """
+        UPDATE "members" SET
+            "first_name" = :first_name,
+            "last_name" = :last_name,
+            "email" = :email,
+            "linked_in_url" = :linked_in_url,
+            "introduction" = :introduction,
+            "referral_source" = :referral_source,
+            "active" = :active,
+            "match_pref" = :match_pref,
+            "industry_pref" = :industry_pref,
+            "role_pref" = :role_pref,
+            "topics" = :topics,
+            "extra_notes" = :extra_notes,
+            "updated_at" = NOW()
+        WHERE "id" = :id
+        RETURNING *
+        """;
+
+    public static final String GET_MEMBER_BY_ID_SQL = "SELECT * FROM members WHERE id = :id";
+    public static final String GET_MEMBER_BY_EMAIL_SQL = "SELECT * FROM members WHERE email = :email";
+
     private final JdbcClient jdbc;
 
     private Member parseResultSetToMember(final ResultSet rs) throws SQLException {
@@ -58,47 +129,29 @@ public class MemberSqlRepo implements MemberRepo {
 
     @Override
     public Member createMember(Member member) {
-        String sql = """
-            INSERT INTO "members" (
-                "id",
-                "first_name",
-                "last_name",
-                "email",
-                "linked_in_url",
-                "introduction",
-                "referral_source",
-                "active",
-                "match_pref",
-                "industry_pref",
-                "role_pref",
-                "topics",
-                "extra_notes"
-            )
-            VALUES(
-                :id,
-                :first_name,
-                :last_name,
-                :email,
-                :linked_in_url,
-                :introduction,
-                :referral_source,
-                :active ,
-                :match_pref,
-                :industry_pref,
-                :role_pref,
-                :topics,
-                :extra_notes
-            )
-            RETURNING
-                *
-        """;
-        return bindMemberParams(jdbc.sql(sql), member)
+        return bindMemberParams(jdbc.sql(CREATE_MEMBER_SQL), member)
                 .query((rs, rowNum) -> parseResultSetToMember(rs))
                 .single();
     }
 
     @Override
     public List<Member> getMembersByFilters(MemberFilterCriteria criteria) {
+        final Map<String, Object> filters = getMemberFilters(criteria);
+
+        JdbcClient.StatementSpec statement = jdbc.sql(buildGetMembersByFiltersSql(filters));
+        for (Map.Entry<String, Object> filter : filters.entrySet()) {
+            statement = statement.param(filter.getKey(), filter.getValue());
+        }
+        statement = statement.param("page_size", criteria.pageSize()).param("offset", criteria.offset());
+
+        return statement.query((rs, rowNum) -> parseResultSetToMember(rs)).list();
+    }
+
+    public static String buildGetMembersByFiltersSql(MemberFilterCriteria criteria) {
+        return buildGetMembersByFiltersSql(getMemberFilters(criteria));
+    }
+
+    private static Map<String, Object> getMemberFilters(MemberFilterCriteria criteria) {
         final Map<String, Object> filters = new LinkedHashMap<>();
         criteria.firstName().ifPresent(value -> filters.put("first_name", value));
         criteria.lastName().ifPresent(value -> filters.put("last_name", value));
@@ -108,7 +161,10 @@ public class MemberSqlRepo implements MemberRepo {
         criteria.industryPref().ifPresent(value -> filters.put("industry_pref", value));
         criteria.rolePref().ifPresent(value -> filters.put("role_pref", value));
         criteria.topics().ifPresent(value -> filters.put("topics", value));
+        return filters;
+    }
 
+    private static String buildGetMembersByFiltersSql(Map<String, Object> filters) {
         final String whereClause = filters.isEmpty()
                 ? ""
                 : filters.keySet().stream()
@@ -116,58 +172,19 @@ public class MemberSqlRepo implements MemberRepo {
                                 ? "    active = :active"
                                 : "    LOWER(" + column + ") = LOWER(:" + column + ")")
                         .collect(Collectors.joining("\nAND\n", "WHERE\n", "\n"));
-        final String sql = """
-            SELECT
-                *
-            FROM
-                members
-            %sORDER BY
-                created_at DESC,
-                id
-            LIMIT
-                :page_size
-            OFFSET
-                :offset
-            """.formatted(whereClause);
-
-        JdbcClient.StatementSpec statement = jdbc.sql(sql);
-        for (Map.Entry<String, Object> filter : filters.entrySet()) {
-            statement = statement.param(filter.getKey(), filter.getValue());
-        }
-        statement = statement.param("page_size", criteria.pageSize()).param("offset", criteria.offset());
-
-        return statement.query((rs, rowNum) -> parseResultSetToMember(rs)).list();
+        return GET_MEMBERS_BY_FILTERS_SQL.formatted(whereClause);
     }
 
     @Override
     public Optional<Member> updateMember(Member member) {
-        String sql = """
-            UPDATE "members" SET
-                "first_name" = :first_name,
-                "last_name" = :last_name,
-                "email" = :email,
-                "linked_in_url" = :linked_in_url,
-                "introduction" = :introduction,
-                "referral_source" = :referral_source,
-                "active" = :active,
-                "match_pref" = :match_pref,
-                "industry_pref" = :industry_pref,
-                "role_pref" = :role_pref,
-                "topics" = :topics,
-                "extra_notes" = :extra_notes,
-                "updated_at" = NOW()
-            WHERE "id" = :id
-            RETURNING *
-        """;
-        return bindMemberParams(jdbc.sql(sql), member)
+        return bindMemberParams(jdbc.sql(UPDATE_MEMBER_SQL), member)
                 .query((rs, rowNum) -> parseResultSetToMember(rs))
                 .optional();
     }
 
     @Override
     public Optional<Member> getMemberById(UUID id) {
-        String sql = "SELECT * FROM members WHERE id = :id";
-        return jdbc.sql(sql)
+        return jdbc.sql(GET_MEMBER_BY_ID_SQL)
                 .param("id", id)
                 .query((rs, rowNum) -> parseResultSetToMember(rs))
                 .optional();
@@ -175,8 +192,7 @@ public class MemberSqlRepo implements MemberRepo {
 
     @Override
     public Optional<Member> getMemberByEmail(String email) {
-        String sql = "SELECT * FROM members WHERE email = :email";
-        return jdbc.sql(sql)
+        return jdbc.sql(GET_MEMBER_BY_EMAIL_SQL)
                 .param("email", email)
                 .query((rs, rowNum) -> parseResultSetToMember(rs))
                 .optional();
