@@ -2,11 +2,11 @@ set shell := ["bash", "-uc"]
 
 # Migrate to local DB
 migrate *args:
-  dotenvx run -- ./mvnw flyway:migrate -Dflyway.locations=filesystem:./db {{args}}
+  dotenvx run -- ./mvnw flyway:migrate -Dflyway.locations=filesystem:./db/migration,filesystem:./db/repeated {{args}}
 
 # Drop local DB
 drop *args:
-  dotenvx run -- ./mvnw flyway:clean -Dflyway.locations=filesystem:./db -Dflyway.cleanDisabled=false {{args}}
+  dotenvx run -- ./mvnw flyway:clean -Dflyway.locations=filesystem:./db/migration,filesystem:./db/repeated -Dflyway.cleanDisabled=false {{args}}
 
 # Run the backend Spring server
 backend-dev *args:

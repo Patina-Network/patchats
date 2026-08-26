@@ -10,11 +10,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
+import org.patinanetwork.patchats.api.member.db.repos.MemberFilterCriteria;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
@@ -143,7 +145,7 @@ class MemberServiceTest {
     }
 
     @Test
-    void updateMember_throwsExceptionWhenMemberNotFound() {
+    void updateMemberThrowsExceptionWhenMemberNotFound() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = MemberTestFixtures.UPDATE_REQUEST_ALL_FIELDS;
 
@@ -154,7 +156,7 @@ class MemberServiceTest {
     }
 
     @Test
-    void updateMember_successWithOnlyNameField() {
+    void updateMemberSuccessWithOnlyNameField() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
                 Optional.of("UpdatedFirstName"),
@@ -199,7 +201,7 @@ class MemberServiceTest {
     }
 
     @Test
-    void updateMember_successWithAllNullFields() {
+    void updateMemberSuccessWithAllNullFields() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
                 Optional.empty(),
@@ -240,7 +242,7 @@ class MemberServiceTest {
     }
 
     @Test
-    void updateMember_successWithAllFields() {
+    void updateMemberSuccessWithAllFields() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = MemberTestFixtures.UPDATE_REQUEST_ALL_FIELDS;
 
@@ -346,5 +348,76 @@ class MemberServiceTest {
 
         assertEquals("john@example.com", captured.getEmail());
         verify(memberRepo, never()).getMemberByEmail(any());
+    }
+
+    @Test
+    void getMembers_returnsEveryMemberAsDto() {
+        final MemberFilterCriteria criteria = emptyCriteria();
+
+        final Member firstMember = Member.builder()
+                .id(UUID.randomUUID())
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@example.com")
+                .active(true)
+                .build();
+        final Member secondMember = Member.builder()
+                .id(UUID.randomUUID())
+                .firstName("Jane")
+                .lastName("Doe")
+                .email("jane.doe@example.com")
+                .active(false)
+                .build();
+        when(memberRepo.getMembersByFilters(criteria)).thenReturn(List.of(firstMember, secondMember));
+
+        final List<MemberDto> response = memberService.getMembersByFilters(criteria);
+
+        assertEquals(2, response.size());
+        assertEquals(firstMember.getId(), response.get(0).getId());
+        assertEquals("John", response.get(0).getFirstName());
+        assertEquals("Doe", response.get(0).getLastName());
+        assertEquals("jane.doe@example.com", response.get(1).getEmail());
+    }
+
+    @Test
+    void getMembersReturnsEveryMemberAsDto() {
+        final MemberFilterCriteria criteria = emptyCriteria();
+        final Member firstMember = Member.builder()
+                .id(UUID.randomUUID())
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@example.com")
+                .active(true)
+                .build();
+        final Member secondMember = Member.builder()
+                .id(UUID.randomUUID())
+                .firstName("Jane")
+                .lastName("Doe")
+                .email("jane.doe@example.com")
+                .active(false)
+                .build();
+        when(memberRepo.getMembersByFilters(criteria)).thenReturn(List.of(firstMember, secondMember));
+
+        final List<MemberDto> response = memberService.getMembersByFilters(criteria);
+
+        assertEquals(2, response.size());
+        assertEquals(firstMember.getId(), response.get(0).getId());
+        assertEquals("John", response.get(0).getFirstName());
+        assertEquals("Doe", response.get(0).getLastName());
+        assertEquals("jane.doe@example.com", response.get(1).getEmail());
+    }
+
+    private static MemberFilterCriteria emptyCriteria() {
+        return new MemberFilterCriteria(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
     }
 }

@@ -12,10 +12,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.patinanetwork.patchats.api.member.db.repos.MemberFilterCriteria;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
@@ -69,11 +71,9 @@ class MemberControllerTest {
                         .topics(request.topics())
                         .extraNotes(request.extraNotes())
                         .build());
-        mockMvc.perform(
-                        post("/api/members")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(memberRequestJson("John")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.payload.firstName").value(request.firstName()))
@@ -93,11 +93,9 @@ class MemberControllerTest {
 
     @Test
     void createMemberReturnsBadRequestWhenFirstNameIsBlank() throws Exception {
-        mockMvc.perform(
-                        post("/api/members")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        "{\"firstName\":\"\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(memberRequestJson("")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -105,11 +103,9 @@ class MemberControllerTest {
     @Test
     void createMemberReturnsConflictOnDuplicateEmail() throws Exception {
         when(memberService.createMember(any())).thenThrow(new MemberDuplicateException("john.doe@example.com"));
-        mockMvc.perform(
-                        post("/api/members")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        "{\"firstName\":\"John\",\"lastName\":\"Doe\",\"email\":\"john.doe@example.com\",\"linkedInUrl\":\"https://www.linkedin.com/in/johndoe\",\"introduction\":\"Hello, I'm John!\",\"referralSource\":\"Friend\",\"matchPref\":\"Mentor - I am looking for guidance from someone with more experience\",\"industryPref\":\"Technology\",\"rolePref\":\"Software Engineer\",\"topics\":\"College, Career Development\",\"extraNotes\":\"I want to be meet someone in person in NYC\"}"))
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(memberRequestJson("John")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -353,5 +349,118 @@ class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getMembersReturnsAllMembers() throws Exception {
+        final MemberDto firstMember = MemberDto.builder()
+                .id(UUID.randomUUID())
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@example.com")
+                .active(true)
+                .build();
+        final MemberDto secondMember = MemberDto.builder()
+                .id(UUID.randomUUID())
+                .firstName("Jane")
+                .lastName("Doe")
+                .email("jane.doe@example.com")
+                .active(false)
+                .build();
+        when(memberService.getMembersByFilters(emptyCriteria())).thenReturn(List.of(firstMember, secondMember));
+
+        mockMvc.perform(get("/api/members"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.payload.length()").value(2))
+                .andExpect(jsonPath("$.payload[0].firstName").value("John"))
+                .andExpect(jsonPath("$.payload[0].lastName").value("Doe"))
+                .andExpect(jsonPath("$.payload[1].email").value("jane.doe@example.com"));
+    }
+
+    @Test
+    void getMembersCreatesCriteriaFromQueryParameters() throws Exception {
+        final MemberFilterCriteria criteria = new MemberFilterCriteria(
+                Optional.of("John"),
+                Optional.of("Doe"),
+                Optional.of("john.doe@example.com"),
+                Optional.of(true),
+                Optional.of("Peer"),
+                Optional.of("Technology"),
+                Optional.of("Software Engineer"),
+                Optional.of("Career Development"),
+                2,
+                10);
+        when(memberService.getMembersByFilters(criteria)).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/members")
+                        .queryParam("firstName", "John")
+                        .queryParam("lastName", "Doe")
+                        .queryParam("email", "john.doe@example.com")
+                        .queryParam("active", "true")
+                        .queryParam("matchPref", "Peer")
+                        .queryParam("industryPref", "Technology")
+                        .queryParam("rolePref", "Software Engineer")
+                        .queryParam("topics", "Career Development")
+                        .queryParam("page", "2")
+                        .queryParam("pageSize", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.payload.length()").value(0));
+
+        verify(memberService).getMembersByFilters(criteria);
+    }
+
+    @Test
+    void getMembersReturnsBadRequestWhenActiveIsInvalid() throws Exception {
+        mockMvc.perform(get("/api/members").queryParam("active", "tru"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Invalid value for query parameter 'active'"));
+    }
+
+    @Test
+    void getMembersReturnsBadRequestWhenPaginationIsOutOfRange() throws Exception {
+        mockMvc.perform(get("/api/members").queryParam("page", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Invalid query parameters"));
+
+        mockMvc.perform(get("/api/members").queryParam("pageSize", "101"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Invalid query parameters"));
+    }
+
+    private static String memberRequestJson(String firstName) {
+        return """
+                {
+                  "firstName": "%s",
+                  "lastName": "Doe",
+                  "email": "john.doe@example.com",
+                  "linkedInUrl": "https://www.linkedin.com/in/johndoe",
+                  "introduction": "Hello, I'm John!",
+                  "referralSource": "Friend",
+                  "matchPref": "Mentor - I am looking for guidance from someone with more experience",
+                  "industryPref": "Technology",
+                  "rolePref": "Software Engineer",
+                  "topics": "College, Career Development",
+                  "extraNotes": "I want to be meet someone in person in NYC"
+                }
+                """.formatted(firstName);
+    }
+
+    private static MemberFilterCriteria emptyCriteria() {
+        return new MemberFilterCriteria(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
     }
 }

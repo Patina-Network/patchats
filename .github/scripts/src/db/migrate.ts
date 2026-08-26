@@ -26,7 +26,7 @@ async function main() {
     DATABASE_PORT,
     DATABASE_USER,
     DATABASE_PASSWORD,
-  })`./mvnw flyway:migrate -Dflyway.locations=filesystem:db`;
+  })`./mvnw flyway:migrate -Dflyway.locations=filesystem:db/migration`;
 }
 
 function parseCiEnv(environment: string) {
