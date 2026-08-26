@@ -63,7 +63,7 @@ export const router = createBrowserRouter([
             element: <AdminLayout />,
             children: [
               { path: "admin", element: <AdminPage /> },
-              { path: "admin/members", element: <MembersPage /> },
+              { path: "admin/members", element: <MemberProfilePage /> },
               {
                 path: "admin/email",
                 element: <EmailAdminPage />,
