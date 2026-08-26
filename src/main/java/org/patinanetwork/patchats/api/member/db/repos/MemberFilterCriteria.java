@@ -20,6 +20,11 @@ public record MemberFilterCriteria(
     public static final int DEFAULT_PAGE_SIZE = 25;
     public static final int MAX_PAGE_SIZE = 100;
 
+    public static class MemberFilterCriteriaBuilder {
+        private int page = DEFAULT_PAGE;
+        private int pageSize = DEFAULT_PAGE_SIZE;
+    }
+
     public MemberFilterCriteria {
         if (page < 1) {
             throw new IllegalArgumentException("page must be at least 1");
