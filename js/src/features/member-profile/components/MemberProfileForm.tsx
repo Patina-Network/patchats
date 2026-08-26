@@ -44,9 +44,11 @@ export function MemberProfileForm({ id }: { id: string }) {
   const [isEditing, setIsEditing] = useState(false);
 
   // Keep the draft in sync whenever the fetched member changes (e.g. on first load)
+
   useEffect(() => {
-    if (member) setValues(toFormValues(member));
-  }, [member]);
+    if (member && !isEditing) setValues(toFormValues(member));
+  }, [member, isEditing]);
+
 
   // Helper function
   const normalizeLinkedInUrl = (value: string): string => {
