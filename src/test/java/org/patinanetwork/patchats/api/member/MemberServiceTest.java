@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.patinanetwork.patchats.api.member.db.models.Member;
@@ -23,6 +24,7 @@ import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
+import org.patinanetwork.patchats.common.web.exception.ValidationException;
 import org.springframework.dao.DuplicateKeyException;
 
 class MemberServiceTest {
@@ -272,7 +274,6 @@ class MemberServiceTest {
 
         assertEquals("UpdatedFirstName", captured.getFirstName());
         assertEquals("UpdatedLastName", captured.getLastName());
-        assertEquals("updated@example.com", captured.getEmail());
         assertEquals("https://linkedin.com/in/updated", captured.getLinkedInUrl());
         assertEquals("Updated intro", captured.getIntroduction());
         assertEquals("Mentor - I am looking for guidance from someone with more experience", captured.getMatchPref());
@@ -282,6 +283,7 @@ class MemberServiceTest {
         assertEquals("Notes", captured.getExtraNotes());
     }
 
+    @Disabled("Email changes are not currently supported, so this test is not applicable.")
     @Test
     void updateMember_throwsExceptionWhenEmailIsDuplicate() {
         final UUID id = UUID.randomUUID();
@@ -310,10 +312,38 @@ class MemberServiceTest {
     }
 
     @Test
-    void updateMember_successWhenUpdatingWithSameEmail() {
+    void updateMember_throwsValidationExceptionWhenEmailIsChanged() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
                 Optional.empty(),
+                Optional.empty(),
+                Optional.of("new@example.com"),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
+
+        final Member existingMember = Member.builder()
+                .id(id)
+                .firstName("John")
+                .lastName("Doe")
+                .email("john@example.com")
+                .build();
+
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+
+        assertThrows(ValidationException.class, () -> memberService.updateMember(request, id));
+        verify(memberRepo, never()).updateMember(any());
+    }
+
+    @Test
+    void updateMember_successWhenUpdatingOtherFieldsWithUnchangedEmail() {
+        final UUID id = UUID.randomUUID();
+        final UpdateMemberRequest request = new UpdateMemberRequest(
+                Optional.of("UpdatedFirstName"),
                 Optional.empty(),
                 Optional.of("john@example.com"),
                 Optional.empty(),
@@ -329,25 +359,19 @@ class MemberServiceTest {
                 .firstName("John")
                 .lastName("Doe")
                 .email("john@example.com")
-                .linkedInUrl("https://linkedin.com/in/john")
-                .introduction("intro")
-                .matchPref("Mentor")
-                .industryPref("Tech")
-                .rolePref("Engineer")
-                .topics("AI")
-                .extraNotes("notes")
                 .build();
 
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
-        when(memberRepo.updateMember(any())).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
 
         final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
         memberService.updateMember(request, id);
+
         verify(memberRepo).updateMember(captor.capture());
         final Member captured = captor.getValue();
 
+        assertEquals("UpdatedFirstName", captured.getFirstName());
         assertEquals("john@example.com", captured.getEmail());
-        verify(memberRepo, never()).getMemberByEmail(any());
     }
 
     @Test

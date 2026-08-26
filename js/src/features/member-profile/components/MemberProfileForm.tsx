@@ -162,9 +162,10 @@ export function MemberProfileForm({ id }: { id: string }) {
             required
             type="email"
             label="Email Address"
-            description="Use an email address you check regularly, as this is how we will contact you about your matches!"
+            description="Use an email address you check regularly, as this is how we will contact you about your matches! (Email changes are not currently supported.)"
             value={values.email}
-            disabled={!isEditing}
+            // Always disabled for now until we implement email change verification
+            disabled
             onChange={(event) => handleFieldChange("email", event.target.value)}
             onBlur={() => handleFieldBlur("email")}
             error={errors.email}

@@ -15,7 +15,6 @@ import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.ValidationException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -73,9 +72,12 @@ public class MemberService {
             return MemberDto.from(member);
         }
 
+        if (request.email().isPresent() && !request.email().get().equals(member.getEmail())) {
+            throw new ValidationException("Email changes are not currently supported");
+        }
+
         validateAndUpdate(request.firstName(), member::setFirstName, "firstName", true);
         validateAndUpdate(request.lastName(), member::setLastName, "lastName", true);
-        validateAndUpdate(request.email(), member::setEmail, "email", true);
         validateAndUpdate(request.introduction(), member::setIntroduction, "introduction", true);
         validateAndUpdate(request.linkedInUrl(), member::setLinkedInUrl, "linkedInUrl", false);
         validateAndUpdate(request.matchPref(), member::setMatchPref, "matchPref", false);
@@ -84,12 +86,9 @@ public class MemberService {
         validateAndUpdate(request.topics(), member::setTopics, "topics", false);
         validateAndUpdate(request.extraNotes(), member::setExtraNotes, "extraNotes", false);
 
-        try {
-            Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
-            return MemberDto.from(updatedMember);
-        } catch (DuplicateKeyException e) {
-            throw new MemberDuplicateException(member.getEmail());
-        }
+        // Duplicate-email check removed with email-change support; see 512ed6f — revisit once email verification ships
+        Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
+        return MemberDto.from(updatedMember);
     }
 
     private void validateAndUpdate(
