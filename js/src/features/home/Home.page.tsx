@@ -12,6 +12,12 @@ export default function HomePage() {
       <Anchor component={Link} to="/sign-up">
         Complete the signup form
       </Anchor>
+      <Anchor
+        component={Link}
+        to="/profile/a7746c47-af2d-4837-8992-c88bee9923ca"
+      >
+        Temporary member page for testing
+      </Anchor>
       <Anchor component={Link} to="/sample">
         Go to the app
       </Anchor>
