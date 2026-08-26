@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.springframework.jdbc.core.RowMapper;
@@ -87,6 +88,56 @@ class MemberSqlRepoTest {
         verify(statement).param("page_size", 20);
         verify(statement).param("offset", 40L);
         verify(query).list();
+    }
+
+    @Test
+    void getMembersByFiltersOnlyIncludesProvidedCriteriaInWhereClause() {
+        final JdbcClient jdbc = mock(JdbcClient.class);
+        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
+        final JdbcClient.MappedQuerySpec<Member> query = mock(JdbcClient.MappedQuerySpec.class);
+        final MemberFilterCriteria criteria = new MemberFilterCriteria(
+                Optional.of("Alex"),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(true),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of("Community"),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
+        final ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+
+        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
+        when(statement.params(ArgumentMatchers.anyMap())).thenReturn(statement);
+        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
+                .thenReturn(statement);
+        when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
+        when(query.list()).thenReturn(List.of());
+
+        new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
+
+        verify(jdbc).sql(sqlCaptor.capture());
+        assertEquals("""
+                SELECT
+                    *
+                FROM
+                    members
+                WHERE
+                    LOWER(first_name) = LOWER(:first_name)
+                AND
+                    active = :active
+                AND
+                    LOWER(topics) = LOWER(:topics)
+                ORDER BY
+                    created_at DESC,
+                    id
+                LIMIT
+                    :page_size
+                OFFSET
+                    :offset
+                """, sqlCaptor.getValue());
+        verify(statement).params(Map.of("first_name", "Alex", "active", true, "topics", "Community"));
     }
 
     private static MemberFilterCriteria emptyCriteria() {
