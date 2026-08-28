@@ -13,6 +13,7 @@ import org.patinanetwork.patchats.api.member.db.repos.MemberFilterCriteria;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
+import org.patinanetwork.patchats.api.member.dto.UpdateMemberStatusRequest;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -73,9 +74,11 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponder.success("Member retrieved successfully", response));
     }
 
-    // @DeleteMapping("/{id}")
-    // public ResponseEntity<ApiResponder<MemberDto>> deactivateMember(@PathVariable final UUID id) {
-    //     final MemberDto response = memberService.deactivateMemberById(id);
-    //     return ResponseEntity.ok(ApiResponder.success("Member deactivated successfully", response));
-    // }
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ApiResponder<MemberDto>> updateMemberStatus(
+            @Valid @RequestBody final UpdateMemberStatusRequest request, @PathVariable final UUID id) {
+        final MemberDto response = memberService.updateMemberStatus(request, id);
+        final String message = request.active() ? "Member reactivated successfully" : "Member deactivated successfully";
+        return ResponseEntity.ok(ApiResponder.success(message, response));
+    }
 }

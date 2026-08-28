@@ -12,6 +12,7 @@ import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
+import org.patinanetwork.patchats.api.member.dto.UpdateMemberStatusRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.ValidationException;
@@ -107,10 +108,10 @@ public class MemberService {
         return MemberDto.from(member);
     }
 
-    // public MemberDto deactivateMember(UUID id) {
-    //     return memberRepo
-    //             .deactivateMember(id)
-    //             .map(MemberDto::from)
-    //             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
-    // }
+    public MemberDto updateMemberStatus(UpdateMemberStatusRequest request, UUID id) {
+        Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
+        member.setActive(request.active());
+        Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
+        return MemberDto.from(updatedMember);
+    }
 }

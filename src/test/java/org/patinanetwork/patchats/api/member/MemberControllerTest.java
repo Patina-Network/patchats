@@ -22,6 +22,7 @@ import org.patinanetwork.patchats.api.member.db.repos.MemberFilterCriteria;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
+import org.patinanetwork.patchats.api.member.dto.UpdateMemberStatusRequest;
 import org.patinanetwork.patchats.common.web.ApiExceptionHandler;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
@@ -326,6 +327,82 @@ class MemberControllerTest {
         mockMvc.perform(patch("/api/members/{id}", "invalid-uuid")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateMemberStatus_deactivatesSuccessfully() throws Exception {
+        final UUID id = UUID.randomUUID();
+        final MemberDto response = MemberDto.builder()
+                .id(id)
+                .firstName("John")
+                .lastName("Doe")
+                .active(false)
+                .build();
+
+        when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(false), id))
+                .thenReturn(response);
+
+        mockMvc.perform(patch("/api/members/{id}/status", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UpdateMemberStatusRequest(false))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Member deactivated successfully"))
+                .andExpect(jsonPath("$.payload.active").value(false));
+    }
+
+    @Test
+    void updateMemberStatus_reactivatesSuccessfully() throws Exception {
+        final UUID id = UUID.randomUUID();
+        final MemberDto response = MemberDto.builder()
+                .id(id)
+                .firstName("John")
+                .lastName("Doe")
+                .active(true)
+                .build();
+
+        when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(true), id))
+                .thenReturn(response);
+
+        mockMvc.perform(patch("/api/members/{id}/status", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UpdateMemberStatusRequest(true))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Member reactivated successfully"))
+                .andExpect(jsonPath("$.payload.active").value(true));
+    }
+
+    @Test
+    void updateMemberStatus_notFoundWhenMemberDoesNotExist() throws Exception {
+        final UUID id = UUID.randomUUID();
+        when(memberService.updateMemberStatus(any(UpdateMemberStatusRequest.class), eq(id)))
+                .thenThrow(new MemberNotFoundException(id));
+
+        mockMvc.perform(patch("/api/members/{id}/status", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UpdateMemberStatusRequest(false))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void updateMemberStatus_badRequestWhenActiveMissing() throws Exception {
+        final UUID id = UUID.randomUUID();
+
+        mockMvc.perform(patch("/api/members/{id}/status", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void updateMemberStatus_badRequestWhenInvalidUuid() throws Exception {
+        mockMvc.perform(patch("/api/members/{id}/status", "invalid-uuid")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UpdateMemberStatusRequest(false))))
                 .andExpect(status().isBadRequest());
     }
 

@@ -44,6 +44,8 @@ public class SecurityConfig {
 
     public static final String SESSION_COOKIE_NAME = "patchats_session";
 
+    public static final String ADMIN_ROLE = "ADMIN";
+
     private final ApiAuthenticationEntryPoint authenticationEntryPoint;
 
     /** Shapes the Spring Session cookie; picked up automatically by Spring Session's auto-configuration. */
@@ -79,9 +81,11 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         return common(http)
                 .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/api/email/**")
-                        .hasRole("ADMIN")
+                        .hasRole(ADMIN_ROLE)
                         .requestMatchers(HttpMethod.GET, "/api/members")
-                        .hasRole("ADMIN")
+                        .hasRole(ADMIN_ROLE)
+                        .requestMatchers(HttpMethod.PATCH, "/api/members/*/status")
+                        .hasRole(ADMIN_ROLE)
                         .requestMatchers(HttpMethod.GET, "/api/session")
                         .authenticated()
                         .anyRequest()
