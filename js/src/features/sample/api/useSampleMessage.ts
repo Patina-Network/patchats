@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, ApiResponder } from "@/lib/api/client";
 import { useQuery } from "@tanstack/react-query";
 
 export interface SampleMessage {
@@ -11,6 +11,7 @@ export const sampleMessageQueryKey = ["sample", "message"] as const;
 export function useSampleMessage() {
   return useQuery({
     queryKey: sampleMessageQueryKey,
-    queryFn: () => apiFetch<SampleMessage>("/sample/message"),
+    queryFn: async () =>
+      (await apiFetch<ApiResponder<SampleMessage>>("/sample/message")).payload,
   });
 }

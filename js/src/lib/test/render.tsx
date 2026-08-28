@@ -2,7 +2,7 @@ import { themeOverride } from "@/app/providers/theme";
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, RenderOptions } from "@testing-library/react";
-import { ReactElement, ReactNode } from "react";
+import { ReactElement, ReactNode, StrictMode } from "react";
 import { MemoryRouter } from "react-router-dom";
 
 /**
@@ -14,13 +14,17 @@ function createWrapper(route: string) {
     defaultOptions: { queries: { retry: false } },
   });
 
+  // StrictMode mirrors main.tsx: double-invoked effects surface bugs (e.g.
+  // observers detached from in-flight requests) that a bare render hides.
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <MantineProvider theme={themeOverride} forceColorScheme="dark">
-          <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
-        </MantineProvider>
-      </QueryClientProvider>
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <MantineProvider theme={themeOverride} forceColorScheme="dark">
+            <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+          </MantineProvider>
+        </QueryClientProvider>
+      </StrictMode>
     );
   };
 }

@@ -6,6 +6,10 @@ import { http, HttpResponse } from "msw";
  */
 export const sampleHandlers = [
   http.get("/api/sample/message", () =>
-    HttpResponse.json({ message: "Hello from MSW" }),
+    HttpResponse.json({
+      success: true,
+      message: "",
+      payload: { message: "Hello from MSW" },
+    }),
   ),
 ];

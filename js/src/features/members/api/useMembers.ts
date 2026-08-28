@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, ApiResponder } from "@/lib/api/client";
 import { useQuery } from "@tanstack/react-query";
 
 export interface Member {
@@ -17,12 +17,6 @@ export interface Member {
   rolePref: string | null;
   topics: string | null;
   updatedAt: string;
-}
-
-interface MembersResponse {
-  message: string;
-  payload: Member[];
-  success: boolean;
 }
 
 export interface MemberFilters {
@@ -54,7 +48,7 @@ export function useMembers(filters: MemberFilters = {}) {
 
       const query = searchParams.toString();
       const path = query ? `/members?${query}` : "/members";
-      const response = await apiFetch<MembersResponse>(path);
+      const response = await apiFetch<ApiResponder<Member[]>>(path);
       return response.payload;
     },
   });
