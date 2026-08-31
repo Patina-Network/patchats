@@ -2,7 +2,7 @@ package org.patinanetwork.patchats.api.match.db.repos;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,9 +23,12 @@ public class MatchSqlRepo implements MatchRepo {
                 .memberAId(UUID.fromString(rs.getString("member_a_id")))
                 .memberBId(UUID.fromString(rs.getString("member_b_id")))
                 .matchCycleId(rs.getInt("cycle_id"))
-                .matchScore(rs.getObject("match_score", Double.class))
+                .matchScore(
+                        rs.getObject("match_score", Float.class) == null
+                                ? null
+                                : rs.getObject("match_score", Float.class).doubleValue())
                 .status(rs.getString("status"))
-                .createdAt(rs.getObject("created_at", Instant.class))
+                .createdAt(rs.getObject("created_at", OffsetDateTime.class).toInstant())
                 .build();
     }
 
@@ -110,7 +113,7 @@ public class MatchSqlRepo implements MatchRepo {
     }
 
     @Override
-    public Optional<Match> setMatchScore(UUID id, Integer score) {
+    public Optional<Match> setMatchScore(UUID id, Double score) {
         String sql = """
           UPDATE "matches" SET "match_score" = :score
           WHERE "id" = :id

@@ -8,6 +8,8 @@ import org.patinanetwork.patchats.common.dto.ApiResponder;
 import org.patinanetwork.patchats.common.web.exception.EmailNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.EmailNotResendableException;
 import org.patinanetwork.patchats.common.web.exception.EmailTemplateNotFoundException;
+import org.patinanetwork.patchats.common.web.exception.MatchCycleDuplicateException;
+import org.patinanetwork.patchats.common.web.exception.MatchCycleNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.ValidationException;
@@ -52,6 +54,16 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(MemberDuplicateException.class)
     public ResponseEntity<ApiResponder<Void>> handleMemberDuplicate(final MemberDuplicateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MatchCycleNotFoundException.class)
+    public ResponseEntity<ApiResponder<Void>> handleMatchCycleNotFound(final MatchCycleNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MatchCycleDuplicateException.class)
+    public ResponseEntity<ApiResponder<Void>> handleMatchCycleDuplicate(final MatchCycleDuplicateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponder.failure(ex.getMessage()));
     }
 
