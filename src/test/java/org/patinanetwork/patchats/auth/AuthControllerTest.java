@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
+import org.patinanetwork.patchats.auth.repo.AdminRepo;
 import org.patinanetwork.patchats.common.web.ApiExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,6 +38,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private MemberRepo members;
+
+    @MockitoBean
+    private AdminRepo admins;
 
     @MockitoBean
     private SecurityContextRepository securityContextRepository;
@@ -78,13 +82,8 @@ class AuthControllerTest {
 
     @Test
     void verifyReturnsSessionPayloadAndSavesContext() throws Exception {
-        final Member member = Member.builder()
-                .id(UUID.randomUUID())
-                .email("ann@example.com")
-                .firstName("Ann")
-                .lastName("Example")
-                .build();
-        when(authService.verify("raw-token")).thenReturn(member);
+        when(authService.verify("raw-token")).thenReturn(ann());
+        when(admins.isAdmin("ann@example.com")).thenReturn(false);
 
         mockMvc.perform(post("/api/auth/verify")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,9 +92,30 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.payload.email").value("ann@example.com"))
                 .andExpect(jsonPath("$.payload.name").value("Ann Example"))
-                .andExpect(jsonPath("$.payload.isAdmin").value(true));
+                .andExpect(jsonPath("$.payload.isAdmin").value(false));
 
         verify(securityContextRepository).saveContext(any(), any(), any());
+    }
+
+    @Test
+    void verifyFlagsAnAllowlistedMemberAsAdmin() throws Exception {
+        when(authService.verify("raw-token")).thenReturn(ann());
+        when(admins.isAdmin("ann@example.com")).thenReturn(true);
+
+        mockMvc.perform(post("/api/auth/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"raw-token\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.payload.isAdmin").value(true));
+    }
+
+    private static Member ann() {
+        return Member.builder()
+                .id(UUID.randomUUID())
+                .email("ann@example.com")
+                .firstName("Ann")
+                .lastName("Example")
+                .build();
     }
 
     @Test
