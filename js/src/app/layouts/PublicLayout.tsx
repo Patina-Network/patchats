@@ -1,5 +1,5 @@
 import { PublicNavbar } from "@/app/layouts/PublicNavbar";
-import { AppShell, Container } from "@mantine/core";
+import { AppShell } from "@mantine/core";
 import { Outlet } from "react-router-dom";
 
 /** Chrome for public (unauthenticated) pages, e.g. landing and login. */
@@ -12,9 +12,7 @@ export function PublicLayout() {
         <PublicNavbar />
       </AppShell.Header>
       <AppShell.Main>
-        <Container py="xl" size="sm">
-          <Outlet />
-        </Container>
+        <Outlet />
       </AppShell.Main>
     </AppShell>
   );
