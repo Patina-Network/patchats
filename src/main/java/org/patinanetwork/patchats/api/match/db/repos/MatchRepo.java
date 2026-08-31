@@ -35,7 +35,7 @@ public interface MatchRepo {
 
     Optional<Match> setMatchStatus(UUID id, String status);
 
-    Optional<Match> setMatchScore(UUID id, Integer score);
+    Optional<Match> setMatchScore(UUID id, Double score);
 
     Optional<Match> deleteMatchById(UUID id);
 
