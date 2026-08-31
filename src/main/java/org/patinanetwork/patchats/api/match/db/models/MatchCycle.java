@@ -21,6 +21,5 @@ public class MatchCycle {
     private Instant runAt;
 
     @Setter
-    @Builder.Default
-    private boolean isDraft = true;
+    private Boolean isDraft;
 }
