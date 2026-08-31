@@ -2,7 +2,7 @@ package org.patinanetwork.patchats.api.match.db.repos;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
         return MatchCycle.builder()
                 .id(rs.getInt("id"))
                 .period(rs.getString("period"))
-                .runAt(rs.getObject("run_at", Instant.class))
+                .runAt(rs.getObject("run_at", OffsetDateTime.class).toInstant())
                 .isDraft(rs.getBoolean("is_draft"))
                 .build();
     }
@@ -44,7 +44,7 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
         return jdbc.sql(sql)
                 .param("period", matchCycle.getPeriod())
                 .param("run_at", matchCycle.getRunAt())
-                .param("is_draft", matchCycle.isDraft())
+                .param("is_draft", matchCycle.getIsDraft())
                 .query((rs, rowNum) -> parseResultSetToMatchCycle(rs))
                 .single();
     }
@@ -64,7 +64,7 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
                 .param("id", matchCycle.getId())
                 .param("period", matchCycle.getPeriod())
                 .param("run_at", matchCycle.getRunAt())
-                .param("is_draft", matchCycle.isDraft())
+                .param("is_draft", matchCycle.getIsDraft())
                 .query((rs, rowNum) -> parseResultSetToMatchCycle(rs))
                 .optional();
     }
@@ -78,6 +78,19 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
         """;
         return jdbc.sql(sql)
                 .param("id", id)
+                .query((rs, rowNum) -> parseResultSetToMatchCycle(rs))
+                .optional();
+    }
+
+    @Override
+    public Optional<MatchCycle> getMatchCycleByPeriod(String period) {
+        String sql = """
+            SELECT *
+            FROM match_cycles
+            WHERE period = :period
+        """;
+        return jdbc.sql(sql)
+                .param("period", id)
                 .query((rs, rowNum) -> parseResultSetToMatchCycle(rs))
                 .optional();
     }
