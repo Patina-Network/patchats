@@ -19,6 +19,7 @@ import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.auth.AuthController;
 import org.patinanetwork.patchats.auth.AuthService;
+import org.patinanetwork.patchats.auth.repo.AdminRepo;
 import org.patinanetwork.patchats.common.web.ApiExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -47,6 +48,9 @@ class SecurityWiringTest {
     @MockitoBean
     private MemberRepo members;
 
+    @MockitoBean
+    private AdminRepo admins;
+
     @Test
     void sessionEndpointRejectsAnonymousWithJsonEnvelope() throws Exception {
         mockMvc.perform(get("/api/session"))
@@ -64,7 +68,7 @@ class SecurityWiringTest {
     }
 
     @Test
-    void emailEndpointStaysAdminOnlyAndFailsClosed() throws Exception {
+    void emailEndpointRejectsAnonymousCallers() throws Exception {
         mockMvc.perform(post("/api/email/send")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}")
@@ -146,5 +150,56 @@ class SecurityWiringTest {
 
         mockMvc.perform(post("/api/auth/logout").session(session).with(csrf())).andExpect(status().isOk());
         assertTrue(session.isInvalid());
+    }
+
+    @Test
+    void adminEndpointsAreForbiddenToASignedInNonAdmin() throws Exception {
+        final MockHttpSession session = signIn(false);
+
+        mockMvc.perform(post("/api/email/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/members").session(session)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminEndpointsAdmitAMemberOnTheAllowlist() throws Exception {
+        final MockHttpSession session = signIn(true);
+
+        // EmailController and MemberController are outside this slice, so the concrete status is incidental — what
+        // matters is that authorization no longer rejects the call.
+        mockMvc.perform(post("/api/email/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(result -> assertNotEquals(
+                        HttpServletResponse.SC_FORBIDDEN,
+                        result.getResponse().getStatus(),
+                        "an allowlisted admin must clear the ROLE_ADMIN check"));
+    }
+
+    /** Completes a magic-link verification and returns the session it established. */
+    private MockHttpSession signIn(final boolean isAdmin) throws Exception {
+        final Member member = Member.builder()
+                .id(UUID.randomUUID())
+                .email("ann@example.com")
+                .firstName("Ann")
+                .lastName("Example")
+                .build();
+        when(authService.verify("raw-token")).thenReturn(member);
+        when(admins.isAdmin(member.getEmail())).thenReturn(isAdmin);
+
+        final MvcResult login = mockMvc.perform(post("/api/auth/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"raw-token\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        final MockHttpSession session = (MockHttpSession) login.getRequest().getSession(false);
+        assertNotNull(session, "verify must establish a session");
+        return session;
     }
 }
