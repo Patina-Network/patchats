@@ -196,9 +196,4 @@ public class MemberSqlRepo implements MemberRepo {
                 .query(MEMBER_ROW_MAPPER)
                 .optional();
     }
-
-    @Override
-    public Optional<Member> deactivateMemberById(UUID id) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
 }

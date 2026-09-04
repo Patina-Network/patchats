@@ -22,6 +22,7 @@ import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
+import org.patinanetwork.patchats.api.member.dto.UpdateMemberStatusRequest;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.ValidationException;
@@ -429,6 +430,80 @@ class MemberServiceTest {
         assertEquals("John", response.get(0).getFirstName());
         assertEquals("Doe", response.get(0).getLastName());
         assertEquals("jane.doe@example.com", response.get(1).getEmail());
+    }
+
+    @Test
+    void updateMemberStatus_deactivatesMember() {
+        final UUID id = UUID.randomUUID();
+        final Member existingMember = Member.builder()
+                .id(id)
+                .firstName("John")
+                .lastName("Doe")
+                .active(true)
+                .build();
+
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
+
+        memberService.updateMemberStatus(new UpdateMemberStatusRequest(false), id);
+
+        verify(memberRepo).updateMember(captor.capture());
+        assertEquals(false, captor.getValue().isActive());
+    }
+
+    @Test
+    void updateMemberStatus_reactivatesMember() {
+        final UUID id = UUID.randomUUID();
+        final Member existingMember = Member.builder()
+                .id(id)
+                .firstName("John")
+                .lastName("Doe")
+                .active(false)
+                .build();
+
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
+
+        memberService.updateMemberStatus(new UpdateMemberStatusRequest(true), id);
+
+        verify(memberRepo).updateMember(captor.capture());
+        assertTrue(captor.getValue().isActive());
+    }
+
+    @Test
+    void updateMemberStatus_deactivatingAnAlreadyInactiveMemberSucceeds() {
+        final UUID id = UUID.randomUUID();
+        final Member existingMember = Member.builder()
+                .id(id)
+                .firstName("John")
+                .lastName("Doe")
+                .active(false)
+                .build();
+
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
+
+        final MemberDto response = memberService.updateMemberStatus(new UpdateMemberStatusRequest(false), id);
+
+        verify(memberRepo).updateMember(captor.capture());
+        assertEquals(false, captor.getValue().isActive());
+        assertEquals(false, response.getActive());
+    }
+
+    @Test
+    void updateMemberStatus_throwsWhenMemberNotFound() {
+        final UUID id = UUID.randomUUID();
+        final UpdateMemberStatusRequest request = new UpdateMemberStatusRequest(false);
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.empty());
+
+        assertThrows(MemberNotFoundException.class, () -> memberService.updateMemberStatus(request, id));
+        verify(memberRepo, never()).updateMember(any());
     }
 
     private static MemberFilterCriteria emptyCriteria() {

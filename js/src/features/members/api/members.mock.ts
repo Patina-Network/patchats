@@ -43,4 +43,31 @@ export const membersHandlers = [
       success: true,
     }),
   ),
+  http.patch("/api/members/:id/status", async ({ params, request }) => {
+    const { active } = (await request.json()) as { active: boolean };
+    return HttpResponse.json({
+      message:
+        active ?
+          "Member reactivated successfully"
+        : "Member deactivated successfully",
+      payload: {
+        active,
+        createdAt: "2026-01-15T14:30:00Z",
+        email: "alex@example.com",
+        extraNotes: null,
+        firstName: "Alex",
+        id: params.id,
+        industryPref: "Technology",
+        introduction: "I build community-focused software.",
+        lastName: "Morgan",
+        linkedInUrl: "https://www.linkedin.com/in/alex-morgan",
+        matchPref: "Peer",
+        referralSource: "Patina Network",
+        rolePref: "Engineering",
+        topics: "Community, Technology",
+        updatedAt: "2026-01-15T14:30:00Z",
+      },
+      success: true,
+    });
+  }),
 ];

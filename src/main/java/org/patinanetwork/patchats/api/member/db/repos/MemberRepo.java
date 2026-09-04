@@ -47,6 +47,4 @@ public interface MemberRepo {
     Optional<Member> getMemberById(UUID id);
 
     Optional<Member> getMemberByEmail(String email);
-
-    Optional<Member> deactivateMemberById(UUID id);
 }

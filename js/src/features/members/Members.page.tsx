@@ -1,4 +1,9 @@
-import { MemberFilters, useMembers } from "@/features/members/api/useMembers";
+import {
+  Member,
+  MemberFilters,
+  useMembers,
+} from "@/features/members/api/useMembers";
+import { useUpdateMemberStatus } from "@/features/members/api/useUpdateMemberStatus";
 import {
   Alert,
   Anchor,
@@ -17,6 +22,8 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -72,10 +79,53 @@ export function MembersPage() {
     validate: zodResolver(memberFiltersSchema),
   });
   const { data: members, isError, isPending } = useMembers(filters);
+  const {
+    mutate: updateStatus,
+    isPending: isUpdatingStatus,
+    variables: statusUpdateVariables,
+  } = useUpdateMemberStatus();
 
   const clearFilters = () => {
     form.reset();
     setFilters({});
+  };
+
+  const handleToggleStatus = (member: Member) => {
+    const nextActive = !member.active;
+    modals.openConfirmModal({
+      title: nextActive ? "Reactivate member" : "Deactivate member",
+      children: (
+        <Text size="sm">
+          {nextActive ?
+            `Reactivate ${member.firstName} ${member.lastName}? They will be included in the next matching cycle again.`
+          : `Deactivate ${member.firstName} ${member.lastName}? They won't be included in the next matching cycle until reactivated.`
+          }
+        </Text>
+      ),
+      labels: {
+        confirm: nextActive ? "Reactivate" : "Deactivate",
+        cancel: "Cancel",
+      },
+      confirmProps: { color: nextActive ? "green" : "red" },
+      onConfirm: () =>
+        updateStatus(
+          { active: nextActive, id: member.id },
+          {
+            onError: () =>
+              notifications.show({
+                color: "red",
+                message: `Could not update status for ${member.firstName} ${member.lastName}.`,
+                title: "Update failed",
+              }),
+            onSuccess: () =>
+              notifications.show({
+                color: "green",
+                message: `${member.firstName} ${member.lastName} is now ${nextActive ? "active" : "inactive"}.`,
+                title: nextActive ? "Member reactivated" : "Member deactivated",
+              }),
+          },
+        ),
+    });
   };
 
   if (isPending) {
@@ -199,6 +249,7 @@ export function MembersPage() {
                 <Table.Th>Topics</Table.Th>
                 <Table.Th>Joined</Table.Th>
                 <Table.Th>Profile</Table.Th>
+                <Table.Th>Actions</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -239,6 +290,20 @@ export function MembersPage() {
                     <Anchor component={Link} to={`/profile/${member.id}`}>
                       View
                     </Anchor>
+                  </Table.Td>
+                  <Table.Td>
+                    <Button
+                      color={member.active ? "red" : "green"}
+                      loading={
+                        isUpdatingStatus &&
+                        statusUpdateVariables?.id === member.id
+                      }
+                      onClick={() => handleToggleStatus(member)}
+                      size="xs"
+                      variant="light"
+                    >
+                      {member.active ? "Deactivate" : "Reactivate"}
+                    </Button>
                   </Table.Td>
                 </Table.Tr>
               ))}
