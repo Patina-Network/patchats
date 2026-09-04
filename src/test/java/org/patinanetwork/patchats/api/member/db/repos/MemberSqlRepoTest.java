@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -18,11 +19,22 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 
 class MemberSqlRepoTest {
 
+    private final JdbcClient jdbc = mock(JdbcClient.class);
+    private final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
+    private final JdbcClient.MappedQuerySpec<Member> query = mock(JdbcClient.MappedQuerySpec.class);
+    private final MemberSqlRepo memberSqlRepo = new MemberSqlRepo(jdbc);
+
+    @BeforeEach
+    void setUp() {
+        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
+        when(statement.params(ArgumentMatchers.anyMap())).thenReturn(statement);
+        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
+                .thenReturn(statement);
+        when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
+    }
+
     @Test
-    void getMembersAllReturnsRowsFromDatabase() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Member> query = mock(JdbcClient.MappedQuerySpec.class);
+    void getMembersAll_returnsRowsFromDatabase() {
         final MemberFilterCriteria criteria = emptyCriteria();
         final Member member = Member.builder()
                 .id(UUID.randomUUID())
@@ -32,13 +44,9 @@ class MemberSqlRepoTest {
                 .active(true)
                 .build();
 
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
         when(query.list()).thenReturn(List.of(member));
 
-        final List<Member> result = new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
+        final List<Member> result = memberSqlRepo.getMembersByFilters(criteria);
 
         assertEquals(List.of(member), result);
         verify(jdbc).sql(ArgumentMatchers.anyString());
@@ -48,10 +56,7 @@ class MemberSqlRepoTest {
     }
 
     @Test
-    void getMembersByFiltersAppliesEveryProvidedCriterion() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Member> query = mock(JdbcClient.MappedQuerySpec.class);
+    void getMembersByFilters_appliesEveryProvidedCriterion() {
         final MemberFilterCriteria criteria = new MemberFilterCriteria(
                 Optional.of("Alex"),
                 Optional.of("Morgan"),
@@ -64,14 +69,9 @@ class MemberSqlRepoTest {
                 3,
                 20);
 
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.params(ArgumentMatchers.anyMap())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
         when(query.list()).thenReturn(List.of());
 
-        final List<Member> result = new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
+        final List<Member> result = memberSqlRepo.getMembersByFilters(criteria);
 
         assertEquals(List.of(), result);
         verify(jdbc).sql(ArgumentMatchers.anyString());
@@ -91,10 +91,7 @@ class MemberSqlRepoTest {
     }
 
     @Test
-    void getMembersByFiltersOnlyIncludesProvidedCriteriaInWhereClause() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Member> query = mock(JdbcClient.MappedQuerySpec.class);
+    void getMembersByFilters_onlyIncludesProvidedCriteriaInWhereClause() {
         final MemberFilterCriteria criteria = new MemberFilterCriteria(
                 Optional.of("Alex"),
                 Optional.empty(),
@@ -108,14 +105,9 @@ class MemberSqlRepoTest {
                 MemberFilterCriteria.DEFAULT_PAGE_SIZE);
         final ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
 
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.params(ArgumentMatchers.anyMap())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
         when(query.list()).thenReturn(List.of());
 
-        new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
+        memberSqlRepo.getMembersByFilters(criteria);
 
         verify(jdbc).sql(sqlCaptor.capture());
         assertEquals("""
