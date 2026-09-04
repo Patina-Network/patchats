@@ -22,7 +22,7 @@ final class MemberTestFixtures {
     static final UpdateMemberRequest UPDATE_REQUEST_ALL_FIELDS = new UpdateMemberRequest(
             Optional.of("UpdatedFirstName"),
             Optional.of("UpdatedLastName"),
-            Optional.of("updated@example.com"),
+            Optional.empty(), // Email changes are not currently supported
             Optional.of("https://linkedin.com/in/updated"),
             Optional.of("Updated intro"),
             Optional.of("Mentor - I am looking for guidance from someone with more experience"),

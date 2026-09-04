@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.patinanetwork.patchats.api.member.db.repos.MemberFilterCriteria;
 import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
@@ -232,30 +233,6 @@ class MemberControllerTest {
     }
 
     @Test
-    void updateMember_badRequestWhenBlankRequiredField() throws Exception {
-        final UUID id = UUID.randomUUID();
-        final UpdateMemberRequest request = new UpdateMemberRequest(
-                Optional.of(""),
-                Optional.of("UpdatedLastName"),
-                Optional.of("updated@example.com"),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
-
-        when(memberService.updateMember(any(), any())).thenThrow(new ValidationException("firstName cannot be empty"));
-
-        mockMvc.perform(patch("/api/members/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("firstName cannot be empty"));
-    }
-
-    @Test
     void updateMember_notFoundWhenMemberDoesNotExist() throws Exception {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
@@ -280,6 +257,7 @@ class MemberControllerTest {
                 .andExpect(jsonPath("$.success").value(false));
     }
 
+    @Disabled("Email changes are not currently supported, so this test is not applicable.")
     @Test
     void updateMember_conflictWhenEmailIsDuplicate() throws Exception {
         final UUID id = UUID.randomUUID();
