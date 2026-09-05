@@ -8,11 +8,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Getter
-@Builder
 @ToString
+@Builder
 @EqualsAndHashCode(of = "id")
 public class MatchCycle {
-
     private Integer id;
 
     @Setter
@@ -20,4 +19,7 @@ public class MatchCycle {
 
     @Setter
     private Instant runAt;
+
+    @Setter
+    private Boolean isDraft;
 }
