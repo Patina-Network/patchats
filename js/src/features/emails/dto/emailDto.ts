@@ -27,6 +27,7 @@ export interface MessagePreview {
 }
 
 export interface SendRequest {
+  templateId: string;
   subject: string;
   body: string;
   replyTo: string | null;
