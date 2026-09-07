@@ -174,4 +174,9 @@ public class MemberSqlRepo implements MemberRepo {
                 .query(memberRowMapper)
                 .optional();
     }
+
+    @Override
+    public boolean deleteMemberById(UUID id) {
+        return jdbc.sql("DELETE FROM members WHERE id = :id").param("id", id).update() == 1;
+    }
 }
