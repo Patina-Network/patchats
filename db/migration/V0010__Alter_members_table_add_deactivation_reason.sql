@@ -1,0 +1,1 @@
+ALTER TABLE members ADD COLUMN deactivation_reason TEXT;
