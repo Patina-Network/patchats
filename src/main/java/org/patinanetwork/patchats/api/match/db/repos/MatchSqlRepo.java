@@ -18,15 +18,13 @@ public class MatchSqlRepo implements MatchRepo {
     private final JdbcClient jdbc;
 
     private Match parseResultSetToMatch(final ResultSet rs) throws SQLException {
+        final Float matchScore = rs.getObject("match_score", Float.class);
         return Match.builder()
                 .id(UUID.fromString(rs.getString("id")))
                 .memberAId(UUID.fromString(rs.getString("member_a_id")))
                 .memberBId(UUID.fromString(rs.getString("member_b_id")))
                 .matchCycleId(rs.getInt("cycle_id"))
-                .matchScore(
-                        rs.getObject("match_score", Float.class) == null
-                                ? null
-                                : rs.getObject("match_score", Float.class).doubleValue())
+                .matchScore(matchScore == null ? null : matchScore.doubleValue())
                 .status(rs.getString("status"))
                 .createdAt(rs.getObject("created_at", OffsetDateTime.class).toInstant())
                 .build();
