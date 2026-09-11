@@ -36,7 +36,7 @@ public interface MatchCycleRepo {
 
     Optional<MatchCycle> getMatchCycleByPeriod(String period);
 
-    Optional<MatchCycle> setMatchCycleDraft(Integer id, boolean isDraft);
+    Optional<MatchCycle> setMatchCycleIsDraft(Integer id, boolean isDraft);
 
     Optional<MatchCycle> deleteMatchCycleById(Integer id);
 

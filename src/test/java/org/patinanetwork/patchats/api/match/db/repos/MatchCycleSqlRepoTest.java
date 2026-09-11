@@ -99,7 +99,7 @@ class MatchCycleSqlRepoTest {
     }
 
     @Test
-    void setMatchCycleDraftBindsDraft() {
+    void setMatchCycleIsDraftBindsDraft() {
         final JdbcClient jdbc = mock(JdbcClient.class);
         final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
         final JdbcClient.MappedQuerySpec<MatchCycle> query = mock(JdbcClient.MappedQuerySpec.class);
@@ -111,7 +111,7 @@ class MatchCycleSqlRepoTest {
         when(statement.query(ArgumentMatchers.<RowMapper<MatchCycle>>any())).thenReturn(query);
         when(query.optional()).thenReturn(Optional.of(matchCycle));
 
-        final Optional<MatchCycle> result = new MatchCycleSqlRepo(jdbc).setMatchCycleDraft(1, false);
+        final Optional<MatchCycle> result = new MatchCycleSqlRepo(jdbc).setMatchCycleIsDraft(1, false);
 
         assertTrue(result.isPresent());
         assertEquals(matchCycle, result.get());
