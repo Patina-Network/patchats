@@ -44,7 +44,9 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
 
         return jdbc.sql(sql)
                 .param("period", matchCycle.getPeriod())
-                .param("run_at", matchCycle.getRunAt().atOffset(ZoneOffset.UTC))
+                .param(
+                        "run_at",
+                        matchCycle.getRunAt() != null ? matchCycle.getRunAt().atOffset(ZoneOffset.UTC) : null)
                 .param("is_draft", matchCycle.getIsDraft())
                 .query((rs, rowNum) -> parseResultSetToMatchCycle(rs))
                 .single();
@@ -97,7 +99,7 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
     }
 
     @Override
-    public Optional<MatchCycle> setMatchCycleDraft(Integer id, boolean isDraft) {
+    public Optional<MatchCycle> setMatchCycleIsDraft(Integer id, boolean isDraft) {
         String sql = """
             UPDATE "match_cycles" SET
                 "is_draft" = :is_draft
