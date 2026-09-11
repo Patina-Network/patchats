@@ -68,9 +68,9 @@ public class MatchCycleService {
         }
     }
 
-    public MatchCycleResponse setMatchCycleDraft(Integer id, boolean isDraft) {
+    public MatchCycleResponse setMatchCycleIsDraft(Integer id, boolean isDraft) {
         MatchCycle matchCycle =
-                matchCycleRepo.setMatchCycleDraft(id, isDraft).orElseThrow(() -> new MatchCycleNotFoundException(id));
+                matchCycleRepo.setMatchCycleIsDraft(id, isDraft).orElseThrow(() -> new MatchCycleNotFoundException(id));
         return MatchCycleResponse.from(matchCycle);
     }
 
