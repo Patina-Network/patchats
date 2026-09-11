@@ -305,6 +305,20 @@ export function MemberProfileForm({ id }: { id: string }) {
               </Button>
             }
           </Group>
+          <Divider />
+          <Textarea
+            required
+            label="Introduce yourself to your PatChats match in 1-2 sentences, written in third person"
+            description="e.g. Jane is a marketing manager with 5 years of experience in the tech industry. She is passionate about mentorship and is looking for opportunities to connect with students."
+            value={values.introduction}
+            disabled={!isEditing}
+            onChange={(event) =>
+              handleFieldChange("introduction", event.target.value)
+            }
+            onBlur={() => handleFieldBlur("introduction")}
+            error={errors.introduction}
+            minRows={4}
+          />
         </Stack>
       </form>
     </Paper>

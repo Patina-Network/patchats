@@ -14,8 +14,10 @@ import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberStatusRequest;
+import org.patinanetwork.patchats.auth.security.AuthenticatedMember;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -79,6 +81,16 @@ public class MemberController {
             @Valid @RequestBody final UpdateMemberStatusRequest request, @PathVariable final UUID id) {
         final MemberDto response = memberService.updateMemberStatus(request, id);
         final String message = request.active() ? "Member reactivated successfully" : "Member deactivated successfully";
+        return ResponseEntity.ok(ApiResponder.success(message, response));
+    }
+
+    @PatchMapping("/me/status")
+    public ResponseEntity<ApiResponder<MemberDto>> updateOwnMemberStatus(
+            @Valid @RequestBody final UpdateMemberStatusRequest request,
+            @AuthenticationPrincipal final AuthenticatedMember principal) {
+        final MemberDto response = memberService.updateMemberStatus(request, principal.memberId());
+        final String message =
+                request.active() ? "Membership reactivated successfully" : "Membership deactivated successfully";
         return ResponseEntity.ok(ApiResponder.success(message, response));
     }
 }
