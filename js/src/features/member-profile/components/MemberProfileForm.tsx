@@ -1,6 +1,7 @@
 import { memberProfileSchema } from "@/features/member-profile/api/schemas";
 import { useMemberProfile } from "@/features/member-profile/api/useMemberProfile";
 import { useUpdateMemberProfile } from "@/features/member-profile/api/useUpdateMemberProfile";
+import { SelfActivationToggle } from "@/features/member-profile/components/SelfActivationToggle";
 import {
   MemberProfileValues,
   toFormValues,
@@ -32,7 +33,13 @@ const matchPrefOptions = MATCH_PREFS.map((v) => ({
 }));
 const industryPrefOptions = INDUSTRIES.map((v) => ({ value: v, label: v }));
 
-export function MemberProfileForm({ id }: { id: string }) {
+export function MemberProfileForm({
+  id,
+  showActivationToggle = false,
+}: {
+  id: string;
+  showActivationToggle?: boolean;
+}) {
   const { data: member, isLoading, isError } = useMemberProfile(id);
   const updateMutation = useUpdateMemberProfile(id);
 
@@ -305,6 +312,12 @@ export function MemberProfileForm({ id }: { id: string }) {
               </Button>
             }
           </Group>
+          {showActivationToggle && (
+            <>
+              <Divider />
+              <SelfActivationToggle member={member} />
+            </>
+          )}
         </Stack>
       </form>
     </Paper>

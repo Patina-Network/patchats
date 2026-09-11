@@ -74,7 +74,7 @@ class SecurityWiringTest {
 
     @Test
     void memberStatusEndpointStaysAdminOnlyAndFailsClosed() throws Exception {
-        mockMvc.perform(patch("/api/members/{id}/status", UUID.randomUUID())
+        mockMvc.perform(patch("/api/members/admin/{id}/status", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"active\":false}")
                         .with(csrf()))

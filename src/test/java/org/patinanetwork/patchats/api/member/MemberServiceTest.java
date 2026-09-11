@@ -447,7 +447,7 @@ class MemberServiceTest {
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
         when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
 
-        memberService.updateMemberStatus(new UpdateMemberStatusRequest(false), id);
+        memberService.updateMemberStatus(new UpdateMemberStatusRequest(false, Optional.of("Reason")), id);
 
         verify(memberRepo).updateMember(captor.capture());
         assertEquals(false, captor.getValue().isActive());
@@ -468,7 +468,7 @@ class MemberServiceTest {
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
         when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
 
-        memberService.updateMemberStatus(new UpdateMemberStatusRequest(true), id);
+        memberService.updateMemberStatus(new UpdateMemberStatusRequest(true, Optional.of("Reason")), id);
 
         verify(memberRepo).updateMember(captor.capture());
         assertTrue(captor.getValue().isActive());
@@ -489,7 +489,8 @@ class MemberServiceTest {
         when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
         when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
 
-        final MemberDto response = memberService.updateMemberStatus(new UpdateMemberStatusRequest(false), id);
+        final MemberDto response =
+                memberService.updateMemberStatus(new UpdateMemberStatusRequest(false, Optional.of("Reason")), id);
 
         verify(memberRepo).updateMember(captor.capture());
         assertEquals(false, captor.getValue().isActive());
@@ -499,7 +500,7 @@ class MemberServiceTest {
     @Test
     void updateMemberStatus_throwsWhenMemberNotFound() {
         final UUID id = UUID.randomUUID();
-        final UpdateMemberStatusRequest request = new UpdateMemberStatusRequest(false);
+        final UpdateMemberStatusRequest request = new UpdateMemberStatusRequest(false, Optional.of("Reason"));
         when(memberRepo.getMemberById(id)).thenReturn(Optional.empty());
 
         assertThrows(MemberNotFoundException.class, () -> memberService.updateMemberStatus(request, id));

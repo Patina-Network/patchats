@@ -55,6 +55,9 @@ public class MemberDto {
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true)
     private String extraNotes;
 
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true)
+    private String deactivationReason;
+
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private OffsetDateTime createdAt;
 

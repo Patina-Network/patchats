@@ -31,6 +31,7 @@ public class MemberSqlRepo implements MemberRepo {
             .rolePref(rs.getString("role_pref"))
             .topics(rs.getString("topics"))
             .extraNotes(rs.getString("extra_notes"))
+            .deactivationReason(rs.getString("deactivation_reason"))
             .createdAt(rs.getObject("created_at", OffsetDateTime.class))
             .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
             .build();
@@ -50,7 +51,8 @@ public class MemberSqlRepo implements MemberRepo {
                 .param("industry_pref", member.getIndustryPref())
                 .param("role_pref", member.getRolePref())
                 .param("topics", member.getTopics())
-                .param("extra_notes", member.getExtraNotes());
+                .param("extra_notes", member.getExtraNotes())
+                .param("deactivation_reason", member.getDeactivationReason());
     }
 
     @Override
@@ -69,7 +71,8 @@ public class MemberSqlRepo implements MemberRepo {
                 "industry_pref",
                 "role_pref",
                 "topics",
-                "extra_notes"
+                "extra_notes",
+                "deactivation_reason"
             )
             VALUES(
                 :id,
@@ -84,7 +87,8 @@ public class MemberSqlRepo implements MemberRepo {
                 :industry_pref,
                 :role_pref,
                 :topics,
-                :extra_notes
+                :extra_notes,
+                :deactivation_reason
             )
             RETURNING
                 *
@@ -117,7 +121,6 @@ public class MemberSqlRepo implements MemberRepo {
         criteria.industryPref().ifPresent(value -> filters.put("industry_pref", value));
         criteria.rolePref().ifPresent(value -> filters.put("role_pref", value));
         criteria.topics().ifPresent(value -> filters.put("topics", value));
-
         final String whereClause = filters.isEmpty()
                 ? ""
                 : filters.keySet().stream()
@@ -151,6 +154,7 @@ public class MemberSqlRepo implements MemberRepo {
                 "role_pref" = :role_pref,
                 "topics" = :topics,
                 "extra_notes" = :extra_notes,
+                "deactivation_reason" = :deactivation_reason,
                 "updated_at" = NOW()
             WHERE "id" = :id
             RETURNING *
