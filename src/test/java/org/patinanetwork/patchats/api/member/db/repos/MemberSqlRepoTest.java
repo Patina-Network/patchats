@@ -140,6 +140,33 @@ class MemberSqlRepoTest {
     }
 
     @Test
+    void updateMember_updatesExactlyOneField() {
+        final Member originalMember = member;
+        final Member updatedMember = Member.builder()
+                .id(originalMember.getId())
+                .firstName("Jordan")
+                .lastName(originalMember.getLastName())
+                .email(originalMember.getEmail())
+                .linkedInUrl(originalMember.getLinkedInUrl())
+                .introduction(originalMember.getIntroduction())
+                .referralSource(originalMember.getReferralSource())
+                .active(originalMember.isActive())
+                .matchPref(originalMember.getMatchPref())
+                .industryPref(originalMember.getIndustryPref())
+                .rolePref(originalMember.getRolePref())
+                .topics(originalMember.getTopics())
+                .extraNotes(originalMember.getExtraNotes())
+                .build();
+
+        try {
+            final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
+            assertMemberFields(result, updatedMember);
+        } finally {
+            member = memberRepo.updateMember(originalMember).orElseThrow();
+        }
+    }
+
+    @Test
     void updateMember_returnsEmptyWhenMemberDoesNotExist() {
         final Member missingMember = Member.builder()
                 .id(UUID.randomUUID())
