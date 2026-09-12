@@ -129,12 +129,14 @@ class MemberSqlRepoTest {
                 .extraNotes("Available on weekends")
                 .build();
 
-        final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
-
-        assertMemberFields(result, updatedMember);
-        assertNotNull(result.getCreatedAt());
-        assertNotNull(result.getUpdatedAt());
-        member = memberRepo.updateMember(originalMember).orElseThrow();
+        try {
+            final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
+            assertMemberFields(result, updatedMember);
+            assertNotNull(result.getCreatedAt());
+            assertNotNull(result.getUpdatedAt());
+        } finally {
+            member = memberRepo.updateMember(originalMember).orElseThrow();
+        }
     }
 
     @Test
