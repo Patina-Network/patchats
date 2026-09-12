@@ -28,4 +28,4 @@ runs:
       shell: bash
 
       run: |
-        bun run .github/scripts/src/db/migrate.ts --environment=${{ inputs.ENVIRONMENT }}
+        bun run .github/scripts/src/db/index.ts --environment=${{ inputs.ENVIRONMENT }}
