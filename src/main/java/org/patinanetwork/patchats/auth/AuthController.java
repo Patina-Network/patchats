@@ -14,12 +14,15 @@ import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.auth.dto.RequestLinkRequest;
 import org.patinanetwork.patchats.auth.dto.SessionResponse;
 import org.patinanetwork.patchats.auth.dto.VerifyRequest;
+import org.patinanetwork.patchats.auth.repo.AdminRepo;
 import org.patinanetwork.patchats.auth.security.AuthenticatedMember;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -43,8 +46,12 @@ public class AuthController {
     /** Success copy for a link that was actually sent; an unregistered email fails with 404 instead. */
     private static final String GENERIC_REQUEST_MESSAGE = "Check your email for a sign-in link.";
 
+    private static final GrantedAuthority MEMBER = new SimpleGrantedAuthority("ROLE_MEMBER");
+    private static final GrantedAuthority ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
+
     private final AuthService authService;
     private final MemberRepo members;
+    private final AdminRepo admins;
     private final SecurityContextRepository securityContextRepository;
 
     @Operation(summary = "Email a single-use sign-in link")
@@ -62,8 +69,8 @@ public class AuthController {
             final HttpServletRequest httpRequest,
             final HttpServletResponse httpResponse) {
         final Member member = authService.verify(request.token());
-        login(member, httpRequest, httpResponse);
-        return ResponseEntity.ok(ApiResponder.success("Signed in.", SessionResponse.of(member)));
+        final boolean isAdmin = login(member, httpRequest, httpResponse);
+        return ResponseEntity.ok(ApiResponder.success("Signed in.", SessionResponse.of(member, isAdmin)));
     }
 
     /**
@@ -78,9 +85,13 @@ public class AuthController {
     @Operation(summary = "The currently signed-in member")
     @GetMapping("/session")
     public ResponseEntity<ApiResponder<SessionResponse>> session(
-            @AuthenticationPrincipal final AuthenticatedMember principal, final HttpServletRequest httpRequest) {
+            @AuthenticationPrincipal final AuthenticatedMember principal,
+            final Authentication authentication,
+            final HttpServletRequest httpRequest) {
+        final boolean isAdmin = authentication.getAuthorities().contains(ADMIN);
         return members.getMemberByEmail(principal.email())
-                .map(account -> ResponseEntity.ok(ApiResponder.success("Signed in.", SessionResponse.of(account))))
+                .map(account ->
+                        ResponseEntity.ok(ApiResponder.success("Signed in.", SessionResponse.of(account, isAdmin))))
                 .orElseGet(() -> {
                     invalidateSession(httpRequest);
                     SecurityContextHolder.clearContext();
@@ -100,16 +111,26 @@ public class AuthController {
      * Programmatic login: store the authenticated principal in the {@link SecurityContextRepository}, which Spring
      * Session persists and turns into the session cookie. {@code changeSessionId} rotates any pre-existing session so a
      * client-supplied id can never survive into an authenticated session (fixation defense).
+     *
+     * <p>The {@code admins} allowlist is consulted exactly once, here, and the result is carried for the life of the
+     * session by the granted authorities (which Spring Session already serialises — nothing has to be added to
+     * {@link AuthenticatedMember}). Allowlist edits therefore take effect at the member's next sign-in; revoking an
+     * admin mid-session means deleting their {@code spring_session} rows as well.
+     *
+     * @return whether this session was granted {@code ROLE_ADMIN}
      */
-    private void login(final Member member, final HttpServletRequest request, final HttpServletResponse response) {
+    private boolean login(final Member member, final HttpServletRequest request, final HttpServletResponse response) {
         if (request.getSession(false) != null) {
             request.changeSessionId();
         }
+        final boolean isAdmin = admins.isAdmin(member.getEmail());
+        final List<GrantedAuthority> authorities = isAdmin ? List.of(MEMBER, ADMIN) : List.of(MEMBER);
         final SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
-                AuthenticatedMember.of(member), null, List.of(new SimpleGrantedAuthority("ROLE_MEMBER"))));
+        context.setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(AuthenticatedMember.of(member), null, authorities));
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, request, response);
+        return isAdmin;
     }
 
     private void invalidateSession(final HttpServletRequest request) {
