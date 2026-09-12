@@ -1,156 +1,227 @@
 package org.patinanetwork.patchats.api.member.db.repos;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
+import org.junit.jupiter.api.TestInstance;
 import org.patinanetwork.patchats.api.member.db.models.Member;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MemberSqlRepoTest {
 
-    @Test
-    void getMembersAllReturnsRowsFromDatabase() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Member> query = mock(JdbcClient.MappedQuerySpec.class);
-        final MemberFilterCriteria criteria = emptyCriteria();
-        final Member member = Member.builder()
-                .id(UUID.randomUUID())
+    private final MemberRepo memberRepo;
+    private Member member;
+
+    @Autowired
+    MemberSqlRepoTest(final MemberRepo memberRepo) {
+        this.memberRepo = memberRepo;
+    }
+
+    @BeforeAll
+    void setUp() {
+        final UUID id = UUID.randomUUID();
+        member = memberRepo.createMember(Member.builder()
+                .id(id)
                 .firstName("Alex")
                 .lastName("Morgan")
-                .email("alex@example.com")
+                .email("member-repo-test-" + id + "@example.com")
+                .linkedInUrl("https://linkedin.com/in/alex")
+                .introduction("Hello, I'm Alex")
+                .referralSource("Friend")
+                .active(true)
+                .matchPref("Peer")
+                .industryPref("Technology")
+                .rolePref("Engineering")
+                .topics("Community")
+                .extraNotes("Available on weekdays")
+                .build());
+    }
+
+    @AfterAll
+    void cleanUp() {
+        assertTrue(memberRepo.deleteMemberById(member.getId()));
+    }
+
+    @Test
+    void getMembersByFilters_containsCreatedMember() {
+        final MemberFilterCriteria criteria = new MemberFilterCriteria(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
+
+        final List<Member> result = memberRepo.getMembersByFilters(criteria);
+
+        assertTrue(result.stream().anyMatch(foundMember -> foundMember.getId().equals(member.getId())));
+    }
+
+    @Test
+    void getMembersByFilters_returnsMemberMatchingEveryCriterion() {
+        final MemberFilterCriteria criteria = new MemberFilterCriteria(
+                Optional.of(member.getFirstName().toLowerCase()),
+                Optional.of(member.getLastName().toUpperCase()),
+                Optional.of(member.getEmail().toUpperCase()),
+                Optional.of(member.isActive()),
+                Optional.of(member.getMatchPref().toLowerCase()),
+                Optional.of(member.getIndustryPref().toUpperCase()),
+                Optional.of(member.getRolePref().toLowerCase()),
+                Optional.of(member.getTopics().toUpperCase()),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
+
+        final List<Member> result = memberRepo.getMembersByFilters(criteria);
+
+        assertEquals(1, result.size());
+        assertMemberFields(result.getFirst(), member);
+    }
+
+    @Test
+    void getMembersByFilters_usesOnlyProvidedCriteria() {
+        final MemberFilterCriteria criteria = new MemberFilterCriteria(
+                Optional.of(member.getFirstName()),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(member.isActive()),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(member.getTopics()),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
+
+        final List<Member> result = memberRepo.getMembersByFilters(criteria);
+
+        assertTrue(result.stream().anyMatch(foundMember -> foundMember.getId().equals(member.getId())));
+    }
+
+    @Test
+    void updateMember_updatesEveryField() {
+        final Member originalMember = member;
+        final Member updatedMember = Member.builder()
+                .id(originalMember.getId())
+                .firstName("Taylor")
+                .lastName("Reed")
+                .email("updated-" + originalMember.getEmail())
+                .linkedInUrl("https://linkedin.com/in/taylor")
+                .introduction("Updated introduction")
+                .referralSource("Patina event")
+                .active(false)
+                .matchPref("Mentor")
+                .industryPref("Finance")
+                .rolePref("Product Manager")
+                .topics("Leadership")
+                .extraNotes("Available on weekends")
+                .build();
+
+        try {
+            final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
+            assertMemberFields(result, updatedMember);
+            assertNotNull(result.getCreatedAt());
+            assertNotNull(result.getUpdatedAt());
+        } finally {
+            member = memberRepo.updateMember(originalMember).orElseThrow();
+        }
+    }
+
+    @Test
+    void updateMember_updatesExactlyOneField() {
+        final Member originalMember = member;
+        final Member updatedMember = Member.builder()
+                .id(originalMember.getId())
+                .firstName("Jordan")
+                .lastName(originalMember.getLastName())
+                .email(originalMember.getEmail())
+                .linkedInUrl(originalMember.getLinkedInUrl())
+                .introduction(originalMember.getIntroduction())
+                .referralSource(originalMember.getReferralSource())
+                .active(originalMember.isActive())
+                .matchPref(originalMember.getMatchPref())
+                .industryPref(originalMember.getIndustryPref())
+                .rolePref(originalMember.getRolePref())
+                .topics(originalMember.getTopics())
+                .extraNotes(originalMember.getExtraNotes())
+                .build();
+
+        try {
+            final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
+            assertMemberFields(result, updatedMember);
+        } finally {
+            member = memberRepo.updateMember(originalMember).orElseThrow();
+        }
+    }
+
+    @Test
+    void updateMember_returnsEmptyWhenMemberDoesNotExist() {
+        final Member missingMember = Member.builder()
+                .id(UUID.randomUUID())
+                .firstName("Missing")
+                .lastName("Member")
+                .email("missing-" + UUID.randomUUID() + "@example.com")
+                .introduction("This member is not persisted")
                 .active(true)
                 .build();
 
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
-        when(query.list()).thenReturn(List.of(member));
-
-        final List<Member> result = new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
-
-        assertEquals(List.of(member), result);
-        verify(jdbc).sql(ArgumentMatchers.anyString());
-        verify(statement).param("page_size", MemberFilterCriteria.DEFAULT_PAGE_SIZE);
-        verify(statement).param("offset", 0L);
-        verify(query).list();
+        assertTrue(memberRepo.updateMember(missingMember).isEmpty());
     }
 
     @Test
-    void getMembersByFiltersAppliesEveryProvidedCriterion() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Member> query = mock(JdbcClient.MappedQuerySpec.class);
-        final MemberFilterCriteria criteria = new MemberFilterCriteria(
-                Optional.of("Alex"),
-                Optional.of("Morgan"),
-                Optional.of("alex@example.com"),
-                Optional.of(true),
-                Optional.of("Peer"),
-                Optional.of("Technology"),
-                Optional.of("Engineering"),
-                Optional.of("Community"),
-                3,
-                20);
+    void getMemberById_returnsMatchingMember() {
+        final Optional<Member> result = memberRepo.getMemberById(member.getId());
 
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.params(ArgumentMatchers.anyMap())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
-        when(query.list()).thenReturn(List.of());
-
-        final List<Member> result = new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
-
-        assertEquals(List.of(), result);
-        verify(jdbc).sql(ArgumentMatchers.anyString());
-        verify(statement)
-                .params(Map.of(
-                        "first_name", "Alex",
-                        "last_name", "Morgan",
-                        "email", "alex@example.com",
-                        "active", true,
-                        "match_pref", "Peer",
-                        "industry_pref", "Technology",
-                        "role_pref", "Engineering",
-                        "topics", "Community"));
-        verify(statement).param("page_size", 20);
-        verify(statement).param("offset", 40L);
-        verify(query).list();
+        assertTrue(result.isPresent());
+        assertMemberFields(result.orElseThrow(), member);
     }
 
     @Test
-    void getMembersByFiltersOnlyIncludesProvidedCriteriaInWhereClause() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Member> query = mock(JdbcClient.MappedQuerySpec.class);
-        final MemberFilterCriteria criteria = new MemberFilterCriteria(
-                Optional.of("Alex"),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of(true),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.of("Community"),
-                MemberFilterCriteria.DEFAULT_PAGE,
-                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
-        final ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.params(ArgumentMatchers.anyMap())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Member>>any())).thenReturn(query);
-        when(query.list()).thenReturn(List.of());
-
-        new MemberSqlRepo(jdbc).getMembersByFilters(criteria);
-
-        verify(jdbc).sql(sqlCaptor.capture());
-        assertEquals("""
-                SELECT
-                    *
-                FROM
-                    members
-                WHERE
-                    LOWER(first_name) = LOWER(:first_name)
-                AND
-                    active = :active
-                AND
-                    LOWER(topics) = LOWER(:topics)
-                ORDER BY
-                    created_at DESC,
-                    id
-                LIMIT
-                    :page_size
-                OFFSET
-                    :offset
-                """, sqlCaptor.getValue());
-        verify(statement).params(Map.of("first_name", "Alex", "active", true, "topics", "Community"));
+    void getMemberById_returnsEmptyWhenMemberDoesNotExist() {
+        Optional<Member> emptyMember = memberRepo.getMemberById(UUID.randomUUID());
+        assertTrue(emptyMember.isEmpty());
     }
 
-    private static MemberFilterCriteria emptyCriteria() {
-        return new MemberFilterCriteria(
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                MemberFilterCriteria.DEFAULT_PAGE,
-                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
+    @Test
+    void getMemberByEmail_returnsMatchingMember() {
+        final Optional<Member> result = memberRepo.getMemberByEmail(member.getEmail());
+
+        assertTrue(result.isPresent());
+        assertMemberFields(result.orElseThrow(), member);
+    }
+
+    @Test
+    void getMemberByEmail_returnsEmptyWhenMemberDoesNotExist() {
+        assertTrue(memberRepo
+                .getMemberByEmail("missing-" + UUID.randomUUID() + "@example.com")
+                .isEmpty());
+    }
+
+    private static void assertMemberFields(final Member actual, final Member expected) {
+        assertEquals(expected.getId(), actual.getId());
+        assertEquals(expected.getFirstName(), actual.getFirstName());
+        assertEquals(expected.getLastName(), actual.getLastName());
+        assertEquals(expected.getEmail(), actual.getEmail());
+        assertEquals(expected.getLinkedInUrl(), actual.getLinkedInUrl());
+        assertEquals(expected.getIntroduction(), actual.getIntroduction());
+        assertEquals(expected.getReferralSource(), actual.getReferralSource());
+        assertEquals(expected.isActive(), actual.isActive());
+        assertEquals(expected.getMatchPref(), actual.getMatchPref());
+        assertEquals(expected.getIndustryPref(), actual.getIndustryPref());
+        assertEquals(expected.getRolePref(), actual.getRolePref());
+        assertEquals(expected.getTopics(), actual.getTopics());
+        assertEquals(expected.getExtraNotes(), actual.getExtraNotes());
     }
 }

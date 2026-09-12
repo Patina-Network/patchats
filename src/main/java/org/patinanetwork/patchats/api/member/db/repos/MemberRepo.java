@@ -47,4 +47,6 @@ public interface MemberRepo {
     Optional<Member> getMemberById(UUID id);
 
     Optional<Member> getMemberByEmail(String email);
+
+    boolean deleteMemberById(UUID id);
 }
