@@ -88,6 +88,8 @@ public class SecurityConfig {
                         .hasRole(ADMIN_ROLE)
                         .requestMatchers(HttpMethod.GET, "/api/session")
                         .authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/members/me/status")
+                        .authenticated()
                         .anyRequest()
                         .permitAll())
                 .build();

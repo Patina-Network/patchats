@@ -111,6 +111,11 @@ public class MemberService {
     public MemberDto updateMemberStatus(UpdateMemberStatusRequest request, UUID id) {
         Member member = memberRepo.getMemberById(id).orElseThrow(() -> new MemberNotFoundException(id));
         member.setActive(request.active());
+        if (request.active()) {
+            member.setDeactivationReason(null); // reactivating clears any prior reason
+        } else {
+            member.setDeactivationReason(request.deactivationReason().orElse(null));
+        }
         Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
         return MemberDto.from(updatedMember);
     }

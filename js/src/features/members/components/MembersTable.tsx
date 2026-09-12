@@ -3,12 +3,11 @@ import {
   useMembers,
   MemberFilters,
 } from "@/features/members/api/useMembers";
-import { useUpdateMemberStatus } from "@/features/members/api/useUpdateMemberStatus";
+import { MembersActivationToggle } from "@/features/members/components/MembersActivationToggle";
 import {
   Alert,
   Anchor,
   Badge,
-  Button,
   Center,
   Loader,
   Paper,
@@ -16,8 +15,6 @@ import {
   Table,
   Text,
 } from "@mantine/core";
-import { modals } from "@mantine/modals";
-import { notifications } from "@mantine/notifications";
 import { Link } from "react-router-dom";
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -32,49 +29,6 @@ export const MembersTable = ({
   filters: MemberFilters;
 }) => {
   const { isError, isPending } = useMembers(filters);
-  const handleToggleStatus = (member: Member) => {
-    const nextActive = !member.active;
-    modals.openConfirmModal({
-      title: nextActive ? "Reactivate member" : "Deactivate member",
-      children: (
-        <Text size="sm">
-          {nextActive ?
-            `Reactivate ${member.firstName} ${member.lastName}? They will be included in the next matching cycle again.`
-          : `Deactivate ${member.firstName} ${member.lastName}? They won't be included in the next matching cycle until reactivated.`
-          }
-        </Text>
-      ),
-      labels: {
-        confirm: nextActive ? "Reactivate" : "Deactivate",
-        cancel: "Cancel",
-      },
-      confirmProps: { color: nextActive ? "green" : "red" },
-      onConfirm: () =>
-        updateStatus(
-          { active: nextActive, id: member.id },
-          {
-            onError: () =>
-              notifications.show({
-                color: "red",
-                message: `Could not update status for ${member.firstName} ${member.lastName}.`,
-                title: "Update failed",
-              }),
-            onSuccess: () =>
-              notifications.show({
-                color: "green",
-                message: `${member.firstName} ${member.lastName} is now ${nextActive ? "active" : "inactive"}.`,
-                title: nextActive ? "Member reactivated" : "Member deactivated",
-              }),
-          },
-        ),
-    });
-  };
-
-  const {
-    mutate: updateStatus,
-    isPending: isUpdatingStatus,
-    variables: statusUpdateVariables,
-  } = useUpdateMemberStatus();
 
   if (isPending) {
     return (
@@ -158,18 +112,7 @@ export const MembersTable = ({
                     </Anchor>
                   </Table.Td>
                   <Table.Td>
-                    <Button
-                      color={member.active ? "red" : "green"}
-                      loading={
-                        isUpdatingStatus &&
-                        statusUpdateVariables?.id === member.id
-                      }
-                      onClick={() => handleToggleStatus(member)}
-                      size="xs"
-                      variant="light"
-                    >
-                      {member.active ? "Deactivate" : "Reactivate"}
-                    </Button>
+                    <MembersActivationToggle member={member} />
                   </Table.Td>
                 </Table.Tr>
               ))}
