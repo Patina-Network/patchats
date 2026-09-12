@@ -2,10 +2,6 @@ name: "Setup"
 description: "Setup dependencies required to run pipelines"
 
 inputs:
-  GITHUB_TOKEN:
-    description: "GitHub token used to send message"
-    required: false
-    default: ${{ github.token }}
   SECRETS:
     description: "secrets passed in as JSON."
     required: false
