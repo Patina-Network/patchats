@@ -19,15 +19,17 @@ export default function EmailAdminPage() {
     return;
   };
   return (
-    <Tabs value={selectedTab} onChange={handleTabChange}>
-      <Tabs.List>
-        <Tabs.Tab value="send">Send Emails</Tabs.Tab>
-        <Tabs.Tab value="progress">Live Progress</Tabs.Tab>
-        <Tabs.Tab value="history">History</Tabs.Tab>
-      </Tabs.List>
-      <Box pt="lg">
-        <Outlet />
-      </Box>
-    </Tabs>
+    <Box px="md" pt="sm">
+      <Tabs value={selectedTab} onChange={handleTabChange}>
+        <Tabs.List>
+          <Tabs.Tab value="send">Send Emails</Tabs.Tab>
+          <Tabs.Tab value="progress">Live Progress</Tabs.Tab>
+          <Tabs.Tab value="history">History</Tabs.Tab>
+        </Tabs.List>
+        <Box pt="lg">
+          <Outlet />
+        </Box>
+      </Tabs>
+    </Box>
   );
 }
