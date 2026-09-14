@@ -1,5 +1,13 @@
 import { useVerifyMagicLink } from "@/features/auth/api/useVerifyMagicLink";
-import { Alert, Button, Center, Loader, Stack, Text } from "@mantine/core";
+import {
+  Alert,
+  Button,
+  Center,
+  Container,
+  Loader,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 
 /**
@@ -18,24 +26,28 @@ export default function VerifyPage() {
 
   if (!token || verify.isError) {
     return (
-      <Stack gap="md">
-        <Alert color="red" title="Sign-in link problem">
-          {verify.error?.message ??
-            "This sign-in link is invalid or has expired. Request a new one."}
-        </Alert>
-        <Button component={Link} to="/login" w="fit-content">
-          Request a new link
-        </Button>
-      </Stack>
+      <Container py="xl" size="sm">
+        <Stack gap="md">
+          <Alert color="red" title="Sign-in link problem">
+            {verify.error?.message ??
+              "This sign-in link is invalid or has expired. Request a new one."}
+          </Alert>
+          <Button component={Link} to="/login" w="fit-content">
+            Request a new link
+          </Button>
+        </Stack>
+      </Container>
     );
   }
 
   return (
-    <Center h="50vh">
-      <Stack align="center" gap="sm">
-        <Loader />
-        <Text c="dimmed">Signing you in…</Text>
-      </Stack>
-    </Center>
+    <Container py="xl" size="sm">
+      <Center h="50vh">
+        <Stack align="center" gap="sm">
+          <Loader />
+          <Text c="dimmed">Signing you in…</Text>
+        </Stack>
+      </Center>
+    </Container>
   );
 }
