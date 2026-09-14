@@ -125,6 +125,9 @@ jobs:
         uses: ./.github/composite/setup-ci
         with:
           SECRETS: ${{ toJSON(secrets) }}
+          HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
+          HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
+          HEADSCALE_PREAUTHKEY: ${{ secrets.HEADSCALE_PREAUTHKEY }}
 
       - name: Run workflow
         uses: ./.github/composite/build-image
@@ -147,6 +150,9 @@ jobs:
         uses: ./.github/composite/setup-ci
         with:
           SECRETS: ${{ toJSON(secrets) }}
+          HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
+          HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
+          HEADSCALE_PREAUTHKEY: ${{ secrets.HEADSCALE_PREAUTHKEY }}
 
       - name: Run workflow
         uses: ./.github/composite/db/migrate
@@ -166,6 +172,9 @@ jobs:
         uses: ./.github/composite/setup-ci
         with:
           SECRETS: ${{ toJSON(secrets) }}
+          HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
+          HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
+          HEADSCALE_PREAUTHKEY: ${{ secrets.HEADSCALE_PREAUTHKEY }}
 
       - name: Run Workflow
         uses: ./.github/composite/update-tag
