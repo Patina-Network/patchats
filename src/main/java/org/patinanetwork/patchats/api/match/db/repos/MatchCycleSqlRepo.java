@@ -2,6 +2,7 @@ package org.patinanetwork.patchats.api.match.db.repos;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -94,6 +95,38 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
         """;
         return jdbc.sql(sql)
                 .param("period", period)
+                .query((rs, rowNum) -> parseResultSetToMatchCycle(rs))
+                .optional();
+    }
+
+    @Override
+    public Optional<MatchCycle> setMatchCyclePeriod(Integer id, String period) {
+        String sql = """
+            UPDATE "match_cycles" SET
+                "period" = :period
+            WHERE "id" = :id
+            RETURNING *
+        """;
+
+        return jdbc.sql(sql)
+                .param("id", id)
+                .param("period", period)
+                .query((rs, rowNum) -> parseResultSetToMatchCycle(rs))
+                .optional();
+    }
+
+    @Override
+    public Optional<MatchCycle> setMatchCycleRunAt(Integer id, Instant runAt) {
+        String sql = """
+            UPDATE "match_cycles" SET
+                "run_at" = :run_at
+            WHERE "id" = :id
+            RETURNING *
+        """;
+
+        return jdbc.sql(sql)
+                .param("id", id)
+                .param("run_at", runAt != null ? runAt.atOffset(ZoneOffset.UTC) : null)
                 .query((rs, rowNum) -> parseResultSetToMatchCycle(rs))
                 .optional();
     }

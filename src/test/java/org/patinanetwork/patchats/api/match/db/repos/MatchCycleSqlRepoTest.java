@@ -99,6 +99,52 @@ class MatchCycleSqlRepoTest {
     }
 
     @Test
+    void setMatchCyclePeriodBindsPeriod() {
+        final JdbcClient jdbc = mock(JdbcClient.class);
+        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
+        final JdbcClient.MappedQuerySpec<MatchCycle> query = mock(JdbcClient.MappedQuerySpec.class);
+        final MatchCycle matchCycle =
+                MatchCycle.builder().id(1).period("2025-Q3").build();
+
+        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
+        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
+                .thenReturn(statement);
+        when(statement.query(ArgumentMatchers.<RowMapper<MatchCycle>>any())).thenReturn(query);
+        when(query.optional()).thenReturn(Optional.of(matchCycle));
+
+        final Optional<MatchCycle> result = new MatchCycleSqlRepo(jdbc).setMatchCyclePeriod(1, "2025-Q3");
+
+        assertTrue(result.isPresent());
+        assertEquals(matchCycle, result.get());
+        verify(statement).param("id", 1);
+        verify(statement).param("period", "2025-Q3");
+        verify(query).optional();
+    }
+
+    @Test
+    void setMatchCycleRunAtBindsRunAt() {
+        final JdbcClient jdbc = mock(JdbcClient.class);
+        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
+        final JdbcClient.MappedQuerySpec<MatchCycle> query = mock(JdbcClient.MappedQuerySpec.class);
+        final Instant runAt = Instant.parse("2025-07-15T12:00:00Z");
+        final MatchCycle matchCycle = MatchCycle.builder().id(1).runAt(runAt).build();
+
+        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
+        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
+                .thenReturn(statement);
+        when(statement.query(ArgumentMatchers.<RowMapper<MatchCycle>>any())).thenReturn(query);
+        when(query.optional()).thenReturn(Optional.of(matchCycle));
+
+        final Optional<MatchCycle> result = new MatchCycleSqlRepo(jdbc).setMatchCycleRunAt(1, runAt);
+
+        assertTrue(result.isPresent());
+        assertEquals(matchCycle, result.get());
+        verify(statement).param("id", 1);
+        verify(statement).param("run_at", runAt.atOffset(ZoneOffset.UTC));
+        verify(query).optional();
+    }
+
+    @Test
     void setMatchCycleIsDraftBindsDraft() {
         final JdbcClient jdbc = mock(JdbcClient.class);
         final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
