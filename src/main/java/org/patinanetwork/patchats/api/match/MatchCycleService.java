@@ -1,5 +1,6 @@
 package org.patinanetwork.patchats.api.match;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +67,21 @@ public class MatchCycleService {
         } catch (DuplicateKeyException e) {
             throw new MatchCycleDuplicateException(request.period().orElse(matchCycle.getPeriod()));
         }
+    }
+
+    public MatchCycleResponse setMatchCyclePeriod(Integer id, String period) {
+        if (period == null || period.isBlank()) {
+            throw new ValidationException("period cannot be empty");
+        }
+        MatchCycle matchCycle =
+                matchCycleRepo.setMatchCyclePeriod(id, period).orElseThrow(() -> new MatchCycleNotFoundException(id));
+        return MatchCycleResponse.from(matchCycle);
+    }
+
+    public MatchCycleResponse setMatchCycleRunAt(Integer id, Instant runAt) {
+        MatchCycle matchCycle =
+                matchCycleRepo.setMatchCycleRunAt(id, runAt).orElseThrow(() -> new MatchCycleNotFoundException(id));
+        return MatchCycleResponse.from(matchCycle);
     }
 
     public MatchCycleResponse setMatchCycleIsDraft(Integer id, boolean isDraft) {

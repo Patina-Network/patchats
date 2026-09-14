@@ -1,5 +1,6 @@
 package org.patinanetwork.patchats.api.match.db.repos;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.patinanetwork.patchats.api.match.db.models.MatchCycle;
@@ -35,6 +36,10 @@ public interface MatchCycleRepo {
     Optional<MatchCycle> getMatchCycleById(Integer id);
 
     Optional<MatchCycle> getMatchCycleByPeriod(String period);
+
+    Optional<MatchCycle> setMatchCyclePeriod(Integer id, String period);
+
+    Optional<MatchCycle> setMatchCycleRunAt(Integer id, Instant runAt);
 
     Optional<MatchCycle> setMatchCycleIsDraft(Integer id, boolean isDraft);
 
