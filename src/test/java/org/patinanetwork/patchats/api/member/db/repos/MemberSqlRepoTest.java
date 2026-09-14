@@ -12,8 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Transactional
 class MemberSqlRepoTest {
 
     private final MemberRepo memberRepo;
@@ -121,14 +123,10 @@ class MemberSqlRepoTest {
                 .extraNotes("Available on weekends")
                 .build();
 
-        try {
-            final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
-            assertMemberFields(result, updatedMember);
-            assertNotNull(result.getCreatedAt());
-            assertNotNull(result.getUpdatedAt());
-        } finally {
-            member = memberRepo.updateMember(originalMember).orElseThrow();
-        }
+        final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
+        assertMemberFields(result, updatedMember);
+        assertNotNull(result.getCreatedAt());
+        assertNotNull(result.getUpdatedAt());
     }
 
     @Test
@@ -150,12 +148,8 @@ class MemberSqlRepoTest {
                 .extraNotes(originalMember.getExtraNotes())
                 .build();
 
-        try {
-            final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
-            assertMemberFields(result, updatedMember);
-        } finally {
-            member = memberRepo.updateMember(originalMember).orElseThrow();
-        }
+        final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
+        assertMemberFields(result, updatedMember);
     }
 
     @Test
