@@ -1,15 +1,17 @@
-import { Flex, List, Mark, Stack, Text } from "@mantine/core";
+import { Box, Flex, List, Mark, Stack, Text } from "@mantine/core";
 
 /** Public landing page. */
 export default function HomePage() {
   return (
     <Flex
+      direction={{ base: "column", lg: "row" }}
       gap="xl"
       align="stretch"
       py="xl"
-      style={{ paddingLeft: 250, paddingRight: 150 }}
+      pl={{ base: "md", sm: "xl", lg: 250 }}
+      pr={{ base: "md", sm: "xl", lg: 150 }}
     >
-      <Stack style={{ width: 400, flexShrink: 0 }}>
+      <Stack w={{ base: "100%", lg: 400 }} style={{ flexShrink: 0 }}>
         <Text size="28px" lh={1.25}>
           PatChats is a program where every month you will get matched with
           another Patina member and have a 30 minute video call or coffee chat!
@@ -32,14 +34,14 @@ export default function HomePage() {
           </List.Item>
         </List>
       </Stack>
-      <div
+      <Box
+        visibleFrom="xs"
         style={{
           flex: 1,
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
           gridTemplateRows: "repeat(4, 1fr)",
           gap: "8px",
-          paddingLeft: 32,
           minHeight: 0,
         }}
       >
@@ -57,7 +59,7 @@ export default function HomePage() {
         />
         <div style={{ gridColumn: "1", border: "1px solid gray" }} />
         <div style={{ gridColumn: "2", border: "1px solid gray" }} />
-      </div>
+      </Box>
     </Flex>
   );
 }
