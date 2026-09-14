@@ -14,6 +14,7 @@ import { EmailProgressPage } from "@/features/emails/EmailProgressPage";
 import { EmailSendPage } from "@/features/emails/EmailSendPage";
 import HomePage from "@/features/home/Home.page";
 import { MemberProfilePage } from "@/features/member-profile/MemberProfile.page";
+import { MyProfilePage } from "@/features/member-profile/MyProfile.page";
 import { MembersPage } from "@/features/members/Members.page";
 import SamplePage from "@/features/sample/Sample.page";
 import SampleAdminPage from "@/features/sample/SampleAdmin.page";
@@ -42,7 +43,6 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "sign-up", element: <SignUpPage /> },
-      { path: "profile/:id", element: <MemberProfilePage /> },
       { path: "login", element: <LoginPage /> },
       { path: "auth/verify", element: <VerifyPage /> },
     ],
@@ -59,7 +59,10 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AppLayout />,
-        children: [{ path: "sample", element: <SamplePage /> }],
+        children: [
+          { path: "sample", element: <SamplePage /> },
+          { path: "profile", element: <MyProfilePage /> },
+        ],
       },
       {
         element: <RequireAdmin />,
@@ -69,6 +72,7 @@ export const router = createBrowserRouter([
             children: [
               { path: "admin", element: <AdminPage /> },
               { path: "admin/members", element: <MembersPage /> },
+              { path: "admin/members/:id", element: <MemberProfilePage /> },
               {
                 path: "admin/email",
                 element: <EmailAdminPage />,

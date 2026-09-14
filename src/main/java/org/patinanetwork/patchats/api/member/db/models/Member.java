@@ -53,6 +53,9 @@ public class Member {
     @Setter
     private String extraNotes;
 
+    @Setter
+    private String deactivationReason;
+
     private OffsetDateTime createdAt;
 
     private OffsetDateTime updatedAt;

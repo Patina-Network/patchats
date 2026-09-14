@@ -15,6 +15,9 @@ export default function HomePage() {
       <Anchor component={Link} to="/sample">
         Go to the app
       </Anchor>
+      <Anchor component={Link} to="/profile">
+        View your profile
+      </Anchor>
     </Stack>
   );
 }
