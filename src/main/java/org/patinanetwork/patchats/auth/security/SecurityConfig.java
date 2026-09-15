@@ -73,8 +73,10 @@ public class SecurityConfig {
     /**
      * Default/production chain.
      *
-     * <p>NOTE: the admin role is not yet assigned anywhere, so the email rule still fails closed — every caller is
-     * denied until an admin domain lands. Other endpoints keep their prior open posture.
+     * <p>{@code ROLE_ADMIN} is granted at magic-link sign-in to members whose email appears in the hand-maintained
+     * {@code admins} table (no API or UI writes to it). It is resolved once per sign-in and carried by the session's
+     * authorities, so allowlist edits take effect at the member's next login. Other endpoints keep their prior open
+     * posture.
      */
     @Bean
     @Profile("!dev")
