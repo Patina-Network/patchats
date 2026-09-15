@@ -134,50 +134,75 @@ test.each([
   },
 );
 
-test("reports both successes and failures in a CSV import", async () => {
-  const user = userEvent.setup();
-  server.use(
-    http.post("/api/members", async ({ request }) => {
-      const member = (await request.json()) as Record<string, unknown>;
-      return member.email === "existing@example.com" ?
-          HttpResponse.json(
-            { success: false, message: "Email already exists", payload: null },
-            { status: 409 },
-          )
-        : HttpResponse.json({
-            success: true,
-            message: "Member created successfully",
-            payload: member,
-          });
-    }),
-  );
+test.each([true, false])(
+  "summarizes CSV successes with duplicate email: %s",
+  async (hasDuplicate) => {
+    const user = userEvent.setup();
+    server.use(
+      http.post("/api/members", async ({ request }) => {
+        const member = (await request.json()) as Record<string, unknown>;
+        return hasDuplicate && member.email === "existing@example.com" ?
+            HttpResponse.json(
+              {
+                success: false,
+                message: "Email already exists",
+                payload: null,
+              },
+              { status: 409 },
+            )
+          : HttpResponse.json({
+              success: true,
+              message: "Member created successfully",
+              payload: member,
+            });
+      }),
+    );
 
-  renderWithProviders(<MembersPage />);
-  await user.click(screen.getByRole("button", { name: "Add members" }));
-  const dialog = await screen.findByRole("dialog");
-  await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
-  const fileInput = dialog.querySelector('input[type="file"]');
-  if (!(fileInput instanceof HTMLInputElement))
-    throw new Error("Missing CSV input");
-  const file = new File([""], "members.csv", { type: "text/csv" });
-  Object.defineProperty(file, "text", {
-    value: async () =>
-      "firstName,lastName,email,introduction\nTaylor,Quinn,new@example.com,Hello\nAlex,Morgan,existing@example.com,Hello",
-  });
-  await user.upload(fileInput, file);
-  const confirm = within(dialog).getByRole("button", {
-    name: "Confirm import",
-  });
-  await waitFor(() => expect(confirm).toBeEnabled());
-  await user.click(confirm);
+    renderWithProviders(<MembersPage />);
+    await user.click(screen.getByRole("button", { name: "Add members" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+    const fileInput = dialog.querySelector('input[type="file"]');
+    if (!(fileInput instanceof HTMLInputElement))
+      throw new Error("Missing CSV input");
+    const file = new File([""], "members.csv", { type: "text/csv" });
+    Object.defineProperty(file, "text", {
+      value: async () =>
+        "firstName,lastName,email,introduction\nTaylor,Quinn,new@example.com,Hello\nAlex,Morgan,existing@example.com,Hello",
+    });
+    await user.upload(fileInput, file);
+    const confirm = within(dialog).getByRole("button", {
+      name: "Confirm import",
+    });
+    await waitFor(() => expect(confirm).toBeEnabled());
+    await user.click(confirm);
 
-  expect(
-    await screen.findByText("new@example.com was added successfully."),
-  ).toBeInTheDocument();
-  expect(
-    await screen.findByText("The email existing@example.com already exists."),
-  ).toBeInTheDocument();
-});
+    expect(
+      await screen.findByText(
+        hasDuplicate ?
+          "1 member was added successfully."
+        : "2 members were added successfully.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("new@example.com was added successfully."),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("existing@example.com was added successfully."),
+    ).not.toBeInTheDocument();
+    if (hasDuplicate) {
+      expect(
+        await screen.findByText(
+          "The email existing@example.com already exists.",
+        ),
+      ).toBeInTheDocument();
+    } else {
+      expect(
+        screen.queryByText("The email existing@example.com already exists."),
+      ).not.toBeInTheDocument();
+    }
+  },
+);
 
 test("renders every member returned by the API", async () => {
   renderWithProviders(<MembersPage />);
