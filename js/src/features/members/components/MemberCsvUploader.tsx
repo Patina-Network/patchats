@@ -8,12 +8,13 @@ import {
   FileInput,
   Group,
   List,
+  Paper,
   Stack,
   Table,
   Text,
 } from "@mantine/core";
 import { IconFileSpreadsheet } from "@tabler/icons-react";
-import { useState } from "react";
+import { DragEvent, useRef, useState } from "react";
 
 const PREVIEW_FIELDS = [
   ["firstName", "First name"],
@@ -43,8 +44,28 @@ export function MemberCsvUploader({
   const [result, setResult] = useState<MemberCsvParseResult | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
   const [isReading, setIsReading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragDepth = useRef(0);
+  const isDisabled = disabled || isReading;
+
+  const rejectFile = (message: string) => {
+    setFile(null);
+    setResult(null);
+    setReadError(message);
+    onChange(null);
+  };
 
   const handleFileChange = async (nextFile: File | null) => {
+    if (isDisabled) return;
+    if (
+      nextFile &&
+      !nextFile.name.toLowerCase().endsWith(".csv") &&
+      nextFile.type !== "text/csv"
+    ) {
+      rejectFile("Choose a .csv file.");
+      return;
+    }
+
     setFile(nextFile);
     setResult(null);
     setReadError(null);
@@ -64,25 +85,81 @@ export function MemberCsvUploader({
     }
   };
 
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepth.current = 0;
+    setIsDragging(false);
+    if (isDisabled || event.dataTransfer.files.length === 0) return;
+    if (event.dataTransfer.files.length !== 1) {
+      rejectFile("Choose one CSV file at a time.");
+      return;
+    }
+    void handleFileChange(event.dataTransfer.files[0]);
+  };
+
   const validCount =
     result?.rows.filter((row) => row.errors.length === 0).length ?? 0;
 
   return (
     <Stack gap="md">
-      <FileInput
-        accept=".csv,text/csv"
-        clearable
-        description="Required headers: firstName, lastName, email, and introduction"
-        disabled={disabled || isReading}
-        label="Member CSV"
-        leftSection={<IconFileSpreadsheet size={16} />}
-        onChange={handleFileChange}
-        placeholder="Choose a .csv file"
-        value={file}
-        withAsterisk
-      />
+      <Paper
+        role="region"
+        aria-label="CSV file drop area"
+        aria-disabled={isDisabled}
+        withBorder
+        p="md"
+        radius="md"
+        onDragEnter={(event) => {
+          event.preventDefault();
+          if (isDisabled || !event.dataTransfer.types.includes("Files")) return;
+          dragDepth.current += 1;
+          setIsDragging(true);
+        }}
+        onDragOver={(event) => {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = isDisabled ? "none" : "copy";
+        }}
+        onDragLeave={(event) => {
+          event.preventDefault();
+          dragDepth.current = Math.max(0, dragDepth.current - 1);
+          if (dragDepth.current === 0) setIsDragging(false);
+        }}
+        onDrop={handleDrop}
+        style={{
+          borderStyle: "dashed",
+          borderColor:
+            isDragging && !isDisabled ?
+              "var(--mantine-primary-color-filled)"
+            : undefined,
+          backgroundColor:
+            isDragging && !isDisabled ?
+              "var(--mantine-primary-color-light)"
+            : undefined,
+        }}
+      >
+        <Stack gap="sm">
+          <Text c="dimmed" size="sm" ta="center">
+            {isDragging && !isDisabled ?
+              "Drop your CSV file here"
+            : "Drag and drop a CSV file here, or choose one below."}
+          </Text>
+          <FileInput
+            accept=".csv,text/csv"
+            clearable
+            description="Required headers: firstName, lastName, email, and introduction"
+            disabled={isDisabled}
+            label="Member CSV"
+            leftSection={<IconFileSpreadsheet size={16} />}
+            onChange={handleFileChange}
+            placeholder="Choose a .csv file"
+            value={file}
+            withAsterisk
+          />
+        </Stack>
+      </Paper>
       {readError && (
-        <Alert color="red" title="Could not read CSV">
+        <Alert color="red" title="CSV upload failed">
           {readError}
         </Alert>
       )}
