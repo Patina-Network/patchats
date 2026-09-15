@@ -18,7 +18,7 @@ test("confirms a member was added and refreshes the members table", async () => 
   const user = userEvent.setup();
   let createdMember: Record<string, unknown> | null = null;
   server.use(
-    http.get("/api/members", () =>
+    http.get("/api/admin/members", () =>
       HttpResponse.json({
         success: true,
         message: "Members retrieved successfully",
