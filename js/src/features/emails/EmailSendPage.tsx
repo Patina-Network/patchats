@@ -6,6 +6,7 @@ import type {
 import { CsvUploader } from "@/features/emails/_components/CsvUploader";
 import { EmailPreviewer } from "@/features/emails/_components/EmailPreviewer";
 import { EmailSender } from "@/features/emails/_components/EmailSender";
+import { SyncEmailSender } from "@/features/emails/_components/SyncEmailSender";
 import { TemplateSelector } from "@/features/emails/_components/TemplateSelector";
 import { Box, Flex, Stack } from "@mantine/core";
 import { useState } from "react";
@@ -37,7 +38,7 @@ export function EmailSendPage() {
         />
         {/* CSV uploader */}
         <CsvUploader templateId={selectedTemplateId} setRequest={setRequest} />
-        {/* Send button */}
+        {/* Send Async button */}
         <EmailSender
           request={request}
           selectedTemplateId={selectedTemplateId}
@@ -45,6 +46,8 @@ export function EmailSendPage() {
           setIsSending={setIsSending}
           navigate={navigate}
         />
+        {/* Send Synchronous button */}
+        <SyncEmailSender request={request} />
       </Stack>
       <Box w="70%">
         {/* Preview */}

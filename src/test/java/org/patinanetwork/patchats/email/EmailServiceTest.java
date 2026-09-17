@@ -7,23 +7,48 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.patinanetwork.patchats.email.db.models.EmailTemplate;
+import org.patinanetwork.patchats.email.db.repos.EmailRepo;
+import org.patinanetwork.patchats.email.db.repos.EmailRequestRepo;
+import org.patinanetwork.patchats.email.db.repos.EmailTemplateRepo;
 import org.patinanetwork.patchats.email.dto.SendEmailRequest;
 import org.patinanetwork.patchats.email.dto.SendEmailResponse;
 import org.springframework.mail.MailSendException;
 
 class EmailServiceTest {
 
+    private final EmailTemplateRepo templateRepo = mock(EmailTemplateRepo.class);
+    private final EmailRequestRepo requestRepo = mock(EmailRequestRepo.class);
+    private final EmailRepo emailRepo = mock(EmailRepo.class);
     private final EmailSender sender = mock(EmailSender.class);
-    private final EmailService service = new EmailService(new TemplateRenderer(), sender);
+    private final EmailService service =
+            new EmailService(templateRepo, requestRepo, emailRepo, new TemplateRenderer(), sender);
+
+    EmailServiceTest() {
+        // Mock templateRepo to return a template for any ID
+        when(templateRepo.findById(any(UUID.class))).thenAnswer(invocation -> {
+            final UUID id = invocation.getArgument(0);
+            return Optional.of(EmailTemplate.builder()
+                    .id(id)
+                    .name("test")
+                    .subject("Test Subject")
+                    .body("Test Body")
+                    .build());
+        });
+    }
 
     @Test
     void sendsPairAsOneEmailWithNamespacedVariables() {
         final SendEmailRequest request = new SendEmailRequest(
+                UUID.randomUUID(),
                 "Hi ${per1.firstName} & ${per2.firstName}",
                 "Paired for ${month}. LinkedIn: ${per2.linkedIn:N/A}",
                 null,
@@ -50,6 +75,7 @@ class EmailServiceTest {
     @Test
     void missingRequiredVariableFailsOnlyThatMessage() {
         final SendEmailRequest request = new SendEmailRequest(
+                UUID.randomUUID(),
                 "Hi ${per1.firstName}",
                 "Body",
                 null,
@@ -72,6 +98,7 @@ class EmailServiceTest {
     void smtpFailureIsReportedPerMessage() {
         doThrow(new MailSendException("smtp down")).when(sender).send(any());
         final SendEmailRequest request = new SendEmailRequest(
+                UUID.randomUUID(),
                 "S",
                 "B",
                 null,
