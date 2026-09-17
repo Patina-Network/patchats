@@ -15,6 +15,12 @@ export const memberSession: Session = {
   isAdmin: false,
 };
 
+/** Same member, but on the `admins` allowlist — exercises the admin-only routes. */
+export const adminSession: Session = {
+  ...memberSession,
+  isAdmin: true,
+};
+
 export const invalidLinkResponse = () =>
   HttpResponse.json(
     {
