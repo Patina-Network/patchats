@@ -7,9 +7,9 @@ export function PublicNavbar() {
     <Container size="xl" h="100%" fluid>
       <Flex
         h="100%"
-        direction={{ base: "column", xs: "row" }}
-        justify={{ base: "flex-start", xs: "space-between" }}
-        align={{ base: "flex-start", xs: "center" }}
+        direction="row"
+        justify="space-between"
+        align="center"
         gap={{ base: 6, xs: "sm" }}
       >
         <Link
