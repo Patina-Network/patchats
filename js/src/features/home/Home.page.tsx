@@ -1,7 +1,13 @@
+import type { CSSProperties } from "react";
+
 import { Box, Flex, List, Mark, Stack, Text } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
+
+const tile: CSSProperties = { border: "1px solid gray" };
 
 /** Public landing page. */
 export default function HomePage() {
+  const stacked = useMediaQuery("(max-width: 74.99em)") ?? false;
   return (
     <Flex
       direction={{ base: "column", lg: "row" }}
@@ -35,30 +41,36 @@ export default function HomePage() {
         </List>
       </Stack>
       <Box
-        visibleFrom="xs"
         style={{
           flex: 1,
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gridTemplateRows: "repeat(4, 1fr)",
+          gridTemplateColumns: stacked ? "1fr" : "repeat(4, 1fr)",
+          gridTemplateRows: stacked ? "auto" : "repeat(4, 1fr)",
+          gridAutoRows: stacked ? "minmax(96px, auto)" : undefined,
           gap: "8px",
           minHeight: 0,
         }}
       >
         <div
-          style={{ gridArea: "span 2 / span 2", border: "1px solid gray" }}
+          style={{
+            ...tile,
+            ...(stacked ? {} : { gridArea: "span 2 / span 2" }),
+          }}
         />
-        <div style={{ border: "1px solid gray" }} />
-        <div style={{ gridColumn: "4", border: "1px solid gray" }} />
-        <div style={{ border: "1px solid gray" }} />
-        <div style={{ border: "1px solid gray" }} />
-        <div style={{ border: "1px solid gray" }} />
-        <div style={{ border: "1px solid gray" }} />
+        <div style={tile} />
+        <div style={{ ...tile, ...(stacked ? {} : { gridColumn: "4" }) }} />
+        <div style={tile} />
+        <div style={tile} />
+        <div style={tile} />
+        <div style={tile} />
         <div
-          style={{ gridArea: "span 2 / span 2", border: "1px solid gray" }}
+          style={{
+            ...tile,
+            ...(stacked ? {} : { gridArea: "span 2 / span 2" }),
+          }}
         />
-        <div style={{ gridColumn: "1", border: "1px solid gray" }} />
-        <div style={{ gridColumn: "2", border: "1px solid gray" }} />
+        <div style={{ ...tile, ...(stacked ? {} : { gridColumn: "1" }) }} />
+        <div style={{ ...tile, ...(stacked ? {} : { gridColumn: "2" }) }} />
       </Box>
     </Flex>
   );
