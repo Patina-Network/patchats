@@ -340,12 +340,13 @@ class MemberControllerTest {
                 .active(false)
                 .build();
 
-        when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(false), id))
+        when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(false, Optional.of("Reason")), id))
                 .thenReturn(response);
 
-        mockMvc.perform(patch("/api/members/{id}/status", id)
+        mockMvc.perform(patch("/api/members/admin/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new UpdateMemberStatusRequest(false))))
+                        .content(objectMapper.writeValueAsString(
+                                new UpdateMemberStatusRequest(false, Optional.of("Reason")))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Member deactivated successfully"))
@@ -362,12 +363,13 @@ class MemberControllerTest {
                 .active(true)
                 .build();
 
-        when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(true), id))
+        when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(true, Optional.empty()), id))
                 .thenReturn(response);
 
-        mockMvc.perform(patch("/api/members/{id}/status", id)
+        mockMvc.perform(patch("/api/members/admin/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new UpdateMemberStatusRequest(true))))
+                        .content(
+                                objectMapper.writeValueAsString(new UpdateMemberStatusRequest(true, Optional.empty()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Member reactivated successfully"))
@@ -380,9 +382,10 @@ class MemberControllerTest {
         when(memberService.updateMemberStatus(any(UpdateMemberStatusRequest.class), eq(id)))
                 .thenThrow(new MemberNotFoundException(id));
 
-        mockMvc.perform(patch("/api/members/{id}/status", id)
+        mockMvc.perform(patch("/api/members/admin/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new UpdateMemberStatusRequest(false))))
+                        .content(objectMapper.writeValueAsString(
+                                new UpdateMemberStatusRequest(false, Optional.empty()))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -391,7 +394,7 @@ class MemberControllerTest {
     void updateMemberStatus_badRequestWhenActiveMissing() throws Exception {
         final UUID id = UUID.randomUUID();
 
-        mockMvc.perform(patch("/api/members/{id}/status", id)
+        mockMvc.perform(patch("/api/members/admin/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
@@ -400,9 +403,10 @@ class MemberControllerTest {
 
     @Test
     void updateMemberStatus_badRequestWhenInvalidUuid() throws Exception {
-        mockMvc.perform(patch("/api/members/{id}/status", "invalid-uuid")
+        mockMvc.perform(patch("/api/members/admin/{id}/status", "invalid-uuid")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new UpdateMemberStatusRequest(false))))
+                        .content(objectMapper.writeValueAsString(
+                                new UpdateMemberStatusRequest(false, Optional.of("Reason")))))
                 .andExpect(status().isBadRequest());
     }
 

@@ -15,6 +15,7 @@ export interface MemberProfileValues {
 export interface MemberProfile extends MemberProfileValues {
   id: string;
   active: boolean;
+  deactivationReason?: string;
   createdAt: string;
   updatedAt: string;
 }
