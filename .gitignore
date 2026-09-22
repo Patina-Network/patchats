@@ -67,3 +67,4 @@ scripts/**/index.js
 js/coverage/
 
 ./*.log
+.agents/
