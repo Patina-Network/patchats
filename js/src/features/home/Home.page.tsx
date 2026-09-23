@@ -45,8 +45,8 @@ export default function HomePage() {
           flex: 1,
           display: "grid",
           gridTemplateColumns: stacked ? "1fr" : "repeat(4, 1fr)",
-          gridTemplateRows: stacked ? "auto" : "repeat(4, 1fr)",
-          gridAutoRows: stacked ? "minmax(96px, auto)" : undefined,
+          gridTemplateRows: stacked ? undefined : "repeat(4, 1fr)",
+          gridAutoRows: stacked ? "192px" : undefined,
           gap: "8px",
           minHeight: 0,
         }}
@@ -54,7 +54,9 @@ export default function HomePage() {
         <div
           style={{
             ...tile,
-            ...(stacked ? {} : { gridArea: "span 2 / span 2" }),
+            ...(stacked ?
+              { gridRow: "span 2" }
+            : { gridArea: "span 2 / span 2" }),
           }}
         />
         <div style={tile} />
@@ -66,7 +68,9 @@ export default function HomePage() {
         <div
           style={{
             ...tile,
-            ...(stacked ? {} : { gridArea: "span 2 / span 2" }),
+            ...(stacked ?
+              { gridRow: "span 2" }
+            : { gridArea: "span 2 / span 2" }),
           }}
         />
         <div style={{ ...tile, ...(stacked ? {} : { gridColumn: "1" }) }} />
