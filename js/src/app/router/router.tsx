@@ -1,6 +1,4 @@
-import { AdminLayout } from "@/app/layouts/AdminLayout";
 import { AppLayout } from "@/app/layouts/AppLayout";
-import { PublicLayout } from "@/app/layouts/PublicLayout";
 import { RequireAdmin } from "@/app/router/guards/RequireAdmin";
 import { RequireAuth } from "@/app/router/guards/RequireAuth";
 import AdminPage from "@/features/admin/Admin.page";
@@ -34,41 +32,26 @@ const emailAdminTabRoutes: RouteObject[] = [
 ];
 
 export const router = createBrowserRouter([
-  // Public admin login: its page owns the full viewport.
-  { path: "admin/login", element: <AdminLoginPage /> },
-
-  // Public: no guard, public chrome.
   {
-    element: <PublicLayout />,
+    element: <AppLayout />,
     children: [
       { index: true, element: <HomePage /> },
       { path: "sign-up", element: <SignUpPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "auth/verify", element: <VerifyPage /> },
-    ],
-  },
-  // Temporary public email routes for TESTING (before auth is wired)
-  {
-    path: "email",
-    element: <EmailAdminPage />,
-    children: emailAdminTabRoutes,
-  },
-  // Authenticated: guard -> layout -> page. Admin nests a second guard + layout.
-  {
-    element: <RequireAuth />,
-    children: [
+      { path: "admin/login", element: <AdminLoginPage /> },
       {
-        element: <AppLayout />,
+        path: "email",
+        element: <EmailAdminPage />,
+        children: emailAdminTabRoutes,
+      },
+      {
+        element: <RequireAuth />,
         children: [
           { path: "sample", element: <SamplePage /> },
           { path: "profile", element: <MyProfilePage /> },
-        ],
-      },
-      {
-        element: <RequireAdmin />,
-        children: [
           {
-            element: <AdminLayout />,
+            element: <RequireAdmin />,
             children: [
               { path: "admin", element: <AdminPage /> },
               { path: "admin/members", element: <MembersPage /> },

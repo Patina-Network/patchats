@@ -19,9 +19,8 @@ js/src/
         RequireAuth.tsx            # redirect to /login if no session
         RequireAdmin.tsx           # redirect/403 if not admin
     layouts/
-      PublicLayout.tsx             # public chrome
-      AppLayout.tsx                # authed chrome (sidebar, user menu)
-      AdminLayout.tsx              # admin chrome
+      AppLayout.tsx                # shared chrome for public and authenticated pages
+      Navbar.tsx                   # global navbar: auth-conditional actions (CTAs / Log out / Admin badge)
     providers/
       QueryProvider.tsx            # TanStack Query provider
       theme.tsx                    # Mantine theme
@@ -55,9 +54,9 @@ js/src/
 
 1. **Domain-first, not permission-first.** Folders are organized by domain. Permission is a
    routing concern — never encode access (admin/public/authed) in the folder tree.
-2. **Permissions live in the router.** Composable nested routes: a guard route (`RequireAuth`,
-   `RequireAdmin`) wraps a layout route wraps the page. A page's access level and visual frame
-   each change with a one-line route edit; the page file never moves.
+2. **Permissions live in the router.** Composable nested routes: a shared layout route wraps
+   public pages directly, while `RequireAuth` and `RequireAdmin` guard restricted pages beneath
+   it. Access remains in the route tree and every page uses the same visual frame.
 3. **`features/` wrapper.** Everything under `features/` is a domain; everything else (`app/`,
    `components/`, `lib/`) is shell or shared infra.
 4. **Pages: hybrid granularity.** A page is a single `Name.page.tsx`. It graduates to a folder

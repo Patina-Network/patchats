@@ -9,7 +9,7 @@ export function MembersPage() {
   const [filters, setFilters] = useState<MemberFilters>({});
   const { data: members = [] } = useMembers(filters);
   return (
-    <Stack>
+    <Stack py="xl" mx="xl">
       <MembersHeader members={members} />
       <MembersFiltersForm setFilters={setFilters} />
       <MembersTable members={members} filters={filters} />
