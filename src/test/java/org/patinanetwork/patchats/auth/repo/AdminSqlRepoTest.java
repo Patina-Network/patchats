@@ -10,20 +10,20 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
-class AdminRepoTest {
+class AdminSqlRepoTest {
 
     @Test
     void reportsAnAllowlistedEmailAsAdmin() {
         final JdbcClient jdbc = stubbedClient(true);
 
-        assertTrue(new AdminRepo(jdbc).isAdmin("ann@example.com"));
+        assertTrue(new AdminSqlRepo(jdbc).isAdmin("ann@example.com"));
     }
 
     @Test
     void reportsAnAbsentEmailAsNotAdmin() {
         final JdbcClient jdbc = stubbedClient(false);
 
-        assertFalse(new AdminRepo(jdbc).isAdmin("stranger@example.com"));
+        assertFalse(new AdminSqlRepo(jdbc).isAdmin("stranger@example.com"));
     }
 
     @Test
@@ -36,7 +36,7 @@ class AdminRepoTest {
         final JdbcClient jdbc = stubbedClient(true);
         final JdbcClient.StatementSpec statement = jdbc.sql("");
 
-        new AdminRepo(jdbc).isAdmin("  Ann@Example.COM  ");
+        new AdminSqlRepo(jdbc).isAdmin("  Ann@Example.COM  ");
 
         verify(statement).param("email", "  Ann@Example.COM  ");
         verify(jdbc).sql(ArgumentMatchers.contains("normalize_email(:email)"));
