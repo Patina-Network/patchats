@@ -1,25 +1,31 @@
-import { useLogout } from "@/features/auth/api/useLogout";
-import { AppShell, Button, Group, Text } from "@mantine/core";
+import { Navbar } from "@/app/layouts/Navbar";
+import { AppShell } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { Outlet } from "react-router-dom";
 
-/** Chrome for authenticated pages: a header plus the routed page content. */
 export function AppLayout() {
-  const logout = useLogout();
+  const isDesktop = useMediaQuery("(min-width: 36em)");
 
   return (
-    <AppShell header={{ height: 56 }} padding="md">
-      <AppShell.Header>
-        <Group h="100%" justify="space-between" px="md">
-          <Text fw={700}>PatChats</Text>
-          <Button
-            variant="subtle"
-            size="compact-sm"
-            loading={logout.isPending}
-            onClick={() => logout.mutate()}
-          >
-            Log out
-          </Button>
-        </Group>
+    <AppShell header={{ height: isDesktop ? 110 : 116 }} padding={0}>
+      <AppShell.Header
+        style={{ backgroundColor: "transparent", border: "none" }}
+      >
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "calc(var(--app-shell-header-offset, 0rem) * 1.5)",
+            zIndex: -1,
+            background:
+              "linear-gradient(to bottom, var(--mantine-color-body) 60%, transparent)",
+            pointerEvents: "none",
+          }}
+        />
+        <Navbar />
       </AppShell.Header>
       <AppShell.Main>
         <Outlet />

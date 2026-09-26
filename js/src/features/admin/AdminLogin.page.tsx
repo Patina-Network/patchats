@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Flex,
+  Container,
   PasswordInput,
   Stack,
   TextInput,
@@ -45,13 +46,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <Flex direction="column" mih="100vh" p="xl">
-      <Flex align="center" component="header" gap="md">
-        <Box bd="1px solid var(--mantine-color-default-border)" h={56} w={56} />
-        <Title order={1} size="h3">
-          PatChats
-        </Title>
-      </Flex>
+    <Container py="xl" size="sm">
       <Flex align="flex-start" flex={1} justify="center" pt={160}>
         <Box component="form" maw={280} onSubmit={handleSubmit} w="100%">
           <Stack gap="md">
@@ -80,6 +75,6 @@ export default function AdminLoginPage() {
           </Stack>
         </Box>
       </Flex>
-    </Flex>
+    </Container>
   );
 }
