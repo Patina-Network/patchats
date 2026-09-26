@@ -15,7 +15,7 @@ public class ServerMetadataObject {
         this.name = "PatChats";
         this.version = Strings.isNullOrEmpty(commitSha) ? "unknown" : commitSha;
         this.description = "";
-        this.authors = new ArrayList<>(Arrays.asList("Sam Lee", "Fahim Rashid"));
+        this.authors = new ArrayList<>(Arrays.asList("Sam Lee", "Fahim Rashid", "Brian Calle"));
     }
 
     public ServerMetadataObject() {
