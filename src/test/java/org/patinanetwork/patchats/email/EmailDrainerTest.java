@@ -35,12 +35,13 @@ class EmailDrainerTest {
     private final EmailTemplateRepo templateRepo = mock(EmailTemplateRepo.class);
     private final EmailSender sender = mock(EmailSender.class);
     private final EmailRenderer renderer = new EmailRenderer(new TemplateRenderer());
+    private final EmailProperties properties = new EmailProperties();
 
     /** Runs submitted jobs inline on the calling thread, so a drain completes synchronously within trigger(). */
     private static final Executor SYNC = Runnable::run;
 
     private EmailDrainer drainer(final Executor executor) {
-        return new EmailDrainer(emailRepo, templateRepo, renderer, sender, executor);
+        return new EmailDrainer(emailRepo, templateRepo, renderer, sender, executor, properties);
     }
 
     private EmailTemplate template(final String subject, final String body) {
@@ -126,6 +127,26 @@ class EmailDrainerTest {
         verify(sender, never()).send(any());
         verify(emailRepo).markError(eq(row.getId()), any());
         verify(emailRepo, never()).markSent(any());
+    }
+
+    @Test
+    void claimsBatchesOfTheConfiguredSize() {
+        properties.setDrainBatchSize(2);
+        final Email ann = email(Map.of("per1.name", "Ann"), null);
+        final Email bob = email(Map.of("per1.name", "Bob"), null);
+        final Email cy = email(Map.of("per1.name", "Cy"), null);
+        when(emailRepo.claimBatch(2)).thenReturn(List.of(ann, bob), List.of(cy), List.of());
+        when(templateRepo.findById(TEMPLATE_ID)).thenReturn(Optional.of(template("Hi ${per1.name}", "b")));
+
+        drainer(SYNC).trigger();
+
+        final ArgumentCaptor<Integer> limits = ArgumentCaptor.forClass(Integer.class);
+        verify(emailRepo, atLeastOnce()).claimBatch(limits.capture());
+        // A full batch, then the remainder, then the empty claim that ends the drain.
+        assertEquals(List.of(2, 2, 2), limits.getAllValues());
+        verify(emailRepo).markSent(ann.getId());
+        verify(emailRepo).markSent(bob.getId());
+        verify(emailRepo).markSent(cy.getId());
     }
 
     @Test
