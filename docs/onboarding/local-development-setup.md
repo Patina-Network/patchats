@@ -1,40 +1,38 @@
-# Prerequisites
+# Local development setup
+
+## Prerequisites
 
 The following general software needs to be installed on your local machine:
 
-1. `JDK 25` - We use `openjdk`, but feel free to use `coretto` or any other distribution if you would like.
-1. `maven` - Package manager to manage all our Java dependencies
+1. JDK 25 - OpenJDK, Corretto, or another compatible distribution.
 1. `just` - The runner for `Justfiles`, which we use to consolidate our run commands.
 1. `dotenvx` - Used to load environment variables from the root `.env` file.
-1. `node` - Javascript runtime to run our frontend TypeScript code.
-1. `corepack` - A package manager for package managers (???) to help us set a consistent `pnpm` version across all devs.
-1. `pnpm@11` - Package manager that works faster than the default npm package manager.
+1. Node.js - The JavaScript runtime used by the frontend toolchain.
+1. Corepack - Activates the version of `pnpm` pinned in `js/package.json`.
+1. PostgreSQL 16 - The local application database.
 
-## MacOS
+The repository includes the Maven wrapper (`./mvnw`), so a global Maven installation is not
+required. SOPS is only required when you need to edit the encrypted secret files.
 
-The following instructions are using `homebrew` ([install instructions here](https://brew.sh/)), but it is not a requirement; you can follow along by installing all packages manually (though we would recommend against it).
+## macOS
 
-1. Install `openjdk@25` (aliased to `openjdk`):
+These instructions use [Homebrew](https://brew.sh/), but you may install the same tools manually.
 
-    ```bash
-    brew install openjdk
-    ```
-
-1. Install `maven`:
+1. Install `openjdk@25`:
 
     ```bash
-    brew install maven
+    brew install openjdk@25
     ```
 
 1. Install `node`:
 
-    ```
+    ```bash
     brew install node
     ```
 
-1. You must then setup `corepack`. You can follow the instructions [here](https://github.com/nodejs/corepack?tab=readme-ov-file#how-to-install) under `Install Corepack using npm` on how to install and setup `corepack`. Once setup, simply enable `pnpm` on `corepack` like so:
+1. Set up `corepack` using its [installation instructions](https://github.com/nodejs/corepack#readme), then enable the repository-pinned version of `pnpm`:
 
-    ```
+    ```bash
     corepack enable pnpm
     ```
 
@@ -52,49 +50,42 @@ The following instructions are using `homebrew` ([install instructions here](htt
 
 ## Windows
 
-Unfortunately, I don't have a Windows machine that I develop on anymore, so I am unable to provide solid instructions for setup. However, you should be able to follow the exact same directions for [MacOS](#macos) but with `WinGet`/`Scoopy` or manually installing each software.
+Install the same prerequisites with WinGet, Scoop, or the official installers. The project commands
+in this guide should be run from a shell that provides the expected Unix command-line tools.
 
-# IDE Integration
+## IDE integration
 
-## VSCode
+### VS Code
 
-> **NOTE**: If you open the codebloom repository in VSCode, it will prompt you to install recommended extensions to the workspace, which will include everything below.
-> <br /><img width="470" height="135" alt="image" src="https://github.com/user-attachments/assets/c017f866-e7ee-4f02-b978-32ebe318db2f" />
+Useful extensions include:
 
-You need to install the following plugins:
-
-1. **EditorConfig** - Applies consistent spacing width and type across all editors
 1. **Checkstyle for Java** - Java static analyzer
 1. **Prettier** - Javascript formatter
     - Helps maintain consistent styling
     - Configure format on save [following these instructions](https://stackoverflow.com/questions/39494277/how-do-you-format-code-on-save-in-vs-code)
 1. **ESLint** - Javascript linter
     - Integrates with your project's ESLint configuration
-1. **Babel JavaScript** - Improves JSX syntax highlighting
-1. **Docker** - Provides Dockerfile IntelliSense
 1. **DotENV** - `.env` file syntax highlighting
 1. **Prettier Typescript Errors**: Simplifies complex TypeScript error messages
 1. **Extension Pack for Java**
     - Includes debuggers, formatters, and managers
     - Supports format on save
 1. **Spring Boot Extension Pack** - Additional Spring Boot-specific tooling
-1. **Tailwind CSS IntelliSense** - Provides intelligent suggestions for Tailwind classes
 1. **XML by RedHat**
     - Official XML language support and formatter
     - Important for editing Java XML files like pom.xml
 
-[.vscode/](https://github.com/tahminator/codebloom/tree/main/.vscode) defines some workspace defaults to help make development consistent.
+[.vscode/](../../.vscode/) defines workspace defaults that help keep development consistent.
 
-## IntelliJ
+### IntelliJ
 
 You need to install the following plugins:
 
-1. **EditorConfig** - Applies consistent spacing width and type across all editors
 1. **Checkstyle-IDEA** - Java static analyzer
 
-The Eclipse formatter and everything else should just work out of the box. You may need to install some plugins for TypeScript support, including Prettier, ESLint, Babel, Prettier, Tailwind, and more.
+You may also need plugins for TypeScript, Prettier, and ESLint support.
 
-## Neovim
+### Neovim
 
 > **NOTE**: This may vary greatly by the current configuration of Neovim, but the following setup _should_ work out the box using `LazyVim`.
 
@@ -105,13 +96,10 @@ You need to install the following plugins:
 1. **none-ls** - Provide a code bridge to formatting & LSP diagonostics. (Specifically used for Checkstyle formatting)
 1. **vtsls** - LSP for TypeScript in Neovim (can install through `Mason`)
 1. **eslint-lsp** - LSP Protocol for ESLint (can install through `Mason`)
-1. **tailwindcss-language-server** - LSP for Tailwind (can install through `Mason`)
 1. **json-lsp** - (Optional) LSP for JSON (can install through `Mason`)
 1. **dockerfile-language-server** - (Optional) LSP for Dockerfile (can install through `Mason`)
 
-There is a [.lazy.lua](https://github.com/tahminator/codebloom/tree/main/.lazy.lua) file in the root directory that will apply some default, but only for `LazyVim`. Of course, you can replicate the behavior in your own distribution (and create a pull request with the changes).
-
-# Database
+## Database
 
 ## Postgres
 
@@ -144,7 +132,8 @@ You can feel free to download Postgres however you want, but the way we have all
 
 #### Other
 
-You may install it with Docker, or directly through [postgresql.com](https://postgresql.com) if you would like. While there are no directions I can directly offer to you, there are some very good tutorials online on how to do so.
+You may install it with Docker or directly through the
+[PostgreSQL downloads page](https://www.postgresql.org/download/).
 
 If you would like to use Docker, I can refer you to Patina's documentation for setting up Docker which you can find [here](https://github.com/arklian/patina/blob/main/docs/postgres-on-docker.md)
 
@@ -153,9 +142,9 @@ If you would like to use Docker, I can refer you to Patina's documentation for s
 You can feel free to use any viewer you want, but we would recommend [DataGrip](https://www.jetbrains.com/datagrip/) which is free for all non-commercial use.
 
 
-# Secrets
+## Secrets
 
-You can speed up the setup process by making a copy of `.env.example` to `.env`.
-You will also find explanations and documentation about how to source the value for each key.
+Create a local environment file by copying `.example.env` to `.env`. The example file documents
+each value required for local development.
 
 If there is a key specific to an environment (such as `CI` or `staging` environment), please consult the tech docs within the `CI` group.
