@@ -69,6 +69,7 @@ async function main() {
     dockerRepository: `patchats`,
     dockerFileLocation: `infra/${dockerFileName}`,
     tags: [`${tagPrefix}${timestamp}`, `${tagPrefix}${gitSha}`],
+    platforms: ["linux/amd64", "linux/arm64"],
   });
 
   if (getGhaOutput) {
