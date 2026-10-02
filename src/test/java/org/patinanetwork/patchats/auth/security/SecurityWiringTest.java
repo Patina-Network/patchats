@@ -1,6 +1,5 @@
 package org.patinanetwork.patchats.auth.security;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -11,7 +10,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -99,9 +97,9 @@ class SecurityWiringTest {
         mockMvc.perform(post("/api/members")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(result -> assertNotEquals(
-                        HttpServletResponse.SC_FORBIDDEN,
-                        result.getResponse().getStatus(),
+                .andExpect(result -> assertTrue(
+                        result.getResponse().getStatus() >= 200
+                                && result.getResponse().getStatus() <= 299,
                         "anonymous sign-up must not be blocked by CSRF"));
     }
 
@@ -176,9 +174,9 @@ class SecurityWiringTest {
                         .content("{}")
                         .session(session)
                         .with(csrf()))
-                .andExpect(result -> assertNotEquals(
-                        HttpServletResponse.SC_FORBIDDEN,
-                        result.getResponse().getStatus(),
+                .andExpect(result -> assertTrue(
+                        result.getResponse().getStatus() >= 200
+                                && result.getResponse().getStatus() <= 299,
                         "an allowlisted admin must clear the ROLE_ADMIN check"));
     }
 
