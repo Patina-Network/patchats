@@ -1,8 +1,8 @@
 package org.patinanetwork.patchats.auth.security;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,15 +11,27 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.patinanetwork.patchats.api.member.MemberController;
+import org.patinanetwork.patchats.api.member.MemberService;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
+import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.auth.AuthController;
 import org.patinanetwork.patchats.auth.AuthService;
+import org.patinanetwork.patchats.auth.repo.AdminRepo;
 import org.patinanetwork.patchats.common.web.ApiExceptionHandler;
+import org.patinanetwork.patchats.email.EmailController;
+import org.patinanetwork.patchats.email.EmailDrainer;
+import org.patinanetwork.patchats.email.EmailEnqueueService;
+import org.patinanetwork.patchats.email.EmailProgressService;
+import org.patinanetwork.patchats.email.EmailService;
+import org.patinanetwork.patchats.email.TemplateManagementService;
+import org.patinanetwork.patchats.email.db.repos.EmailTemplateRepo;
+import org.patinanetwork.patchats.email.dto.SendEmailResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -34,10 +46,9 @@ import org.springframework.test.web.servlet.MvcResult;
  * verify, session-carried authentication, and logout. Runs without Spring Session's JDBC store — the servlet mock
  * session stands in for it, which keeps the slice database-free while still proving the Spring Security wiring.
  */
-@WebMvcTest(AuthController.class)
+@WebMvcTest({AuthController.class, EmailController.class, MemberController.class})
 @Import({SecurityConfig.class, ApiAuthenticationEntryPoint.class, ApiExceptionHandler.class})
 class SecurityWiringTest {
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -46,6 +57,30 @@ class SecurityWiringTest {
 
     @MockitoBean
     private MemberRepo members;
+
+    @MockitoBean
+    private AdminRepo admins;
+
+    @MockitoBean
+    private EmailService emailService;
+
+    @MockitoBean
+    private EmailEnqueueService enqueueService;
+
+    @MockitoBean
+    private EmailProgressService progressService;
+
+    @MockitoBean
+    private EmailDrainer drainer;
+
+    @MockitoBean
+    private EmailTemplateRepo templateRepo;
+
+    @MockitoBean
+    private MemberService memberService;
+
+    @MockitoBean
+    private TemplateManagementService templateManagementService;
 
     @Test
     void sessionEndpointRejectsAnonymousWithJsonEnvelope() throws Exception {
@@ -64,7 +99,7 @@ class SecurityWiringTest {
     }
 
     @Test
-    void emailEndpointStaysAdminOnlyAndFailsClosed() throws Exception {
+    void emailEndpointRejectsAnonymousCallers() throws Exception {
         mockMvc.perform(post("/api/email/send")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}")
@@ -89,16 +124,28 @@ class SecurityWiringTest {
 
     @Test
     void anonymousSignUpIsExemptFromCsrf() throws Exception {
-        // A first-time visitor POSTing the sign-up form has no XSRF-TOKEN cookie yet, so requiring the token would
-        // make sign-up impossible. MemberController is outside this slice, so the concrete status is incidental —
-        // what matters is that CSRF did not reject it. See the exemption list in SecurityConfig.
+        when(memberService.createMember(any()))
+                .thenReturn(MemberDto.builder()
+                        .id(UUID.randomUUID())
+                        .firstName("Ann")
+                        .lastName("Example")
+                        .email("ann@example.com")
+                        .introduction("Hello")
+                        .active(true)
+                        .build());
+
         mockMvc.perform(post("/api/members")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(result -> assertNotEquals(
-                        HttpServletResponse.SC_FORBIDDEN,
-                        result.getResponse().getStatus(),
-                        "anonymous sign-up must not be blocked by CSRF"));
+                        .content("""
+                                {
+                                  "firstName": "Ann",
+                                  "lastName": "Example",
+                                  "email": "ann@example.com",
+                                  "introduction": "Hello"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.payload.email").value("ann@example.com"));
     }
 
     @Test
@@ -146,5 +193,57 @@ class SecurityWiringTest {
 
         mockMvc.perform(post("/api/auth/logout").session(session).with(csrf())).andExpect(status().isOk());
         assertTrue(session.isInvalid());
+    }
+
+    @Test
+    void adminEndpointsAreForbiddenToASignedInNonAdmin() throws Exception {
+        final MockHttpSession session = signIn(false);
+
+        mockMvc.perform(post("/api/email/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/members").session(session)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminEndpointsAdmitAMemberOnTheAllowlist() throws Exception {
+        final MockHttpSession session = signIn(true);
+        final UUID templateId = UUID.randomUUID();
+        when(emailService.send(any()))
+                .thenReturn(new SendEmailResponse(
+                        1, 0, List.of(new SendEmailResponse.MessageResult(List.of("a@x.com"), true, null))));
+
+        mockMvc.perform(post("/api/email/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                                "{\"templateId\":\"" + templateId
+                                        + "\",\"subject\":\"S\",\"body\":\"B\",\"messages\":[{\"recipients\":[{\"email\":\"a@x.com\"}]}]}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+    }
+
+    /** Completes a magic-link verification and returns the session it established. */
+    private MockHttpSession signIn(final boolean isAdmin) throws Exception {
+        final Member member = Member.builder()
+                .id(UUID.randomUUID())
+                .email("ann@example.com")
+                .firstName("Ann")
+                .lastName("Example")
+                .build();
+        when(authService.verify("raw-token")).thenReturn(member);
+        when(admins.isAdmin(member.getEmail())).thenReturn(isAdmin);
+
+        final MvcResult login = mockMvc.perform(post("/api/auth/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"raw-token\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        final MockHttpSession session = (MockHttpSession) login.getRequest().getSession(false);
+        assertNotNull(session, "verify must establish a session");
+        return session;
     }
 }
