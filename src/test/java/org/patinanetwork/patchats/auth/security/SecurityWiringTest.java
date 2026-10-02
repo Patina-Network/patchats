@@ -2,6 +2,7 @@ package org.patinanetwork.patchats.auth.security;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -10,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,14 @@ import org.patinanetwork.patchats.auth.AuthController;
 import org.patinanetwork.patchats.auth.AuthService;
 import org.patinanetwork.patchats.auth.repo.AdminRepo;
 import org.patinanetwork.patchats.common.web.ApiExceptionHandler;
+import org.patinanetwork.patchats.email.EmailController;
+import org.patinanetwork.patchats.email.EmailDrainer;
+import org.patinanetwork.patchats.email.EmailEnqueueService;
+import org.patinanetwork.patchats.email.EmailProgressService;
+import org.patinanetwork.patchats.email.EmailService;
+import org.patinanetwork.patchats.email.TemplateManagementService;
+import org.patinanetwork.patchats.email.db.repos.EmailTemplateRepo;
+import org.patinanetwork.patchats.email.dto.SendEmailResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -33,7 +43,7 @@ import org.springframework.test.web.servlet.MvcResult;
  * verify, session-carried authentication, and logout. Runs without Spring Session's JDBC store — the servlet mock
  * session stands in for it, which keeps the slice database-free while still proving the Spring Security wiring.
  */
-@WebMvcTest(AuthController.class)
+@WebMvcTest({AuthController.class, EmailController.class})
 @Import({SecurityConfig.class, ApiAuthenticationEntryPoint.class, ApiExceptionHandler.class})
 class SecurityWiringTest {
 
@@ -48,6 +58,24 @@ class SecurityWiringTest {
 
     @MockitoBean
     private AdminRepo admins;
+
+    @MockitoBean
+    private EmailService emailService;
+
+    @MockitoBean
+    private EmailEnqueueService enqueueService;
+
+    @MockitoBean
+    private EmailProgressService progressService;
+
+    @MockitoBean
+    private EmailDrainer drainer;
+
+    @MockitoBean
+    private EmailTemplateRepo templateRepo;
+
+    @MockitoBean
+    private TemplateManagementService templateManagementService;
 
     @Test
     void sessionEndpointRejectsAnonymousWithJsonEnvelope() throws Exception {
@@ -166,18 +194,19 @@ class SecurityWiringTest {
     @Test
     void adminEndpointsAdmitAMemberOnTheAllowlist() throws Exception {
         final MockHttpSession session = signIn(true);
+        final UUID templateId = UUID.randomUUID();
+        when(emailService.send(any()))
+                .thenReturn(new SendEmailResponse(
+                        1, 0, List.of(new SendEmailResponse.MessageResult(List.of("a@x.com"), true, null))));
 
-        // EmailController and MemberController are outside this slice, so the concrete status is incidental — what
-        // matters is that authorization no longer rejects the call.
         mockMvc.perform(post("/api/email/send")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}")
+                        .content(
+                                "{\"templateId\":\"" + templateId
+                                        + "\",\"subject\":\"S\",\"body\":\"B\",\"messages\":[{\"recipients\":[{\"email\":\"a@x.com\"}]}]}")
                         .session(session)
                         .with(csrf()))
-                .andExpect(result -> assertTrue(
-                        result.getResponse().getStatus() >= 200
-                                && result.getResponse().getStatus() <= 299,
-                        "an allowlisted admin must clear the ROLE_ADMIN check"));
+                .andExpect(status().isOk());
     }
 
     /** Completes a magic-link verification and returns the session it established. */
