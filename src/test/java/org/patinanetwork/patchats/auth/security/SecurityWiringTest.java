@@ -15,8 +15,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.patinanetwork.patchats.api.member.MemberController;
+import org.patinanetwork.patchats.api.member.MemberService;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
+import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.auth.AuthController;
 import org.patinanetwork.patchats.auth.AuthService;
 import org.patinanetwork.patchats.auth.repo.AdminRepo;
@@ -43,10 +46,9 @@ import org.springframework.test.web.servlet.MvcResult;
  * verify, session-carried authentication, and logout. Runs without Spring Session's JDBC store — the servlet mock
  * session stands in for it, which keeps the slice database-free while still proving the Spring Security wiring.
  */
-@WebMvcTest({AuthController.class, EmailController.class})
+@WebMvcTest({AuthController.class, EmailController.class, MemberController.class})
 @Import({SecurityConfig.class, ApiAuthenticationEntryPoint.class, ApiExceptionHandler.class})
 class SecurityWiringTest {
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -73,6 +75,9 @@ class SecurityWiringTest {
 
     @MockitoBean
     private EmailTemplateRepo templateRepo;
+
+    @MockitoBean
+    private MemberService memberService;
 
     @MockitoBean
     private TemplateManagementService templateManagementService;
@@ -119,16 +124,28 @@ class SecurityWiringTest {
 
     @Test
     void anonymousSignUpIsExemptFromCsrf() throws Exception {
-        // A first-time visitor POSTing the sign-up form has no XSRF-TOKEN cookie yet, so requiring the token would
-        // make sign-up impossible. MemberController is outside this slice, so the concrete status is incidental —
-        // what matters is that CSRF did not reject it. See the exemption list in SecurityConfig.
+        when(memberService.createMember(any()))
+                .thenReturn(MemberDto.builder()
+                        .id(UUID.randomUUID())
+                        .firstName("Ann")
+                        .lastName("Example")
+                        .email("ann@example.com")
+                        .introduction("Hello")
+                        .active(true)
+                        .build());
+
         mockMvc.perform(post("/api/members")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(result -> assertTrue(
-                        result.getResponse().getStatus() >= 200
-                                && result.getResponse().getStatus() <= 299,
-                        "anonymous sign-up must not be blocked by CSRF"));
+                        .content("""
+                                {
+                                  "firstName": "Ann",
+                                  "lastName": "Example",
+                                  "email": "ann@example.com",
+                                  "introduction": "Hello"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.payload.email").value("ann@example.com"));
     }
 
     @Test
