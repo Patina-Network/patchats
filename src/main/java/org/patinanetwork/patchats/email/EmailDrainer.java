@@ -16,8 +16,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
- * On-demand background runner (decision #6). Drains the {@code emails} outbox: claims a small batch, renders each row
- * from its template, sends over SMTP, and records a terminal status — one attempt, no retry (decision #8).
+ * On-demand background runner (decision #6). Drains the {@code emails} outbox: claims a small batch (decision #7),
+ * renders each row from its template, sends over SMTP, and records a terminal status — one attempt, no retry (decision
+ * #8).
  *
  * <p>Started only by an explicit kick ({@link #trigger()}, from {@code POST /api/email/process}) or the startup drain;
  * there is no enqueue-time auto-trigger and no polling. Runs single-threaded so overlapping triggers coalesce.
@@ -26,13 +27,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class EmailDrainer {
 
-    private static final int BATCH_SIZE = 50;
-
     private final EmailRepo emailRepo;
     private final EmailTemplateRepo templateRepo;
     private final EmailRenderer renderer;
     private final EmailSender sender;
     private final Executor executor;
+    private final EmailProperties properties;
 
     /** True while a drain job is running; guards against launching a second overlapping drain. */
     private final AtomicBoolean running = new AtomicBoolean(false);
@@ -44,12 +44,14 @@ public class EmailDrainer {
             final EmailTemplateRepo templateRepo,
             final EmailRenderer renderer,
             final EmailSender sender,
-            @Qualifier("emailDrainExecutor") final Executor executor) {
+            @Qualifier("emailDrainExecutor") final Executor executor,
+            final EmailProperties properties) {
         this.emailRepo = emailRepo;
         this.templateRepo = templateRepo;
         this.renderer = renderer;
         this.sender = sender;
         this.executor = executor;
+        this.properties = properties;
     }
 
     /**
@@ -81,12 +83,12 @@ public class EmailDrainer {
     private void drainAll() {
         // Cache templates for the life of one drain so a batch of the same template loads it once.
         final Map<UUID, EmailTemplate> templateCache = new HashMap<>();
-        List<Email> batch = emailRepo.claimBatch(BATCH_SIZE);
+        List<Email> batch = emailRepo.claimBatch(properties.getDrainBatchSize());
         while (!batch.isEmpty()) {
             for (final Email email : batch) {
                 sendOne(email, templateCache);
             }
-            batch = emailRepo.claimBatch(BATCH_SIZE);
+            batch = emailRepo.claimBatch(properties.getDrainBatchSize());
         }
     }
 
