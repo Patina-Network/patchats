@@ -27,8 +27,6 @@ public interface MatchRepo {
      *       <li>matchCycleId
      *       <li>matchScore
      *       <li>status
-     *       <li>feedbackA
-     *       <li>feedbackB
      *     </ul>
      */
     Optional<Match> updateMatch(Match match);
@@ -37,9 +35,9 @@ public interface MatchRepo {
 
     Optional<Match> setMatchStatus(UUID id, String status);
 
-    Optional<Match> deleteMatchById(UUID id);
+    Optional<Match> setMatchScore(UUID id, Double score);
 
-    Optional<Match> recordFeedback(UUID id, UUID memberId, String feedback);
+    Optional<Match> deleteMatchById(UUID id);
 
     List<Match> filterMatches(MatchFilterCriteria criteria);
 }
