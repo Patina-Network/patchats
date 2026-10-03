@@ -113,9 +113,17 @@ jobs:
         uses: ./.github/composite/run-backend-instance
 
   buildImage:
-    name: Build Docker Image & Upload to Registry
-    runs-on: ubuntu-latest
+    name: Build Docker Image & Upload to Registry (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     needs: [frontendTest, runLocalDb, runBackendInstance]
+
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout repository
@@ -133,6 +141,7 @@ jobs:
         uses: ./.github/composite/build-image
         with:
           ENVIRONMENT: staging
+          ARCH: ${{ matrix.arch }}
 
   migrateDatabase:
     name: Migrate Staging Database
