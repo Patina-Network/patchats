@@ -40,7 +40,7 @@ async function main() {
       manifestRepo: ["Patina-Network", "k8s-manifests"],
       originRepo: ["Patina-Network", "patchats"],
       kustomizationFilePath: "base/production/patchats/kustomization.yaml",
-      imageName: "patinanetwork/patchats",
+      imageName: "patinanetwork/patchats-arm",
       newTag: gitSha,
       environment: "production",
     });
@@ -51,7 +51,7 @@ async function main() {
       manifestRepo: ["Patina-Network", "k8s-manifests"],
       originRepo: ["Patina-Network", "patchats"],
       kustomizationFilePath: "base/staging/patchats/kustomization.yaml",
-      imageName: "patinanetwork/patchats",
+      imageName: "patinanetwork/patchats-arm",
       newTag: `staging-${gitSha}`,
       environment: "staging",
     });
