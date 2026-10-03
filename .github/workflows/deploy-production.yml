@@ -109,7 +109,6 @@ jobs:
         shell: bash
         run: echo "skipping db test"
 
-
   run-backend-instance:
     name: Test Run Backend Instance
     runs-on: ubuntu-latest
@@ -123,9 +122,17 @@ jobs:
         uses: ./.github/composite/run-backend-instance
 
   build-image:
-    name: Build Docker Image & Upload to Registry
-    runs-on: ubuntu-latest
+    name: Build Docker Image & Upload to Registry (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     needs: [frontend-test, run-local-db, run-backend-instance]
+
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout repository
@@ -143,6 +150,7 @@ jobs:
         uses: ./.github/composite/build-image
         with:
           ENVIRONMENT: production
+          ARCH: ${{ matrix.arch }}
 
   migrate-database:
     name: Migrate production database

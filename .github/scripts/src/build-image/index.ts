@@ -9,7 +9,7 @@ import { hideBin } from "yargs/helpers";
 
 process.env.TZ = "America/New_York";
 
-const { environment, getGhaOutput, githubOutputFile, dockerFileName } =
+const { environment, getGhaOutput, githubOutputFile, dockerFileName, arch } =
   await yargs(hideBin(process.argv))
     .option("environment", {
       choices: ["staging", "production"] satisfies Environment[],
@@ -32,8 +32,16 @@ const { environment, getGhaOutput, githubOutputFile, dockerFileName } =
       type: "string",
       default: "Dockerfile",
     })
+    .option("arch", {
+      choices: ["amd64", "arm64"] as const,
+      describe: "Docker build architecture",
+      default: "amd64" as const,
+    })
     .strict()
     .parse();
+
+const dockerRepository = arch === "arm64" ? "patchats-arm" : "patchats";
+const platforms = [`linux/${arch}`];
 
 async function main() {
   const DOCKER_HUB_PAT = process.env.DOCKER_HUB_PAT;
@@ -66,10 +74,10 @@ async function main() {
   const gitSha = (await $`git rev-parse --short HEAD`.text()).trim();
 
   await dockerClient.buildImage({
-    dockerRepository: `patchats`,
+    dockerRepository,
     dockerFileLocation: `infra/${dockerFileName}`,
     tags: [`${tagPrefix}${timestamp}`, `${tagPrefix}${gitSha}`],
-    platforms: ["linux/amd64", "linux/arm64"],
+    platforms,
   });
 
   if (getGhaOutput) {
