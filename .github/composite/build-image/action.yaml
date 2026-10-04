@@ -5,6 +5,10 @@ inputs:
   ENVIRONMENT:
     description: "'staging' or 'production'"
     required: true
+  ARCH:
+    description: "Target architecture to build natively (amd64 or arm64)."
+    required: false
+    default: amd64
 
 outputs:
   tag:
@@ -46,4 +50,4 @@ runs:
     - name: Run script
       id: build-image
       shell: bash
-      run: bun run .github/scripts/src/build-image --environment "${{ inputs.ENVIRONMENT }}"
+      run: bun run .github/scripts/src/build-image --environment "${{ inputs.ENVIRONMENT }}" --arch="${{ inputs.ARCH }}"

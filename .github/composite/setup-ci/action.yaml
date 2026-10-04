@@ -19,7 +19,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup
-      uses: tahminator/pipeline/actions/setup@1.0.73
+      uses: tahminator/pipeline/actions/setup@07fc9d27be126e0e9905af56e5d1b74440592626 #1.0.89
       with:
         INSTALL_SOPS: true
         SECRETS: ${{ inputs.SECRETS }}
