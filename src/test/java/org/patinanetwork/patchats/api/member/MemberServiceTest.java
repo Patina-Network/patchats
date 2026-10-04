@@ -2,6 +2,7 @@ package org.patinanetwork.patchats.api.member;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -505,6 +506,69 @@ class MemberServiceTest {
 
         assertThrows(MemberNotFoundException.class, () -> memberService.updateMemberStatus(request, id));
         verify(memberRepo, never()).updateMember(any());
+    }
+
+    @Test
+    void createMember_startsWithNoDeactivationReason() {
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+        when(memberRepo.getMemberByEmail(any())).thenReturn(Optional.empty());
+        when(memberRepo.createMember(any(Member.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        final MemberDto response = memberService.createMember(MemberTestFixtures.CREATE_REQUEST_ALL_FIELDS);
+
+        verify(memberRepo).createMember(captor.capture());
+        assertNull(captor.getValue().getDeactivationReason());
+        assertNull(response.getDeactivationReason());
+    }
+
+    @Test
+    void updateMemberStatus_deactivatingStoresTheReason() {
+        final UUID id = UUID.randomUUID();
+        final Member existingMember = Member.builder().id(id).active(true).build();
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
+
+        final MemberDto response =
+                memberService.updateMemberStatus(new UpdateMemberStatusRequest(false, Optional.of("Moving")), id);
+
+        verify(memberRepo).updateMember(captor.capture());
+        assertEquals("Moving", captor.getValue().getDeactivationReason());
+        assertEquals("Moving", response.getDeactivationReason());
+    }
+
+    @Test
+    void updateMemberStatus_deactivatingWithoutAReasonStoresNull() {
+        final UUID id = UUID.randomUUID();
+        final Member existingMember = Member.builder().id(id).active(true).build();
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
+
+        memberService.updateMemberStatus(new UpdateMemberStatusRequest(false, Optional.empty()), id);
+
+        verify(memberRepo).updateMember(captor.capture());
+        assertEquals(false, captor.getValue().isActive());
+        assertNull(captor.getValue().getDeactivationReason());
+    }
+
+    @Test
+    void updateMemberStatus_reactivatingClearsThePreviousReasonEvenIfOneIsSent() {
+        final UUID id = UUID.randomUUID();
+        final Member existingMember = Member.builder()
+                .id(id)
+                .active(false)
+                .deactivationReason("Moving")
+                .build();
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
+
+        memberService.updateMemberStatus(new UpdateMemberStatusRequest(true, Optional.of("Ignored")), id);
+
+        verify(memberRepo).updateMember(captor.capture());
+        assertTrue(captor.getValue().isActive());
+        assertNull(captor.getValue().getDeactivationReason());
     }
 
     private static MemberFilterCriteria emptyCriteria() {

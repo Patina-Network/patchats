@@ -2,6 +2,7 @@ package org.patinanetwork.patchats.api.member;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -15,6 +16,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,7 @@ import org.patinanetwork.patchats.api.member.dto.CreateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberRequest;
 import org.patinanetwork.patchats.api.member.dto.UpdateMemberStatusRequest;
+import org.patinanetwork.patchats.auth.security.AuthenticatedMember;
 import org.patinanetwork.patchats.common.web.ApiExceptionHandler;
 import org.patinanetwork.patchats.common.web.exception.MemberDuplicateException;
 import org.patinanetwork.patchats.common.web.exception.MemberNotFoundException;
@@ -32,6 +35,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -46,11 +52,26 @@ class MemberControllerTest {
     @MockitoBean
     private MemberService memberService;
 
+    private static final UUID SIGNED_IN_MEMBER_ID = UUID.fromString("6f9a4f4e-0000-4000-8000-000000000001");
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
         objectMapper.registerModule(new com.fasterxml.jackson.datatype.jdk8.Jdk8Module());
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    // Filters are off in this slice, so put the principal where @AuthenticationPrincipal reads it.
+    private static void signInAs(final UUID memberId) {
+        final AuthenticatedMember principal = new AuthenticatedMember(memberId, "ann@example.com");
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(
+                        principal, null, List.of(new SimpleGrantedAuthority("ROLE_MEMBER"))));
     }
 
     @Test
@@ -408,6 +429,86 @@ class MemberControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new UpdateMemberStatusRequest(false, Optional.of("Reason")))))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateOwnMemberStatus_deactivatesTheSignedInMemberWithTheReason() throws Exception {
+        signInAs(SIGNED_IN_MEMBER_ID);
+        when(memberService.updateMemberStatus(
+                        new UpdateMemberStatusRequest(false, Optional.of("Moving abroad")), SIGNED_IN_MEMBER_ID))
+                .thenReturn(MemberDto.builder()
+                        .id(SIGNED_IN_MEMBER_ID)
+                        .active(false)
+                        .deactivationReason("Moving abroad")
+                        .build());
+
+        // Raw JSON rather than a serialized record, so this pins the field's name on the wire.
+        mockMvc.perform(patch("/api/members/me/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false,\"deactivationReason\":\"Moving abroad\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Membership deactivated successfully"))
+                .andExpect(jsonPath("$.payload.active").value(false))
+                .andExpect(jsonPath("$.payload.deactivationReason").value("Moving abroad"));
+    }
+
+    @Test
+    void updateOwnMemberStatus_reactivatesTheSignedInMember() throws Exception {
+        signInAs(SIGNED_IN_MEMBER_ID);
+        when(memberService.updateMemberStatus(
+                        new UpdateMemberStatusRequest(true, Optional.empty()), SIGNED_IN_MEMBER_ID))
+                .thenReturn(
+                        MemberDto.builder().id(SIGNED_IN_MEMBER_ID).active(true).build());
+
+        mockMvc.perform(patch("/api/members/me/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Membership reactivated successfully"))
+                .andExpect(jsonPath("$.payload.active").value(true));
+    }
+
+    @Test
+    void updateOwnMemberStatus_ignoresAnyMemberIdInTheBody() throws Exception {
+        final UUID someoneElse = UUID.randomUUID();
+        signInAs(SIGNED_IN_MEMBER_ID);
+        when(memberService.updateMemberStatus(any(UpdateMemberStatusRequest.class), eq(SIGNED_IN_MEMBER_ID)))
+                .thenReturn(MemberDto.builder()
+                        .id(SIGNED_IN_MEMBER_ID)
+                        .active(false)
+                        .build());
+
+        mockMvc.perform(patch("/api/members/me/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false,\"id\":\"" + someoneElse + "\"}"))
+                .andExpect(status().isOk());
+
+        verify(memberService, never()).updateMemberStatus(any(UpdateMemberStatusRequest.class), eq(someoneElse));
+    }
+
+    @Test
+    void updateOwnMemberStatus_badRequestWhenActiveMissing() throws Exception {
+        signInAs(SIGNED_IN_MEMBER_ID);
+
+        mockMvc.perform(patch("/api/members/me/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void updateOwnMemberStatus_notFoundWhenTheMemberNoLongerExists() throws Exception {
+        signInAs(SIGNED_IN_MEMBER_ID);
+        when(memberService.updateMemberStatus(any(UpdateMemberStatusRequest.class), eq(SIGNED_IN_MEMBER_ID)))
+                .thenThrow(new MemberNotFoundException(SIGNED_IN_MEMBER_ID));
+
+        mockMvc.perform(patch("/api/members/me/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false));
     }
 
     @Test
