@@ -2,6 +2,7 @@ package org.patinanetwork.patchats.api.member.db.repos;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -153,6 +154,37 @@ class MemberSqlRepoTest {
     }
 
     @Test
+    void createMember_startsWithNoDeactivationReason() {
+        assertNull(member.getDeactivationReason());
+    }
+
+    @Test
+    void updateMember_persistsTheDeactivationReason() {
+        member.setActive(false);
+        member.setDeactivationReason("Moving abroad");
+
+        final Member result = memberRepo.updateMember(member).orElseThrow();
+
+        assertEquals("Moving abroad", result.getDeactivationReason());
+        assertEquals(
+                "Moving abroad",
+                memberRepo.getMemberById(member.getId()).orElseThrow().getDeactivationReason());
+    }
+
+    @Test
+    void updateMember_clearsTheDeactivationReason() {
+        member.setDeactivationReason("Moving abroad");
+        memberRepo.updateMember(member).orElseThrow();
+
+        member.setActive(true);
+        member.setDeactivationReason(null);
+        final Member result = memberRepo.updateMember(member).orElseThrow();
+
+        assertNull(result.getDeactivationReason());
+        assertNull(memberRepo.getMemberById(member.getId()).orElseThrow().getDeactivationReason());
+    }
+
+    @Test
     void updateMember_returnsEmptyWhenMemberDoesNotExist() {
         final Member missingMember = Member.builder()
                 .id(UUID.randomUUID())
@@ -209,5 +241,6 @@ class MemberSqlRepoTest {
         assertEquals(expected.getRolePref(), actual.getRolePref());
         assertEquals(expected.getTopics(), actual.getTopics());
         assertEquals(expected.getExtraNotes(), actual.getExtraNotes());
+        assertEquals(expected.getDeactivationReason(), actual.getDeactivationReason());
     }
 }

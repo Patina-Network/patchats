@@ -3,6 +3,8 @@ package org.patinanetwork.patchats.auth.security;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -20,6 +22,7 @@ import org.patinanetwork.patchats.api.member.MemberService;
 import org.patinanetwork.patchats.api.member.db.models.Member;
 import org.patinanetwork.patchats.api.member.db.repos.MemberRepo;
 import org.patinanetwork.patchats.api.member.dto.MemberDto;
+import org.patinanetwork.patchats.api.member.dto.UpdateMemberStatusRequest;
 import org.patinanetwork.patchats.auth.AuthController;
 import org.patinanetwork.patchats.auth.AuthService;
 import org.patinanetwork.patchats.auth.repo.AdminRepo;
@@ -226,14 +229,98 @@ class SecurityWiringTest {
                 .andExpect(status().isOk());
     }
 
-    /** Completes a magic-link verification and returns the session it established. */
-    private MockHttpSession signIn(final boolean isAdmin) throws Exception {
-        final Member member = Member.builder()
+    @Test
+    void aMemberCanChangeTheirOwnStatusWithoutBeingAnAdmin() throws Exception {
+        final Member member = aMember();
+        final MockHttpSession session = signIn(member, false);
+        when(memberService.updateMemberStatus(
+                        new UpdateMemberStatusRequest(false, Optional.of("Moving abroad")), member.getId()))
+                .thenReturn(MemberDto.builder()
+                        .id(member.getId())
+                        .active(false)
+                        .deactivationReason("Moving abroad")
+                        .build());
+
+        mockMvc.perform(patch("/api/members/me/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false,\"deactivationReason\":\"Moving abroad\"}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.payload.active").value(false))
+                .andExpect(jsonPath("$.payload.deactivationReason").value("Moving abroad"));
+    }
+
+    @Test
+    void ownStatusEndpointRejectsAnonymousCallers() throws Exception {
+        mockMvc.perform(patch("/api/members/me/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false}")
+                        .with(csrf()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false));
+
+        verify(memberService, never()).updateMemberStatus(any(UpdateMemberStatusRequest.class), any(UUID.class));
+    }
+
+    @Test
+    void ownStatusEndpointRequiresACsrfTokenEvenWhenSignedIn() throws Exception {
+        final MockHttpSession session = signIn(false);
+
+        mockMvc.perform(patch("/api/members/me/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false}")
+                        .session(session))
+                .andExpect(status().isForbidden());
+
+        verify(memberService, never()).updateMemberStatus(any(UpdateMemberStatusRequest.class), any(UUID.class));
+    }
+
+    @Test
+    void aMemberCannotUseTheAdminStatusEndpoint() throws Exception {
+        final MockHttpSession session = signIn(false);
+
+        mockMvc.perform(patch("/api/members/admin/{id}/status", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+
+        verify(memberService, never()).updateMemberStatus(any(UpdateMemberStatusRequest.class), any(UUID.class));
+    }
+
+    @Test
+    void anAdminCanChangeAnotherMembersStatus() throws Exception {
+        final MockHttpSession session = signIn(true);
+        final UUID someoneElse = UUID.randomUUID();
+        when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(false, Optional.empty()), someoneElse))
+                .thenReturn(MemberDto.builder().id(someoneElse).active(false).build());
+
+        mockMvc.perform(patch("/api/members/admin/{id}/status", someoneElse)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.payload.active").value(false));
+    }
+
+    private static Member aMember() {
+        return Member.builder()
                 .id(UUID.randomUUID())
                 .email("ann@example.com")
                 .firstName("Ann")
                 .lastName("Example")
                 .build();
+    }
+
+    /** Completes a magic-link verification and returns the session it established. */
+    private MockHttpSession signIn(final boolean isAdmin) throws Exception {
+        return signIn(aMember(), isAdmin);
+    }
+
+    private MockHttpSession signIn(final Member member, final boolean isAdmin) throws Exception {
         when(authService.verify("raw-token")).thenReturn(member);
         when(admins.isAdmin(member.getEmail())).thenReturn(isAdmin);
 

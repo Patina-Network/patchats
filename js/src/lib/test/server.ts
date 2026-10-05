@@ -1,4 +1,5 @@
 import { authHandlers } from "@/features/auth/api/auth.mock";
+import { memberProfileHandlers } from "@/features/member-profile/api/member-profile.mock";
 import { membersHandlers } from "@/features/members/api/members.mock";
 import { sampleHandlers } from "@/features/sample/api/sample.mock";
 import { setupServer } from "msw/node";
@@ -10,5 +11,6 @@ import { setupServer } from "msw/node";
 export const server = setupServer(
   ...sampleHandlers,
   ...authHandlers,
+  ...memberProfileHandlers,
   ...membersHandlers,
 );

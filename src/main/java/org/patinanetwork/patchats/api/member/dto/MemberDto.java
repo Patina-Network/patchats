@@ -79,6 +79,7 @@ public class MemberDto {
                 .rolePref(member.getRolePref())
                 .topics(member.getTopics())
                 .extraNotes(member.getExtraNotes())
+                .deactivationReason(member.getDeactivationReason())
                 .createdAt(member.getCreatedAt())
                 .updatedAt(member.getUpdatedAt())
                 .build();
