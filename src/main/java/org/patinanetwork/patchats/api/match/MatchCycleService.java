@@ -1,10 +1,12 @@
 package org.patinanetwork.patchats.api.match;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.patinanetwork.patchats.api.match.db.models.MatchCycle;
+import org.patinanetwork.patchats.api.match.db.repos.MatchCycleFilterCriteria;
 import org.patinanetwork.patchats.api.match.db.repos.MatchCycleRepo;
 import org.patinanetwork.patchats.api.match.dto.CreateMatchCycleRequest;
 import org.patinanetwork.patchats.api.match.dto.MatchCycleResponse;
@@ -38,6 +40,12 @@ public class MatchCycleService {
         } catch (DuplicateKeyException e) {
             throw new MatchCycleDuplicateException(request.period());
         }
+    }
+
+    public List<MatchCycleResponse> listMatchCycle(MatchCycleFilterCriteria criteria) {
+        return matchCycleRepo.getMatchCycleByFilters(criteria).stream()
+                .map(MatchCycleResponse::from)
+                .toList();
     }
 
     public MatchCycleResponse updateMatchCycle(UpdateMatchCycleRequest request, Integer id) {

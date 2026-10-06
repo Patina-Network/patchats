@@ -45,5 +45,5 @@ public interface MatchCycleRepo {
 
     Optional<MatchCycle> deleteMatchCycleById(Integer id);
 
-    List<MatchCycle> filterMatchCycles(MatchCycleFilterCriteria criteria);
+    List<MatchCycle> getMatchCycleByFilters(MatchCycleFilterCriteria criteria);
 }
