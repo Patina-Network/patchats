@@ -12,7 +12,7 @@ forward: try another address, or go sign up.
 ## The shape
 
 ```
-src/main/java/org/patinanetwork/patchats/auth/
+src/main/java/org/patinanetwork/patchats/api/auth/
   AuthController.java            POST /api/auth/request-link | verify | logout, GET /api/session
   AuthService.java               request-link + verify orchestration
   TokenGenerator.java            SecureRandom 256-bit raw token + SHA-256 hex digest
