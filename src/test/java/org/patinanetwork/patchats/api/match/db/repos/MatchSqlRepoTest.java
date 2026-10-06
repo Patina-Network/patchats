@@ -1,236 +1,233 @@
 package org.patinanetwork.patchats.api.match.db.repos;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.patinanetwork.patchats.api.match.db.models.Match;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.patinanetwork.patchats.api.match.db.models.Match.MatchStatus;
+import org.patinanetwork.patchats.api.match.db.models.MatchListItem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.transaction.annotation.Transactional;
 
-@SuppressWarnings("unchecked")
+@SpringBootTest
+@Transactional
 class MatchSqlRepoTest {
 
-    @Test
-    void createMatchReturnsRowFromDatabase() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Match> query = mock(JdbcClient.MappedQuerySpec.class);
-        final Match match = Match.builder()
+    private final MatchRepo matchRepo;
+    private final JdbcClient jdbc;
+    private String period;
+    private Integer cycleId;
+    private UUID alice;
+    private UUID bob;
+    private UUID carol;
+    private Match aliceBob;
+    private Match aliceCarol;
+
+    @Autowired
+    MatchSqlRepoTest(final MatchRepo matchRepo, final JdbcClient jdbc) {
+        this.matchRepo = matchRepo;
+        this.jdbc = jdbc;
+    }
+
+    @BeforeEach
+    void setUp() {
+        // A unique period keeps these fixtures apart from any rows already in the database.
+        period = "match-repo-test-" + UUID.randomUUID();
+        cycleId = jdbc.sql("INSERT INTO match_cycles (period, run_at) VALUES (:period, NOW()) RETURNING id")
+                .param("period", period)
+                .query(Integer.class)
+                .single();
+
+        alice = insertMember("Alice", "Technology");
+        bob = insertMember("Bob", "Finance");
+        carol = insertMember("Carol", "Healthcare");
+
+        aliceBob = matchRepo.createMatch(newMatch(alice, bob, MatchStatus.PENDING));
+        aliceCarol = matchRepo.createMatch(newMatch(alice, carol, MatchStatus.COMPLETED));
+    }
+
+    private UUID insertMember(final String firstName, final String industry) {
+        final UUID id = UUID.randomUUID();
+        jdbc.sql("""
+                INSERT INTO members (id, first_name, last_name, email, introduction, active, industry_pref)
+                VALUES (:id, :first_name, 'Test', :email, 'intro', TRUE, :industry_pref)
+                """)
+                .param("id", id)
+                .param("first_name", firstName)
+                .param("email", "match-repo-test-" + id + "@example.com")
+                .param("industry_pref", industry)
+                .update();
+        return id;
+    }
+
+    private Match newMatch(final UUID memberA, final UUID memberB, final MatchStatus status) {
+        return Match.builder()
                 .id(UUID.randomUUID())
-                .memberAId(UUID.randomUUID())
-                .memberBId(UUID.randomUUID())
-                .matchCycleId(1)
-                .matchScore(8.5)
-                .status("pending")
+                .memberAId(memberA)
+                .memberBId(memberB)
+                .matchCycleId(cycleId)
+                .matchScore(0.0)
+                .status(status)
                 .build();
-
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Match>>any())).thenReturn(query);
-        when(query.single()).thenReturn(match);
-
-        final Match result = new MatchSqlRepo(jdbc).createMatch(match);
-
-        assertEquals(match, result);
-        verify(jdbc).sql(ArgumentMatchers.anyString());
-        verify(statement).param("id", match.getId());
-        verify(statement).param("member_a_id", match.getMemberAId());
-        verify(statement).param("member_b_id", match.getMemberBId());
-        verify(statement).param("cycle_id", match.getMatchCycleId());
-        verify(statement).param("match_score", match.getMatchScore());
-        verify(statement).param("status", match.getStatus());
-        verify(query).single();
     }
 
-    @Test
-    void updateMatchBindsAllFields() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Match> query = mock(JdbcClient.MappedQuerySpec.class);
-        final Match match = Match.builder()
-                .id(UUID.randomUUID())
-                .memberAId(UUID.randomUUID())
-                .memberBId(UUID.randomUUID())
-                .matchCycleId(2)
-                .matchScore(9.0)
-                .status("confirmed")
-                .build();
-
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Match>>any())).thenReturn(query);
-        when(query.optional()).thenReturn(Optional.of(match));
-
-        final Optional<Match> result = new MatchSqlRepo(jdbc).updateMatch(match);
-
-        assertTrue(result.isPresent());
-        assertEquals(match, result.get());
-        verify(statement).param("id", match.getId());
-        verify(statement).param("member_a_id", match.getMemberAId());
-        verify(statement).param("member_b_id", match.getMemberBId());
-        verify(statement).param("cycle_id", match.getMatchCycleId());
-        verify(statement).param("match_score", match.getMatchScore());
-        verify(statement).param("status", match.getStatus());
-        verify(query).optional();
-    }
-
-    @Test
-    void getMatchByIdBindsId() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Match> query = mock(JdbcClient.MappedQuerySpec.class);
-        final UUID id = UUID.randomUUID();
-        final Match match = Match.builder().id(id).build();
-
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Match>>any())).thenReturn(query);
-        when(query.optional()).thenReturn(Optional.of(match));
-
-        final Optional<Match> result = new MatchSqlRepo(jdbc).getMatchById(id);
-
-        assertTrue(result.isPresent());
-        assertEquals(match, result.get());
-        verify(statement).param("id", id);
-        verify(query).optional();
-    }
-
-    @Test
-    void setMatchStatusBindsStatus() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Match> query = mock(JdbcClient.MappedQuerySpec.class);
-        final UUID id = UUID.randomUUID();
-        final Match match = Match.builder().id(id).status("completed").build();
-
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Match>>any())).thenReturn(query);
-        when(query.optional()).thenReturn(Optional.of(match));
-
-        final Optional<Match> result = new MatchSqlRepo(jdbc).setMatchStatus(id, "completed");
-
-        assertTrue(result.isPresent());
-        assertEquals(match, result.get());
-        verify(statement).param("id", id);
-        verify(statement).param("status", "completed");
-        verify(query).optional();
-    }
-
-    @Test
-    void setMatchScoreBindsScore() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Match> query = mock(JdbcClient.MappedQuerySpec.class);
-        final UUID id = UUID.randomUUID();
-        final Match match = Match.builder().id(id).matchScore(7.25).build();
-
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Match>>any())).thenReturn(query);
-        when(query.optional()).thenReturn(Optional.of(match));
-
-        final Optional<Match> result = new MatchSqlRepo(jdbc).setMatchScore(id, 7.25);
-
-        assertTrue(result.isPresent());
-        assertEquals(match, result.get());
-        verify(statement).param("id", id);
-        verify(statement).param("score", 7.25);
-        verify(query).optional();
-    }
-
-    @Test
-    void deleteMatchByIdBindsId() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Match> query = mock(JdbcClient.MappedQuerySpec.class);
-        final UUID id = UUID.randomUUID();
-        final Match match = Match.builder().id(id).build();
-
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.param(ArgumentMatchers.anyString(), ArgumentMatchers.any()))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Match>>any())).thenReturn(query);
-        when(query.optional()).thenReturn(Optional.of(match));
-
-        final Optional<Match> result = new MatchSqlRepo(jdbc).deleteMatchById(id);
-
-        assertTrue(result.isPresent());
-        assertEquals(match, result.get());
-        verify(statement).param("id", id);
-        verify(query).optional();
-    }
-
-    @Test
-    void filterMatchesAppliesEveryProvidedCriterion() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Match> query = mock(JdbcClient.MappedQuerySpec.class);
-        final Instant start = Instant.parse("2025-01-01T00:00:00Z");
-        final Instant end = Instant.parse("2025-06-30T23:59:59Z");
-        final MatchFilterCriteria criteria = new MatchFilterCriteria(
-                Optional.of(start),
-                Optional.of(end),
-                Optional.of("2025-Q1"),
-                Optional.of(UUID.randomUUID()),
-                Optional.of(1),
-                Optional.of("Technology"),
-                Optional.of("confirmed"));
-
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.paramSource(ArgumentMatchers.any(MapSqlParameterSource.class)))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Match>>any())).thenReturn(query);
-        when(query.list()).thenReturn(java.util.List.of());
-
-        final java.util.List<Match> result = new MatchSqlRepo(jdbc).filterMatches(criteria);
-
-        assertEquals(java.util.List.of(), result);
-        verify(jdbc).sql(ArgumentMatchers.anyString());
-        verify(query).list();
-    }
-
-    @Test
-    void filterMatchesOnlyIncludesProvidedCriteriaInWhereClause() {
-        final JdbcClient jdbc = mock(JdbcClient.class);
-        final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
-        final JdbcClient.MappedQuerySpec<Match> query = mock(JdbcClient.MappedQuerySpec.class);
+    private List<UUID> filterIds(
+            final Optional<UUID> memberId, final Optional<String> memberIndustry, final Optional<MatchStatus> status) {
         final MatchFilterCriteria criteria = new MatchFilterCriteria(
                 Optional.empty(),
                 Optional.empty(),
-                Optional.of("2025-Q1"),
+                Optional.of(period),
+                memberId,
+                Optional.empty(),
+                memberIndustry,
+                status);
+        return matchRepo.filterMatches(criteria).stream()
+                .map(item -> item.getMatch().getId())
+                .toList();
+    }
+
+    @Test
+    void createMatch_storesAndReturnsAllFields() {
+        assertEquals(alice, aliceBob.getMemberAId());
+        assertEquals(bob, aliceBob.getMemberBId());
+        assertEquals(cycleId, aliceBob.getMatchCycleId());
+        assertEquals(0.0, aliceBob.getMatchScore());
+        assertEquals(MatchStatus.PENDING, aliceBob.getStatus());
+        assertNotNull(aliceBob.getCreatedAt());
+    }
+
+    @Test
+    void getMatchById_returnsMatchWhenExists() {
+        final Match found = matchRepo.getMatchById(aliceBob.getId()).orElseThrow();
+
+        assertEquals(aliceBob.getId(), found.getId());
+        assertEquals(MatchStatus.PENDING, found.getStatus());
+    }
+
+    @Test
+    void getMatchById_returnsEmptyWhenMissing() {
+        assertTrue(matchRepo.getMatchById(UUID.randomUUID()).isEmpty());
+    }
+
+    @Test
+    void updateMatch_overwritesEditableFields() {
+        aliceBob.setMemberBId(carol);
+        aliceBob.setMatchScore(0.5);
+        aliceBob.setStatus(MatchStatus.CONFIRMED);
+
+        final Match updated = matchRepo.updateMatch(aliceBob).orElseThrow();
+
+        assertEquals(carol, updated.getMemberBId());
+        assertEquals(0.5, updated.getMatchScore());
+        assertEquals(MatchStatus.CONFIRMED, updated.getStatus());
+    }
+
+    @Test
+    void updateMatch_returnsEmptyWhenMissing() {
+        assertTrue(
+                matchRepo.updateMatch(newMatch(alice, bob, MatchStatus.PENDING)).isEmpty());
+    }
+
+    @Test
+    void setMatchStatus_updatesStatus() {
+        final Match updated = matchRepo
+                .setMatchStatus(aliceBob.getId(), MatchStatus.CANCELLED)
+                .orElseThrow();
+
+        assertEquals(MatchStatus.CANCELLED, updated.getStatus());
+    }
+
+    @Test
+    void setMatchStatus_returnsEmptyWhenMissing() {
+        assertTrue(matchRepo
+                .setMatchStatus(UUID.randomUUID(), MatchStatus.CANCELLED)
+                .isEmpty());
+    }
+
+    @Test
+    void setMatchScore_updatesScore() {
+        final Match updated = matchRepo.setMatchScore(aliceBob.getId(), 0.75).orElseThrow();
+
+        assertEquals(0.75, updated.getMatchScore());
+    }
+
+    @Test
+    void deleteMatchById_removesMatch() {
+        final Match deleted = matchRepo.deleteMatchById(aliceBob.getId()).orElseThrow();
+
+        assertEquals(aliceBob.getId(), deleted.getId());
+        assertTrue(matchRepo.getMatchById(aliceBob.getId()).isEmpty());
+    }
+
+    @Test
+    void deleteMatchById_returnsEmptyWhenMissing() {
+        assertTrue(matchRepo.deleteMatchById(UUID.randomUUID()).isEmpty());
+    }
+
+    @Test
+    void filterMatches_byPeriodReturnsMatchesWithNamesAndPeriod() {
+        final MatchFilterCriteria criteria = new MatchFilterCriteria(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(period),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                Optional.of("pending"));
-        final ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+                Optional.empty());
 
-        when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
-        when(statement.paramSource(ArgumentMatchers.any(MapSqlParameterSource.class)))
-                .thenReturn(statement);
-        when(statement.query(ArgumentMatchers.<RowMapper<Match>>any())).thenReturn(query);
-        when(query.list()).thenReturn(java.util.List.of());
+        final List<MatchListItem> result = matchRepo.filterMatches(criteria);
 
-        new MatchSqlRepo(jdbc).filterMatches(criteria);
+        assertEquals(2, result.size());
+        final MatchListItem item = result.stream()
+                .filter(i -> i.getMatch().getId().equals(aliceBob.getId()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(period, item.getPeriod());
+        assertEquals("Alice", item.getMemberAFirstName());
+        assertEquals("Bob", item.getMemberBFirstName());
+    }
 
-        verify(jdbc).sql(sqlCaptor.capture());
+    @Test
+    void filterMatches_byStatusReturnsOnlyThatStatus() {
         assertEquals(
-                "SELECT * FROM matches WHERE 1=1 AND status = :status AND cycle_id IN (SELECT id FROM match_cycles WHERE period = :period)",
-                sqlCaptor.getValue());
+                List.of(aliceCarol.getId()),
+                filterIds(Optional.empty(), Optional.empty(), Optional.of(MatchStatus.COMPLETED)));
+    }
+
+    @Test
+    void filterMatches_byMemberMatchesEitherSide() {
+        assertEquals(List.of(aliceCarol.getId()), filterIds(Optional.of(carol), Optional.empty(), Optional.empty()));
+    }
+
+    @Test
+    void filterMatches_byIndustryMatchesEitherMemberIgnoringCase() {
+        assertEquals(List.of(aliceBob.getId()), filterIds(Optional.empty(), Optional.of("finance"), Optional.empty()));
+    }
+
+    @Test
+    void filterMatches_byTimeRangeIncludesMatchesCreatedInside() {
+        final MatchFilterCriteria criteria = new MatchFilterCriteria(
+                Optional.of(Instant.now().minusSeconds(3600)),
+                Optional.of(Instant.now().plusSeconds(3600)),
+                Optional.of(period),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
+
+        final List<UUID> ids = matchRepo.filterMatches(criteria).stream()
+                .map(item -> item.getMatch().getId())
+                .toList();
+
+        assertTrue(ids.containsAll(List.of(aliceBob.getId(), aliceCarol.getId())));
     }
 }
