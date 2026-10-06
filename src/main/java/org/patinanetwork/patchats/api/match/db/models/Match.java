@@ -16,6 +16,14 @@ public class Match {
 
     private UUID id;
 
+    public enum MatchStatus {
+        PENDING,
+        CONFIRMED,
+        COMPLETED,
+        CANCELLED,
+        SKIPPED
+    }
+
     @Setter
     private UUID memberAId;
 
@@ -29,7 +37,17 @@ public class Match {
     private Double matchScore;
 
     @Setter
-    private String status;
+    private MatchStatus status;
 
     private Instant createdAt;
+
+    private String period;
+
+    private String memberAFirstName;
+
+    private String memberALastName;
+
+    private String memberBFirstName;
+
+    private String memberBLastName;
 }

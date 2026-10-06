@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.patinanetwork.patchats.api.match.MatchController;
+import org.patinanetwork.patchats.api.match.MatchService;
 import org.patinanetwork.patchats.api.member.MemberController;
 import org.patinanetwork.patchats.api.member.MemberService;
 import org.patinanetwork.patchats.api.member.db.models.Member;
@@ -49,7 +51,7 @@ import org.springframework.test.web.servlet.MvcResult;
  * verify, session-carried authentication, and logout. Runs without Spring Session's JDBC store — the servlet mock
  * session stands in for it, which keeps the slice database-free while still proving the Spring Security wiring.
  */
-@WebMvcTest({AuthController.class, EmailController.class, MemberController.class})
+@WebMvcTest({AuthController.class, EmailController.class, MemberController.class, MatchController.class})
 @Import({SecurityConfig.class, ApiAuthenticationEntryPoint.class, ApiExceptionHandler.class})
 class SecurityWiringTest {
     @Autowired
@@ -84,6 +86,9 @@ class SecurityWiringTest {
 
     @MockitoBean
     private TemplateManagementService templateManagementService;
+
+    @MockitoBean
+    private MatchService matchService;
 
     @Test
     void sessionEndpointRejectsAnonymousWithJsonEnvelope() throws Exception {
@@ -304,6 +309,51 @@ class SecurityWiringTest {
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.payload.active").value(false));
+    }
+
+    @Test
+    void matchEndpointsRejectAnonymousCallers() throws Exception {
+        mockMvc.perform(get("/api/match")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/match/{id}", UUID.randomUUID())).andExpect(status().isUnauthorized());
+        mockMvc.perform(patch("/api/match/{id}/status", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"COMPLETED\"}")
+                        .with(csrf()))
+                .andExpect(status().isUnauthorized());
+        verify(matchService, never()).filterMatches(any());
+    }
+
+    @Test
+    void matchEndpointsAreForbiddenToASignedInNonAdmin() throws Exception {
+        final MockHttpSession session = signIn(false);
+
+        mockMvc.perform(get("/api/match").session(session)).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/match/{id}", UUID.randomUUID()).session(session))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/match")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(patch("/api/match/{id}/status", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"COMPLETED\"}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
+        verify(matchService, never()).filterMatches(any());
+        verify(matchService, never()).createMatch(any());
+    }
+
+    @Test
+    void matchEndpointsAdmitAnAdmin() throws Exception {
+        final MockHttpSession session = signIn(true);
+        when(matchService.filterMatches(any())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/match").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
     }
 
     private static Member aMember() {
