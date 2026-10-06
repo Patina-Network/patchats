@@ -229,7 +229,8 @@ class MatchCycleSqlRepoTest {
 
         verify(jdbc).sql(sqlCaptor.capture());
         assertEquals(
-                "SELECT * FROM match_cycles WHERE 1=1 AND period = :period AND is_draft = :is_draft",
+                "SELECT * FROM match_cycles WHERE 1=1 AND period = :period AND is_draft = :is_draft"
+                        + " ORDER BY run_at DESC",
                 sqlCaptor.getValue());
     }
 }

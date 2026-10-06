@@ -84,7 +84,7 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.createMatch(any(CreateMatchRequest.class))).thenReturn(matchResponse(id));
 
-        mockMvc.perform(post("/api/match/admin")
+        mockMvc.perform(post("/api/match")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody(MEMBER_A_ID, MEMBER_B_ID, CYCLE_ID)))
                 .andExpect(status().isOk())
@@ -102,7 +102,7 @@ class MatchControllerTest {
 
     @Test
     void createMatch_badRequestWhenRequiredFieldMissing() throws Exception {
-        mockMvc.perform(post("/api/match/admin")
+        mockMvc.perform(post("/api/match")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody(null, MEMBER_B_ID, CYCLE_ID)))
                 .andExpect(status().isBadRequest())
@@ -116,7 +116,7 @@ class MatchControllerTest {
         when(matchService.createMatch(any(CreateMatchRequest.class)))
                 .thenThrow(new ValidationException("Member A and Member B cannot be the same."));
 
-        mockMvc.perform(post("/api/match/admin")
+        mockMvc.perform(post("/api/match")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody(MEMBER_A_ID, MEMBER_A_ID, CYCLE_ID)))
                 .andExpect(status().isBadRequest())
@@ -129,7 +129,7 @@ class MatchControllerTest {
         when(matchService.createMatch(any(CreateMatchRequest.class)))
                 .thenThrow(new MemberNotFoundException(MEMBER_A_ID));
 
-        mockMvc.perform(post("/api/match/admin")
+        mockMvc.perform(post("/api/match")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody(MEMBER_A_ID, MEMBER_B_ID, CYCLE_ID)))
                 .andExpect(status().isNotFound())
@@ -141,7 +141,7 @@ class MatchControllerTest {
         when(matchService.createMatch(any(CreateMatchRequest.class)))
                 .thenThrow(new MatchCycleNotFoundException(CYCLE_ID));
 
-        mockMvc.perform(post("/api/match/admin")
+        mockMvc.perform(post("/api/match")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody(MEMBER_A_ID, MEMBER_B_ID, CYCLE_ID)))
                 .andExpect(status().isNotFound())
@@ -155,7 +155,7 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.updateMatch(any(UpdateMatchRequest.class), eq(id))).thenReturn(matchResponse(id));
 
-        mockMvc.perform(patch("/api/match/admin/{id}", id)
+        mockMvc.perform(patch("/api/match/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody(MEMBER_A_ID, MEMBER_B_ID, CYCLE_ID)))
                 .andExpect(status().isOk())
@@ -169,7 +169,7 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.updateMatch(any(UpdateMatchRequest.class), eq(id))).thenReturn(matchResponse(id));
 
-        mockMvc.perform(patch("/api/match/admin/{id}", id)
+        mockMvc.perform(patch("/api/match/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"matchCycleId\":2}"))
                 .andExpect(status().isOk());
@@ -186,7 +186,7 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.updateMatch(any(UpdateMatchRequest.class), eq(id))).thenThrow(new MatchNotFoundException(id));
 
-        mockMvc.perform(patch("/api/match/admin/{id}", id)
+        mockMvc.perform(patch("/api/match/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"matchCycleId\":2}"))
                 .andExpect(status().isNotFound())
@@ -199,7 +199,7 @@ class MatchControllerTest {
         when(matchService.updateMatch(any(UpdateMatchRequest.class), eq(id)))
                 .thenThrow(new ValidationException("Member A and Member B cannot be the same."));
 
-        mockMvc.perform(patch("/api/match/admin/{id}", id)
+        mockMvc.perform(patch("/api/match/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createBody(MEMBER_A_ID, MEMBER_A_ID, null)))
                 .andExpect(status().isBadRequest())
@@ -213,7 +213,7 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.getMatchById(id)).thenReturn(matchResponse(id));
 
-        mockMvc.perform(get("/api/match/admin/{id}", id))
+        mockMvc.perform(get("/api/match/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Match retrieved successfully"))
@@ -226,14 +226,14 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.getMatchById(id)).thenThrow(new MatchNotFoundException(id));
 
-        mockMvc.perform(get("/api/match/admin/{id}", id))
+        mockMvc.perform(get("/api/match/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false));
     }
 
     @Test
     void getMatchById_badRequestWhenIdIsNotUuid() throws Exception {
-        mockMvc.perform(get("/api/match/admin/{id}", "not-a-uuid")).andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/match/{id}", "not-a-uuid")).andExpect(status().isBadRequest());
 
         verify(matchService, never()).getMatchById(any());
     }
@@ -245,7 +245,7 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.deleteMatchById(id)).thenReturn(matchResponse(id));
 
-        mockMvc.perform(delete("/api/match/admin/{id}", id))
+        mockMvc.perform(delete("/api/match/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Match deleted successfully"))
@@ -257,7 +257,7 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.deleteMatchById(id)).thenThrow(new MatchNotFoundException(id));
 
-        mockMvc.perform(delete("/api/match/admin/{id}", id))
+        mockMvc.perform(delete("/api/match/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -358,7 +358,7 @@ class MatchControllerTest {
                         .status(MatchStatus.COMPLETED)
                         .build());
 
-        mockMvc.perform(patch("/api/match/admin/{id}/status", id)
+        mockMvc.perform(patch("/api/match/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"status\":\"COMPLETED\"}"))
                 .andExpect(status().isOk())
@@ -372,7 +372,7 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.setMatchStatus(id, MatchStatus.COMPLETED)).thenThrow(new MatchNotFoundException(id));
 
-        mockMvc.perform(patch("/api/match/admin/{id}/status", id)
+        mockMvc.perform(patch("/api/match/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"status\":\"COMPLETED\"}"))
                 .andExpect(status().isNotFound())
@@ -381,7 +381,7 @@ class MatchControllerTest {
 
     @Test
     void setMatchStatus_badRequestWhenStatusMissing() throws Exception {
-        mockMvc.perform(patch("/api/match/admin/{id}/status", UUID.randomUUID())
+        mockMvc.perform(patch("/api/match/{id}/status", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
@@ -392,7 +392,7 @@ class MatchControllerTest {
 
     @Test
     void setMatchStatus_badRequestWhenStatusUnknown() throws Exception {
-        mockMvc.perform(patch("/api/match/admin/{id}/status", UUID.randomUUID())
+        mockMvc.perform(patch("/api/match/{id}/status", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"status\":\"BANANA\"}"))
                 .andExpect(status().isBadRequest());
@@ -406,7 +406,7 @@ class MatchControllerTest {
         when(matchService.setMatchScore(id, 0.85))
                 .thenReturn(MatchResponse.builder().id(id).matchScore(0.85).build());
 
-        mockMvc.perform(patch("/api/match/admin/{id}/score", id)
+        mockMvc.perform(patch("/api/match/{id}/score", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"score\":0.85}"))
                 .andExpect(status().isOk())
@@ -420,7 +420,7 @@ class MatchControllerTest {
         final UUID id = UUID.randomUUID();
         when(matchService.setMatchScore(eq(id), any())).thenThrow(new MatchNotFoundException(id));
 
-        mockMvc.perform(patch("/api/match/admin/{id}/score", id)
+        mockMvc.perform(patch("/api/match/{id}/score", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"score\":0.85}"))
                 .andExpect(status().isNotFound())
@@ -429,7 +429,7 @@ class MatchControllerTest {
 
     @Test
     void setMatchScore_badRequestWhenScoreMissing() throws Exception {
-        mockMvc.perform(patch("/api/match/admin/{id}/score", UUID.randomUUID())
+        mockMvc.perform(patch("/api/match/{id}/score", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())

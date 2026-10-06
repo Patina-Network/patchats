@@ -185,6 +185,8 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
             params.addValue("is_draft", isDraft);
         });
 
+        sql.append(" ORDER BY run_at DESC");
+
         return jdbc.sql(sql.toString())
                 .paramSource(params)
                 .query((rs, rowNum) -> parseResultSetToMatchCycle(rs))
