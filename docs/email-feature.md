@@ -15,7 +15,7 @@ whose implementation can be swapped).
 ## The shape
 
 ```
-src/main/java/org/patinanetwork/patchats/email/
+src/main/java/org/patinanetwork/patchats/api/email/
   EmailController.java        POST /api/email/send →              ResponseEntity<ApiResponder<SendEmailResponse>>
   EmailService.java           orchestration: per message build vars → render → send → collect results (+ @Slf4j)
   EmailSender.java            PORT: void send(OutgoingEmail email)
@@ -60,7 +60,7 @@ The SMTP transport is the only piece that touches the outside world, so it sits 
 }
 ```
 
-For full, runnable POST requests see the mock JSON files in [src/test/java/org/patinanetwork/patchats/email/mocks/].
+For full, runnable POST requests see the mock JSON files in [src/test/java/org/patinanetwork/patchats/api/email/mocks/].
 
 ### Response
 
@@ -112,8 +112,8 @@ To hit the endpoint locally with a real request:
 3. Set the method to **POST** and the URL to `localhost:8080/api/email/send`.
 4. Under **Body**, choose **raw**, then select **JSON** from the format dropdown.
 5. Write a request body that matches `SendEmailRequest`
-   ([dto/SendEmailRequest.java](../src/main/java/org/patinanetwork/patchats/email/dto/SendEmailRequest.java)).
+   ([dto/SendEmailRequest.java](../src/main/java/org/patinanetwork/patchats/api/email/dto/SendEmailRequest.java)).
    or paste a mock JSON in
-   [src/test/java/org/patinanetwork/patchats/email/mocks/](../src/test/java/org/patinanetwork/patchats/email/mocks/).
+   [src/test/java/org/patinanetwork/patchats/api/email/mocks/](../src/test/java/org/patinanetwork/patchats/api/email/mocks/).
 6. Start the app with `just dev` in a terminal (the `dev` profile logs emails instead of sending, so no real SMTP is needed).
 7. Press **Send** and check the response payload
