@@ -1,8 +1,13 @@
 package org.patinanetwork.patchats.api.match;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.patinanetwork.patchats.api.match.db.repos.MatchCycleFilterCriteria;
 import org.patinanetwork.patchats.api.match.dto.CreateMatchCycleRequest;
 import org.patinanetwork.patchats.api.match.dto.MatchCycleResponse;
 import org.patinanetwork.patchats.api.match.dto.UpdateMatchCycleRequest;
@@ -15,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -37,6 +43,20 @@ public class MatchCycleController {
             @Valid @RequestBody final UpdateMatchCycleRequest request, @PathVariable final Integer id) {
         final MatchCycleResponse response = matchCycleService.updateMatchCycle(request, id);
         return ResponseEntity.ok(ApiResponder.success("Match Cycle updated successfully", response));
+    }
+
+    @GetMapping
+    @Operation(
+            summary = "List match cycles",
+            description = "Returns every match cycle matching the supplied filters, newest run first.")
+    public ResponseEntity<ApiResponder<List<MatchCycleResponse>>> filterMatchCycles(
+            @RequestParam final Optional<String> period,
+            @RequestParam final Optional<Instant> startTime,
+            @RequestParam final Optional<Instant> endTime,
+            @RequestParam final Optional<Boolean> isDraft) {
+        final MatchCycleFilterCriteria criteria = new MatchCycleFilterCriteria(period, startTime, endTime, isDraft);
+        final List<MatchCycleResponse> response = matchCycleService.filterMatchCycles(criteria);
+        return ResponseEntity.ok(ApiResponder.success("Match Cycles retrieved successfully", response));
     }
 
     @GetMapping("/{id}")

@@ -88,6 +88,10 @@ public class SecurityConfig {
                         .hasRole(ADMIN_ROLE)
                         .requestMatchers(HttpMethod.PATCH, "/api/members/admin/*/status")
                         .hasRole(ADMIN_ROLE)
+                        // Every match endpoint, any method. A member-facing route (e.g. /api/match/me) would need
+                        // its own rule placed above this one.
+                        .requestMatchers("/api/match", "/api/match/**")
+                        .hasRole(ADMIN_ROLE)
                         .requestMatchers(HttpMethod.GET, "/api/session")
                         .authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/members/me/status")

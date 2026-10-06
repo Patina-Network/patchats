@@ -38,40 +38,40 @@ public class MatchController {
 
     private final MatchService matchService;
 
-    @PostMapping("/admin")
+    @PostMapping
     public ResponseEntity<ApiResponder<MatchResponse>> createMatch(
             @Valid @RequestBody final CreateMatchRequest request) {
         final MatchResponse response = matchService.createMatch(request);
         return ResponseEntity.ok(ApiResponder.success("Match created successfully", response));
     }
 
-    @PatchMapping("/admin/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<ApiResponder<MatchResponse>> updateMatch(
             @Valid @RequestBody final UpdateMatchRequest request, @PathVariable final UUID id) {
         final MatchResponse response = matchService.updateMatch(request, id);
         return ResponseEntity.ok(ApiResponder.success("Match updated successfully", response));
     }
 
-    @GetMapping("/admin/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ApiResponder<MatchResponse>> getMatchById(@PathVariable final UUID id) {
         final MatchResponse response = matchService.getMatchById(id);
         return ResponseEntity.ok(ApiResponder.success("Match retrieved successfully", response));
     }
 
-    @DeleteMapping("/admin/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponder<MatchResponse>> deleteMatch(@PathVariable final UUID id) {
         final MatchResponse response = matchService.deleteMatchById(id);
         return ResponseEntity.ok(ApiResponder.success("Match deleted successfully", response));
     }
 
-    @PatchMapping("/admin/{id}/status")
+    @PatchMapping("/{id}/status")
     public ResponseEntity<ApiResponder<MatchResponse>> setMatchStatus(
             @Valid @RequestBody final UpdateMatchStatusRequest request, @PathVariable final UUID id) {
         final MatchResponse response = matchService.setMatchStatus(id, request.status());
         return ResponseEntity.ok(ApiResponder.success("Match status updated successfully", response));
     }
 
-    @PatchMapping("/admin/{id}/score")
+    @PatchMapping("/{id}/score")
     public ResponseEntity<ApiResponder<MatchResponse>> setMatchScore(
             @Valid @RequestBody final UpdateMatchScoreRequest request, @PathVariable final UUID id) {
         final MatchResponse response = matchService.setMatchScore(id, request.score());
