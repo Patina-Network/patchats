@@ -8,18 +8,20 @@ import type {
   EmailTemplate,
 } from "@/features/emails/dto/emailDto";
 
-export async function sendToEmailApi(body: unknown) {
-  const response = await fetch("/api/email/send", {
+import { apiFetch, ApiResponder } from "@/lib/api/client";
+
+interface SendEmailResponse {
+  sent: number;
+  failed: number;
+}
+
+export async function sendToEmailApi(
+  body: unknown,
+): Promise<ApiResponder<SendEmailResponse>> {
+  return apiFetch<ApiResponder<SendEmailResponse>>("/email/send", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!response.ok) {
-    throw new Error(
-      `Email API failed: ${response.status} ${response.statusText}`,
-    );
-  }
-  return response.json();
 }
 
 /**
@@ -31,22 +33,14 @@ export async function sendToEmailApi(body: unknown) {
 export async function sendToPreviewApi(
   body: SendAsyncRequest,
 ): Promise<MessagePreview[] | null> {
-  const response = await fetch("/api/email/preview", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Preview API failed: ${response.status} ${response.statusText}`,
-    );
-  }
-  // The backend wraps the result in ApiResponder: { success, message, payload: { previews: [...] } }.
-  // Unwrap to the MessagePreview[] that EmailPreview expects.
-  const json = (await response.json()) as {
-    payload: { previews: MessagePreview[] };
-  };
-  return json.payload.previews;
+  const response = await apiFetch<ApiResponder<{ previews: MessagePreview[] }>>(
+    "/email/preview",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+  );
+  return response.payload.previews;
 }
 
 // Async email API functions
@@ -54,20 +48,14 @@ export async function sendToPreviewApi(
 export async function enqueueEmails(
   body: EnqueueEmailRequest,
 ): Promise<EnqueueEmailResponse> {
-  const response = await fetch("/api/email/send/async", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Enqueue API failed: ${response.status} ${response.statusText}`,
-    );
-  }
-  const json = (await response.json()) as {
-    payload: EnqueueEmailResponse;
-  };
-  return json.payload;
+  const response = await apiFetch<ApiResponder<EnqueueEmailResponse>>(
+    "/email/send/async",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+  );
+  return response.payload;
 }
 
 export async function getProgress(requestId: string): Promise<EmailProgress> {
@@ -97,15 +85,9 @@ export async function listRequests(): Promise<EmailRequestSummary[]> {
 }
 
 export async function resendEmail(emailId: string): Promise<void> {
-  const response = await fetch(`/api/email/${emailId}/resend`, {
+  await apiFetch<ApiResponder<null>>(`/email/${emailId}/resend`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
   });
-  if (!response.ok) {
-    throw new Error(
-      `Resend API failed: ${response.status} ${response.statusText}`,
-    );
-  }
 }
 
 export async function listTemplates(): Promise<EmailTemplate[]> {
@@ -122,15 +104,9 @@ export async function listTemplates(): Promise<EmailTemplate[]> {
 }
 
 export async function triggerProcess(): Promise<void> {
-  const response = await fetch("/api/email/process", {
+  await apiFetch<ApiResponder<null>>("/email/process", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
   });
-  if (!response.ok) {
-    throw new Error(
-      `Process API failed: ${response.status} ${response.statusText}`,
-    );
-  }
 }
 
 export async function createTemplate(body: {
@@ -138,29 +114,18 @@ export async function createTemplate(body: {
   subject: string;
   body: string;
 }): Promise<EmailTemplate> {
-  const response = await fetch("/api/email/templates", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error(
-      `Create template API failed: ${response.status} ${response.statusText}`,
-    );
-  }
-  const json = (await response.json()) as {
-    payload: EmailTemplate;
-  };
-  return json.payload;
+  const response = await apiFetch<ApiResponder<EmailTemplate>>(
+    "/email/templates",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+  );
+  return response.payload;
 }
 
 export async function deleteTemplate(templateId: string): Promise<void> {
-  const response = await fetch(`/api/email/templates/${templateId}`, {
+  await apiFetch<ApiResponder<null>>(`/email/templates/${templateId}`, {
     method: "DELETE",
   });
-  if (!response.ok) {
-    throw new Error(
-      `Delete template API failed: ${response.status} ${response.statusText}`,
-    );
-  }
 }
