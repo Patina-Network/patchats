@@ -1,9 +1,9 @@
 package org.patinanetwork.patchats.common.web;
 
 import java.util.stream.Collectors;
-import org.patinanetwork.patchats.auth.InvalidMagicLinkException;
-import org.patinanetwork.patchats.auth.TooManyLinkRequestsException;
-import org.patinanetwork.patchats.auth.UnregisteredEmailException;
+import org.patinanetwork.patchats.api.auth.InvalidMagicLinkException;
+import org.patinanetwork.patchats.api.auth.TooManyLinkRequestsException;
+import org.patinanetwork.patchats.api.auth.UnregisteredEmailException;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
 import org.patinanetwork.patchats.common.web.exception.EmailNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.EmailNotResendableException;
