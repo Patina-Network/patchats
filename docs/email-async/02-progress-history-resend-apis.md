@@ -15,7 +15,7 @@ Increment 1 — no schema changes. See [00-overview.md](00-overview.md) for full
 
 Add to the email controller; back them with the Increment-1 repositories (add query methods as needed).
 
-### `GET /api/email/progress?requestId={uuid}`
+### `GET /api/admin/email/progress?requestId={uuid}`
 Returns the live state of one batch. One `GROUP BY status` for the counts plus the row list.
 ```jsonc
 {
@@ -35,7 +35,7 @@ Returns the live state of one batch. One `GROUP BY status` for the counts plus t
 SELECT status, count(*) FROM emails WHERE request_id = :requestId GROUP BY status;
 ```
 
-### `GET /api/email/requests`
+### `GET /api/admin/email/requests`
 History list for the sessions tab — one entry per `email_requests` row with aggregated child counts,
 newest first.
 ```sql
@@ -51,12 +51,12 @@ SELECT r.id, r.source, r.template_id, r.created_at, r.total_count,
 Return `terminal = (in_flight == 0)` so the frontend knows whether a past session needs polling.
 (Consider pagination later; not required for v1 volume.)
 
-### `POST /api/email/{emailId}/resend`
+### `POST /api/admin/email/{emailId}/resend`
 The manual recovery the at-most-once model requires. Flip the row `ERROR → PENDING` (clear `error_message`,
 `updated_at = now()`), then call `EmailDrainer.trigger()` so it sends promptly. Reject if the row is not
 currently `ERROR` (`409`/`400`).
 
-### `POST /api/email/process` *(optional)*
+### `POST /api/admin/email/process` *(optional)*
 A convenience "process now" kick that just calls `EmailDrainer.trigger()`. Handy for ops; not required by
 the UI.
 

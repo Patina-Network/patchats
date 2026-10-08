@@ -10,7 +10,7 @@ See [00-overview.md](00-overview.md) for full context and the decision table.
 - **Render at send-time** (#4) — store `template_id` + `template_values`; the runner renders `subject`/`body` per
   row just before sending (rendered text is **not** stored).
 - **Single instance** (#5) — no row-locking needed; deploys must be **stop-then-start**.
-- **On-demand runner, no polling** (#6) — started only by an explicit kick (`POST /api/email/process`, called by
+- **On-demand runner, no polling** (#6) — started only by an explicit kick (`POST /api/admin/email/process`, called by
   the frontend after a send / by ops) and by a startup drain. **No auto-trigger on enqueue.**
 - **Sequential small batch** (#7) — claim ≤50, send one-at-a-time.
 - **No auto-retry** (#8) — a failed send → terminal `ERROR`.
@@ -112,17 +112,17 @@ only in `EmailRepo` for that one method.
      `recipient_1`/`recipient_2` from the message, `template_id`, `template_values` = the merged map). Rendering
      happens later, in the runner (1e).
   - **The service does not start the runner.** After the `202` returns (transaction committed), the **caller**
-    kicks the drain via `POST /api/email/process` (see below). This is the "manual/frontend kick only" model (#6).
+    kicks the drain via `POST /api/admin/email/process` (see below). This is the "manual/frontend kick only" model (#6).
 - _(Optional)_ dry-run render at enqueue for **early validation only** — reject a template that can't render up
   front. Only the _values_ are stored, never the output. Skip it for the minimal path; otherwise render errors
   surface asynchronously as `ERROR` rows.
 - **Endpoints** (new `EmailAsyncController` or extend the existing controller):
-  - `POST /api/email/send/async` → `enqueue(...)` with `source=MANUAL` → **`202 Accepted`** `{ requestId, accepted }`.
-  - `POST /api/email/process` → `EmailDrainer.trigger()`. **This is the primary way sending starts** — the
+  - `POST /api/admin/email/send/async` → `enqueue(...)` with `source=MANUAL` → **`202 Accepted`** `{ requestId, accepted }`.
+  - `POST /api/admin/email/process` → `EmailDrainer.trigger()`. **This is the primary way sending starts** — the
     frontend calls it right after a `202` (the enqueue tx has committed by then, so there is no visibility race),
     and ops can call it manually. Returns `202`/`200` immediately (the drain runs on the executor thread).
-  - `GET /api/email/templates` → read-only list (so seeded templates are usable + verifiable now).
-- **Update `/preview`** in
+  - `GET /api/admin/email/templates` → read-only list (so seeded templates are usable + verifiable now).
+- **Update `/api/admin/email/preview`** in
   [EmailController](../../src/main/java/org/patinanetwork/patchats/email/EmailController.java) to accept a
   `templateId`, load the template + render via a **shared render helper that the runner (1e) also calls** — so
   preview matches what the runner will actually send. (This shared helper is the guard against preview/runner
@@ -146,7 +146,7 @@ parses CSV ([parseCSV.ts](../../js/src/features/emails/api/parseCSV.ts)) and pos
   running** — guard with an `AtomicBoolean` via `compareAndSet`; if `trigger()` fires while a drain is
   running, set a `rerun` flag so the current drain loops again instead of exiting.
 - **Triggers (the only things that start a runner):**
-  1. **Explicit kick** — `POST /api/email/process` calls `trigger()`. The frontend issues it right after a send's
+  1. **Explicit kick** — `POST /api/admin/email/process` calls `trigger()`. The frontend issues it right after a send's
      `202` (and after a resend); ops can call it manually. Because it happens after the request's transaction has
      committed, the rows are already visible — no `AFTER_COMMIT` event is needed. **There is no automatic
      enqueue-time trigger** (the accepted tradeoff of #6: if the kick is never issued, the batch waits for the next
@@ -204,6 +204,6 @@ or ShedLock for multi-instance.
   the `V0004` migration and exercise the claim `UPDATE … RETURNING`.
 - **End-to-end** — with the dev profile (logs instead of sending —
   [LoggingEmailSender](../../src/main/java/org/patinanetwork/patchats/email/LoggingEmailSender.java)):
-  `just dev`, `POST /api/email/send/async`, confirm `202 {requestId}` and rows move `PENDING→PROCESSING→SENT`
+  `just dev`, `POST /api/admin/email/send/async`, confirm `202 {requestId}` and rows move `PENDING→PROCESSING→SENT`
   in the logs; force a send failure to confirm straight-to-`ERROR`; restart mid-batch to confirm the boot
   reset takes `PROCESSING→ERROR`.

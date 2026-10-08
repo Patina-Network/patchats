@@ -18,11 +18,11 @@ All files live under [js/src/features/emails/](../../js/src/features/emails/).
 ## Send flow (rework [EmailAdminPage](../../js/src/features/emails/EmailAdminPage.tsx))
 
 - **Replace** the freeform subject/body inputs with a **template selector** populated from
-  `GET /api/email/templates` (read-only list from Increment 1).
+  `GET /api/admin/email/templates` (read-only list from Increment 1).
 - **Keep** [CsvUploader](../../js/src/features/emails/_components/CsvUploader.tsx) as the interim recipient
   source, and [EmailPreviewer](../../js/src/features/emails/_components/EmailPreviewer.tsx) — but preview now
-  renders the **selected template** against the CSV rows (the `/preview` call sends a `templateId`).
-- On **Send**: `POST /api/email/send/async`, capture the returned `requestId`, and switch the page to the
+  renders the **selected template** against the CSV rows (the `/api/admin/email/preview` call sends a `templateId`).
+- On **Send**: `POST /api/admin/email/send/async`, capture the returned `requestId`, and switch the page to the
   **progress view** for that batch.
 
 ## API layer (extend [emailAPI.ts](../../js/src/features/emails/api/emailAPI.ts))
@@ -38,7 +38,7 @@ used by `sendToPreviewApi`.
   `useEffect` + `setInterval`). **Stop polling when `pending + processing === 0`** (batch terminal).
 
 ## History tab (new — e.g. `_components/EmailHistory.tsx`)
-- One-shot `GET /api/email/requests` → a table of past sessions (created time, source, template, sent/error
+- One-shot `GET /api/admin/email/requests` → a table of past sessions (created time, source, template, sent/error
   counts, terminal?).
 - Row click drills into that batch's per-email table — **reuse the progress table component**, but do **not**
   poll a terminal batch (fetch once).

@@ -364,7 +364,7 @@ class MemberControllerTest {
         when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(false, Optional.of("Reason")), id))
                 .thenReturn(response);
 
-        mockMvc.perform(patch("/api/members/admin/{id}/status", id)
+        mockMvc.perform(patch("/api/admin/members/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new UpdateMemberStatusRequest(false, Optional.of("Reason")))))
@@ -387,7 +387,7 @@ class MemberControllerTest {
         when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(true, Optional.empty()), id))
                 .thenReturn(response);
 
-        mockMvc.perform(patch("/api/members/admin/{id}/status", id)
+        mockMvc.perform(patch("/api/admin/members/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(
                                 objectMapper.writeValueAsString(new UpdateMemberStatusRequest(true, Optional.empty()))))
@@ -403,7 +403,7 @@ class MemberControllerTest {
         when(memberService.updateMemberStatus(any(UpdateMemberStatusRequest.class), eq(id)))
                 .thenThrow(new MemberNotFoundException(id));
 
-        mockMvc.perform(patch("/api/members/admin/{id}/status", id)
+        mockMvc.perform(patch("/api/admin/members/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new UpdateMemberStatusRequest(false, Optional.empty()))))
@@ -415,7 +415,7 @@ class MemberControllerTest {
     void updateMemberStatus_badRequestWhenActiveMissing() throws Exception {
         final UUID id = UUID.randomUUID();
 
-        mockMvc.perform(patch("/api/members/admin/{id}/status", id)
+        mockMvc.perform(patch("/api/admin/members/{id}/status", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
@@ -424,7 +424,7 @@ class MemberControllerTest {
 
     @Test
     void updateMemberStatus_badRequestWhenInvalidUuid() throws Exception {
-        mockMvc.perform(patch("/api/members/admin/{id}/status", "invalid-uuid")
+        mockMvc.perform(patch("/api/admin/members/{id}/status", "invalid-uuid")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new UpdateMemberStatusRequest(false, Optional.of("Reason")))))
@@ -529,7 +529,7 @@ class MemberControllerTest {
                 .build();
         when(memberService.getMembersByFilters(emptyCriteria())).thenReturn(List.of(firstMember, secondMember));
 
-        mockMvc.perform(get("/api/members"))
+        mockMvc.perform(get("/api/admin/members"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.payload.length()").value(2))
@@ -553,7 +553,7 @@ class MemberControllerTest {
                 10);
         when(memberService.getMembersByFilters(criteria)).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/members")
+        mockMvc.perform(get("/api/admin/members")
                         .queryParam("firstName", "John")
                         .queryParam("lastName", "Doe")
                         .queryParam("email", "john.doe@example.com")
@@ -573,7 +573,7 @@ class MemberControllerTest {
 
     @Test
     void getMembersReturnsBadRequestWhenActiveIsInvalid() throws Exception {
-        mockMvc.perform(get("/api/members").queryParam("active", "tru"))
+        mockMvc.perform(get("/api/admin/members").queryParam("active", "tru"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Invalid value for query parameter 'active'"));
@@ -581,12 +581,12 @@ class MemberControllerTest {
 
     @Test
     void getMembersReturnsBadRequestWhenPaginationIsOutOfRange() throws Exception {
-        mockMvc.perform(get("/api/members").queryParam("page", "0"))
+        mockMvc.perform(get("/api/admin/members").queryParam("page", "0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Invalid query parameters"));
 
-        mockMvc.perform(get("/api/members").queryParam("pageSize", "101"))
+        mockMvc.perform(get("/api/admin/members").queryParam("pageSize", "101"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Invalid query parameters"));

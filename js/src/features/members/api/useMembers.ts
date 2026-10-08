@@ -47,7 +47,7 @@ export function useMembers(filters: MemberFilters = {}) {
       });
 
       const query = searchParams.toString();
-      const path = query ? `/members?${query}` : "/members";
+      const path = query ? `/admin/members?${query}` : "/admin/members";
       const response = await apiFetch<ApiResponder<Member[]>>(path);
       return response.payload;
     },
