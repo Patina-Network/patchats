@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 /**
- * Component that displays the rendered emails returned by the /api/email/preview endpoint in a carousel.
+ * Component that displays the rendered emails returned by the /api/admin/email/preview endpoint in a carousel.
  *
  * Note: this takes the *rendered* previews (MessagePreview[]), not the SendAsyncRequest.
  * The request is passed for query key dependency only.

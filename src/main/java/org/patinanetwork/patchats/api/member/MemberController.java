@@ -28,20 +28,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/members")
+@RequestMapping("/api")
 @Tag(name = "Member")
 @RequiredArgsConstructor
 public class MemberController {
 
     private final MemberService memberService;
 
-    @PostMapping
+    @PostMapping("/members")
     public ResponseEntity<ApiResponder<MemberDto>> createMember(@Valid @RequestBody final CreateMemberRequest request) {
         final MemberDto response = memberService.createMember(request);
         return ResponseEntity.ok(ApiResponder.success("Member created successfully", response));
     }
 
-    @GetMapping
+    @GetMapping("/admin/members")
     @Operation(
             summary = "List members",
             description = "Returns a page of members matching the supplied filters, ordered by creation date. Pages "
@@ -63,20 +63,20 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponder.success("Members retrieved successfully", response));
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/members/{id}")
     public ResponseEntity<ApiResponder<MemberDto>> updateMember(
             @Valid @RequestBody final UpdateMemberRequest request, @PathVariable final UUID id) {
         final MemberDto response = memberService.updateMember(request, id);
         return ResponseEntity.ok(ApiResponder.success("Member updated successfully", response));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/members/{id}")
     public ResponseEntity<ApiResponder<MemberDto>> getMemberById(@PathVariable final UUID id) {
         final MemberDto response = memberService.getMemberById(id);
         return ResponseEntity.ok(ApiResponder.success("Member retrieved successfully", response));
     }
 
-    @PatchMapping("/admin/{id}/status")
+    @PatchMapping("/admin/members/{id}/status")
     public ResponseEntity<ApiResponder<MemberDto>> updateMemberStatus(
             @Valid @RequestBody final UpdateMemberStatusRequest request, @PathVariable final UUID id) {
         final MemberDto response = memberService.updateMemberStatus(request, id);
@@ -84,7 +84,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponder.success(message, response));
     }
 
-    @PatchMapping("/me/status")
+    @PatchMapping("/members/me/status")
     public ResponseEntity<ApiResponder<MemberDto>> updateOwnMemberStatus(
             @Valid @RequestBody final UpdateMemberStatusRequest request,
             @AuthenticationPrincipal final AuthenticatedMember principal) {

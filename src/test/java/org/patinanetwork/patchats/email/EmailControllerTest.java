@@ -3,6 +3,7 @@ package org.patinanetwork.patchats.email;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -57,7 +58,7 @@ class EmailControllerTest {
                         1, 0, List.of(new SendEmailResponse.MessageResult(List.of("a@x.com"), true, null))));
 
         mockMvc.perform(
-                        post("/api/email/send")
+                        post("/api/admin/email/send")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         "{\"templateId\":\"" + templateId
@@ -71,7 +72,7 @@ class EmailControllerTest {
     void returnsBadRequestOnInvalidEmail() throws Exception {
         final UUID templateId = UUID.randomUUID();
         mockMvc.perform(
-                        post("/api/email/send")
+                        post("/api/admin/email/send")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         "{\"templateId\":\"" + templateId
@@ -93,7 +94,7 @@ class EmailControllerTest {
                         .createdAt(Instant.EPOCH)
                         .build()));
 
-        mockMvc.perform(post("/api/email/templates")
+        mockMvc.perform(post("/api/admin/email/templates")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Welcome\",\"subject\":\"Hi ${per1.name}\",\"body\":\"Body\"}"))
                 .andExpect(status().isCreated())
@@ -102,8 +103,25 @@ class EmailControllerTest {
     }
 
     @Test
+    void listTemplatesUsesAdminRoute() throws Exception {
+        final UUID templateId = UUID.randomUUID();
+        when(templateRepo.findAll())
+                .thenReturn(List.of(EmailTemplate.builder()
+                        .id(templateId)
+                        .name("Welcome")
+                        .subject("Hi ${per1.name}")
+                        .body("Body")
+                        .createdAt(Instant.EPOCH)
+                        .build()));
+
+        mockMvc.perform(get("/api/admin/email/templates"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.payload[0].name").value("Welcome"));
+    }
+
+    @Test
     void createTemplateReturnsBadRequestOnBlankName() throws Exception {
-        mockMvc.perform(post("/api/email/templates")
+        mockMvc.perform(post("/api/admin/email/templates")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"\",\"subject\":\"S\",\"body\":\"B\"}"))
                 .andExpect(status().isBadRequest())
@@ -112,7 +130,7 @@ class EmailControllerTest {
 
     @Test
     void deleteTemplateReturnsAccepted() throws Exception {
-        mockMvc.perform(delete("/api/email/templates/{id}", UUID.randomUUID()))
+        mockMvc.perform(delete("/api/admin/email/templates/{id}", UUID.randomUUID()))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.success").value(true));
     }

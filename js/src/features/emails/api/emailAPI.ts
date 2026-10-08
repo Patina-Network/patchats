@@ -18,7 +18,7 @@ interface SendEmailResponse {
 export async function sendToEmailApi(
   body: unknown,
 ): Promise<ApiResponder<SendEmailResponse>> {
-  return apiFetch<ApiResponder<SendEmailResponse>>("/email/send", {
+  return apiFetch<ApiResponder<SendEmailResponse>>("/admin/email/send", {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -34,7 +34,7 @@ export async function sendToPreviewApi(
   body: SendAsyncRequest,
 ): Promise<MessagePreview[] | null> {
   const response = await apiFetch<ApiResponder<{ previews: MessagePreview[] }>>(
-    "/email/preview",
+    "/admin/email/preview",
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -49,7 +49,7 @@ export async function enqueueEmails(
   body: EnqueueEmailRequest,
 ): Promise<EnqueueEmailResponse> {
   const response = await apiFetch<ApiResponder<EnqueueEmailResponse>>(
-    "/email/send/async",
+    "/admin/email/send/async",
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -59,7 +59,9 @@ export async function enqueueEmails(
 }
 
 export async function getProgress(requestId: string): Promise<EmailProgress> {
-  const response = await fetch(`/api/email/progress?requestId=${requestId}`);
+  const response = await fetch(
+    `/api/admin/email/progress?requestId=${requestId}`,
+  );
   if (!response.ok) {
     throw new Error(
       `Progress API failed: ${response.status} ${response.statusText}`,
@@ -72,7 +74,7 @@ export async function getProgress(requestId: string): Promise<EmailProgress> {
 }
 
 export async function listRequests(): Promise<EmailRequestSummary[]> {
-  const response = await fetch("/api/email/requests");
+  const response = await fetch("/api/admin/email/requests");
   if (!response.ok) {
     throw new Error(
       `Requests API failed: ${response.status} ${response.statusText}`,
@@ -85,13 +87,13 @@ export async function listRequests(): Promise<EmailRequestSummary[]> {
 }
 
 export async function resendEmail(emailId: string): Promise<void> {
-  await apiFetch<ApiResponder<null>>(`/email/${emailId}/resend`, {
+  await apiFetch<ApiResponder<null>>(`/admin/email/${emailId}/resend`, {
     method: "POST",
   });
 }
 
 export async function listTemplates(): Promise<EmailTemplate[]> {
-  const response = await fetch("/api/email/templates");
+  const response = await fetch("/api/admin/email/templates");
   if (!response.ok) {
     throw new Error(
       `Templates API failed: ${response.status} ${response.statusText}`,
@@ -104,7 +106,7 @@ export async function listTemplates(): Promise<EmailTemplate[]> {
 }
 
 export async function triggerProcess(): Promise<void> {
-  await apiFetch<ApiResponder<null>>("/email/process", {
+  await apiFetch<ApiResponder<null>>("/admin/email/process", {
     method: "POST",
   });
 }
@@ -115,7 +117,7 @@ export async function createTemplate(body: {
   body: string;
 }): Promise<EmailTemplate> {
   const response = await apiFetch<ApiResponder<EmailTemplate>>(
-    "/email/templates",
+    "/admin/email/templates",
     {
       method: "POST",
       body: JSON.stringify(body),
@@ -125,7 +127,7 @@ export async function createTemplate(body: {
 }
 
 export async function deleteTemplate(templateId: string): Promise<void> {
-  await apiFetch<ApiResponder<null>>(`/email/templates/${templateId}`, {
+  await apiFetch<ApiResponder<null>>(`/admin/email/templates/${templateId}`, {
     method: "DELETE",
   });
 }

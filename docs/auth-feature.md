@@ -61,6 +61,12 @@ js/src/features/auth/
 `{ id, name, email, isAdmin }`; 401 in the envelope when signed out. The frontend `RequireAuth`
 guard sends signed-out visitors to `/login`.
 
+The member API keeps sign-up at `POST /api/members` and individual member reads/edits at
+`/api/members/{id}`. Administrative list/filter and status changes use
+`GET /api/admin/members` and `PATCH /api/admin/members/{id}/status`; all methods under
+`/api/admin/**` require the admin role. A member's own status change remains
+`PATCH /api/members/me/status` and requires authentication.
+
 **CSRF.** Double-submit protection (the Spring-documented SPA pattern): every response sets a
 JS-readable `XSRF-TOKEN` cookie, and `apiFetch` echoes it back as an `X-XSRF-TOKEN` header on
 state-changing requests. The two pre-auth endpoints (`request-link`, `verify`) are exempt — their

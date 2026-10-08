@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Producer side of the async pipeline: validates the template, merges each message's variables, and enqueues one parent
  * {@code email_requests} session plus N {@code emails} outbox rows in a single transaction. It never renders or sends —
  * rendering happens later in the {@link EmailDrainer} at send-time (decision #4). The service does not start the
- * runner; the caller kicks the drain via {@code POST /api/email/process} after the enqueue transaction commits
+ * runner; the caller kicks the drain via {@code POST /api/admin/email/process} after the enqueue transaction commits
  * (decision #6).
  */
 @Service

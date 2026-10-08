@@ -22,9 +22,9 @@ See [00-overview.md](00-overview.md) for full context.
 Extend `EmailTemplateRepo` (read/list already exists from Increment 1) with `insert` and `delete`, and add
 endpoints:
 
-- `POST /api/email/templates` — create.
-- `DELETE /api/email/templates/{id}` — delete.
-- *(list/read already exists: `GET /api/email/templates` from Increment 1.)*
+- `POST /api/admin/email/templates` — create.
+- `DELETE /api/admin/email/templates/{id}` — delete.
+- *(list/read already exists: `GET /api/admin/email/templates` from Increment 1.)*
 
 **Validation** (reject before save, `400`):
 - `name` unique and non-blank; `subject`/`body` non-blank.
@@ -47,7 +47,7 @@ endpoints:
 - **(d) Delete** with a confirm dialog (disabled/blocked for referenced templates, per the delete policy).
 - After this ships, the **template selectors** in Increments 3 (manual send) and 4 (matching) read this fuller,
   user-managed list instead of only the seeded rows — no change needed there beyond pointing at the same
-  `GET /api/email/templates`.
+  `GET /api/admin/email/templates`.
 
 ---
 

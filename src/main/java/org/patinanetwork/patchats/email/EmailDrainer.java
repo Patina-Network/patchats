@@ -19,8 +19,8 @@ import org.springframework.stereotype.Component;
  * On-demand background runner (decision #6). Drains the {@code emails} outbox: claims a small batch, renders each row
  * from its template, sends over SMTP, and records a terminal status — one attempt, no retry (decision #8).
  *
- * <p>Started only by an explicit kick ({@link #trigger()}, from {@code POST /api/email/process}) or the startup drain;
- * there is no enqueue-time auto-trigger and no polling. Runs single-threaded so overlapping triggers coalesce.
+ * <p>Started only by an explicit kick ({@link #trigger()}, from {@code POST /api/admin/email/process}) or the startup
+ * drain; there is no enqueue-time auto-trigger and no polling. Runs single-threaded so overlapping triggers coalesce.
  */
 @Component
 @Slf4j

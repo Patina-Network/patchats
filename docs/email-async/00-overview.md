@@ -20,7 +20,7 @@ first; each increment file is self-contained for implementation and links back h
 
 ## Context (why this change)
 
-Today `POST /api/email/send` renders caller-supplied templates and sends each message over SMTP inside a
+Today `POST /api/admin/email/send` renders caller-supplied templates and sends each message over SMTP inside a
 **request-blocking `for` loop** ([EmailService.java:29](../../src/main/java/org/patinanetwork/patchats/email/EmailService.java)),
 returning per-message results. There is **no persistence** for email and **no DAO layer anywhere** in the
 codebase. Consequences: the HTTP request blocks for the whole batch, there is no durable record or live
@@ -50,7 +50,7 @@ Each increment repeats only the rows it needs; this is the full reference.
 | 3 | Row granularity | **One row per message** (1–2 recipients), grouped by `requestId` | Matches current domain; `matchesId` stays 1:1 with a row. |
 | 4 | Render timing | **Render at send-time** — the runner renders each row from `template_id` + `template_values` just before sending | Stores only the template ref + variables, not rendered text → smaller rows. Tradeoffs: render errors surface **async** as `ERROR` rows (no `400`); the runner needs the renderer + template lookup; `/preview` must share a render helper with the runner to avoid drift. (Templates are **immutable** — see #15 — so a queued row's template never changes under it.) |
 | 5 | Deployment topology | **Strictly single instance** | Simplest claim logic. ⚠️ Deploys must be **stop-then-start** to avoid a transient 2-runner window. |
-| 6 | Runner driver | **On-demand executor** (manual/frontend kick → drain loop → idle), **no polling** | Zero steady-state cost for a monthly workload. Coverage from an explicit `POST /api/email/process` kick (issued by the frontend after a send / by ops) plus a startup drain — **no enqueue-time auto-trigger**, no always-on poller. Tradeoff: if the kick is never issued, the batch waits for the next kick or a restart. |
+| 6 | Runner driver | **On-demand executor** (manual/frontend kick → drain loop → idle), **no polling** | Zero steady-state cost for a monthly workload. Coverage from an explicit `POST /api/admin/email/process` kick (issued by the frontend after a send / by ops) plus a startup drain — **no enqueue-time auto-trigger**, no always-on poller. Tradeoff: if the kick is never issued, the batch waits for the next kick or a restart. |
 | 7 | Intra-drain processing | **Sequential small batch** (claim ≤50 oldest, send one-at-a-time) | Gentle on SMTP, per-row error handling. Parallel pool is a future upgrade. |
 | 8 | Retry policy | **No auto-retry — one attempt → `ERROR`** (deferred) | Avoids re-sending to the same person. Failed rows wait for a deliberate manual resend. |
 | 9 | Crash recovery | **On boot: orphaned `PROCESSING` → `ERROR`** (at-most-once) | Guarantees **zero duplicate emails**. Cost: an email that crashed pre-send is stranded as `ERROR`, needs manual resend. |
