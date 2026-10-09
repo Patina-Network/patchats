@@ -34,9 +34,7 @@ async function main(): Promise<void> {
 async function waitForBackend(): Promise<boolean> {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     if (backendProcess && backendProcess.exitCode !== null) {
-      console.error(
-        `Backend exited before becoming ready with code ${backendProcess.exitCode}.`,
-      );
+      console.error(`Backend exited before becoming ready with code ${backendProcess.exitCode}.`);
 
       return false;
     }
