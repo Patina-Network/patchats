@@ -6,10 +6,178 @@ import {
   within,
 } from "@/lib/test/render";
 import { server } from "@/lib/test/server";
+import { notifications } from "@mantine/notifications";
 import { waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { expect, test } from "vitest";
+import { beforeEach, expect, test } from "vitest";
+
+beforeEach(() => notifications.clean());
+
+test("confirms a member was added and refreshes the members table", async () => {
+  const user = userEvent.setup();
+  let createdMember: Record<string, unknown> | null = null;
+  server.use(
+    http.get("/api/members", () =>
+      HttpResponse.json({
+        success: true,
+        message: "Members retrieved successfully",
+        payload: createdMember ? [createdMember] : [],
+      }),
+    ),
+    http.post("/api/members", async ({ request }) => {
+      createdMember = {
+        ...((await request.json()) as Record<string, unknown>),
+        id: "new-member",
+        active: true,
+        createdAt: "2026-09-15T12:00:00Z",
+        updatedAt: "2026-09-15T12:00:00Z",
+      };
+      return HttpResponse.json({
+        success: true,
+        message: "Member created successfully",
+        payload: createdMember,
+      });
+    }),
+  );
+
+  renderWithProviders(<MembersPage />);
+  await user.click(screen.getByRole("button", { name: "Add members" }));
+  const dialog = await screen.findByRole("dialog");
+  fireEvent.change(
+    within(dialog).getByLabelText("First name", { exact: false }),
+    {
+      target: { value: "Taylor" },
+    },
+  );
+  fireEvent.change(
+    within(dialog).getByLabelText("Last name", { exact: false }),
+    {
+      target: { value: "Quinn" },
+    },
+  );
+  fireEvent.change(within(dialog).getByLabelText("Email", { exact: false }), {
+    target: { value: "taylor@example.com" },
+  });
+  fireEvent.change(
+    within(dialog).getByLabelText("Introduction", { exact: false }),
+    {
+      target: { value: "I enjoy meeting new people." },
+    },
+  );
+  await user.click(
+    within(dialog).getByRole("button", { name: "Confirm member" }),
+  );
+
+  expect(
+    await screen.findByText("taylor@example.com was added successfully."),
+  ).toBeInTheDocument();
+  expect(await screen.findByText("Taylor Quinn")).toBeInTheDocument();
+});
+
+test.each([
+  {
+    status: 409,
+    message: "Member with email taylor@example.com already exists",
+    expected: "The email taylor@example.com already exists.",
+  },
+  {
+    status: 400,
+    message: "introduction must not be blank",
+    expected: "introduction must not be blank",
+  },
+  {
+    status: 500,
+    message: "Internal database error",
+    expected: "An unknown error occurred.",
+  },
+  { status: 0, message: "", expected: "An unknown error occurred." },
+])(
+  "shows submission feedback for a $status error",
+  async ({ status, message, expected }) => {
+    const user = userEvent.setup();
+    server.use(
+      http.post("/api/members", () =>
+        status === 0 ?
+          HttpResponse.error()
+        : HttpResponse.json(
+            { success: false, message, payload: null },
+            { status },
+          ),
+      ),
+    );
+
+    renderWithProviders(<MembersPage />);
+    await user.click(screen.getByRole("button", { name: "Add members" }));
+    const dialog = await screen.findByRole("dialog");
+    for (const [label, value] of [
+      ["First name", "Taylor"],
+      ["Last name", "Quinn"],
+      ["Email", "taylor@example.com"],
+      ["Introduction", "I enjoy meeting new people."],
+    ]) {
+      fireEvent.change(within(dialog).getByLabelText(label, { exact: false }), {
+        target: { value },
+      });
+    }
+    await user.click(
+      within(dialog).getByRole("button", { name: "Confirm member" }),
+    );
+
+    expect(await screen.findByText(expected)).toBeInTheDocument();
+    expect(
+      screen.queryByText("taylor@example.com was added successfully."),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Internal database error"),
+    ).not.toBeInTheDocument();
+  },
+);
+
+test("reports both successes and failures in a CSV import", async () => {
+  const user = userEvent.setup();
+  server.use(
+    http.post("/api/members", async ({ request }) => {
+      const member = (await request.json()) as Record<string, unknown>;
+      return member.email === "existing@example.com" ?
+          HttpResponse.json(
+            { success: false, message: "Email already exists", payload: null },
+            { status: 409 },
+          )
+        : HttpResponse.json({
+            success: true,
+            message: "Member created successfully",
+            payload: member,
+          });
+    }),
+  );
+
+  renderWithProviders(<MembersPage />);
+  await user.click(screen.getByRole("button", { name: "Add members" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+  const fileInput = dialog.querySelector('input[type="file"]');
+  if (!(fileInput instanceof HTMLInputElement))
+    throw new Error("Missing CSV input");
+  const file = new File([""], "members.csv", { type: "text/csv" });
+  Object.defineProperty(file, "text", {
+    value: async () =>
+      "firstName,lastName,email,introduction\nTaylor,Quinn,new@example.com,Hello\nAlex,Morgan,existing@example.com,Hello",
+  });
+  await user.upload(fileInput, file);
+  const confirm = within(dialog).getByRole("button", {
+    name: "Confirm import",
+  });
+  await waitFor(() => expect(confirm).toBeEnabled());
+  await user.click(confirm);
+
+  expect(
+    await screen.findByText("new@example.com was added successfully."),
+  ).toBeInTheDocument();
+  expect(
+    await screen.findByText("The email existing@example.com already exists."),
+  ).toBeInTheDocument();
+});
 
 test("renders every member returned by the API", async () => {
   renderWithProviders(<MembersPage />);
