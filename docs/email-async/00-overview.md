@@ -21,7 +21,7 @@ first; each increment file is self-contained for implementation and links back h
 ## Context (why this change)
 
 Today `POST /api/email/send` renders caller-supplied templates and sends each message over SMTP inside a
-**request-blocking `for` loop** ([EmailService.java:29](../../src/main/java/org/patinanetwork/patchats/email/EmailService.java)),
+**request-blocking `for` loop** ([EmailService.java:29](../../src/main/java/org/patinanetwork/patchats/api/email/EmailService.java)),
 returning per-message results. There is **no persistence** for email and **no DAO layer anywhere** in the
 codebase. Consequences: the HTTP request blocks for the whole batch, there is no durable record or live
 progress, and a crash mid-batch loses everything.
@@ -102,6 +102,6 @@ tables are created together because of the FKs. Summary:
 - **External dependency:** the other team's user/pair DB. Isolated behind `RecipientSource` + nullable
   `matches_id`; the CSV→DB swap touches only the source impl.
 - **Ops:** production deploys must be **stop-then-start** (single-instance runner assumption).
-- **Reuse, don't reinvent:** the SMTP port [EmailSender](../../src/main/java/org/patinanetwork/patchats/email/EmailSender.java),
-  the [TemplateRenderer](../../src/main/java/org/patinanetwork/patchats/email/TemplateRenderer.java), and
+- **Reuse, don't reinvent:** the SMTP port [EmailSender](../../src/main/java/org/patinanetwork/patchats/api/email/EmailSender.java),
+  the [TemplateRenderer](../../src/main/java/org/patinanetwork/patchats/api/email/TemplateRenderer.java), and
   `EmailService.mergeVariables` already exist — the pipeline wraps them, it does not replace them.

@@ -29,7 +29,7 @@ endpoints:
 **Validation** (reject before save, `400`):
 - `name` unique and non-blank; `subject`/`body` non-blank.
 - **Well-formed `${}` placeholders** — dry-run
-  [TemplateRenderer](../../src/main/java/org/patinanetwork/patchats/email/TemplateRenderer.java) against a set
+  [TemplateRenderer](../../src/main/java/org/patinanetwork/patchats/api/email/TemplateRenderer.java) against a set
   of sample `per1.*`/`per2.*` + shared vars and reject a template that throws on malformed syntax.
 - On `DELETE`: `template_id` is **load-bearing** with a `NOT NULL` FK from `emails`, so a template referenced by
   any row **cannot be hard-deleted** — the FK blocks it, and deleting one referenced by `PENDING` rows would make

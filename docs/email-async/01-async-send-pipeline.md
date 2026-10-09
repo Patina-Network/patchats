@@ -102,11 +102,11 @@ only in `EmailRepo` for that one method.
 - **DTO** `EnqueueEmailRequest { UUID templateId, String source, String replyTo?, List<Message> messages }`,
   where each `Message` carries recipients + variable maps (built by the frontend from CSV; later the DB).
   Reuse the shape of the existing
-  [SendEmailRequest.Message/Recipient](../../src/main/java/org/patinanetwork/patchats/email/dto/SendEmailRequest.java).
+  [SendEmailRequest.Message/Recipient](../../src/main/java/org/patinanetwork/patchats/api/email/dto/SendEmailRequest.java).
 - **`EmailEnqueueService.enqueue(request)`** — in **one `@Transactional` method**:
   1. Validate `templateId` exists (`EmailTemplateRepo.findById`; `400` if unknown). **Do not render here.**
   2. Per message: build the variable map with
-     [`EmailService.mergeVariables`](../../src/main/java/org/patinanetwork/patchats/email/EmailService.java:83)
+     [`EmailService.mergeVariables`](../../src/main/java/org/patinanetwork/patchats/api/email/EmailService.java:83)
      (no rendering).
   3. Insert one `email_requests` row (`total_count = messages.size()`) + N `emails` rows (`status='PENDING'`,
      `recipient_1`/`recipient_2` from the message, `template_id`, `template_values` = the merged map). Rendering
@@ -123,7 +123,7 @@ only in `EmailRepo` for that one method.
     and ops can call it manually. Returns `202`/`200` immediately (the drain runs on the executor thread).
   - `GET /api/email/templates` → read-only list (so seeded templates are usable + verifiable now).
 - **Update `/preview`** in
-  [EmailController](../../src/main/java/org/patinanetwork/patchats/email/EmailController.java) to accept a
+  [EmailController](../../src/main/java/org/patinanetwork/patchats/api/email/EmailController.java) to accept a
   `templateId`, load the template + render via a **shared render helper that the runner (1e) also calls** — so
   preview matches what the runner will actually send. (This shared helper is the guard against preview/runner
   drift; do not duplicate render logic.) Keep the existing sync `/send` untouched for now.
@@ -160,9 +160,9 @@ parses CSV ([parseCSV.ts](../../js/src/features/emails/api/parseCSV.ts)) and pos
      ```
   2. For each claimed row **sequentially**: load its template (`template_id`) and **render** `subject`/`body`
      from `template_values` via the shared render helper (the same one `/preview` uses —
-     [`TemplateRenderer`](../../src/main/java/org/patinanetwork/patchats/email/TemplateRenderer.java)); then build
+     [`TemplateRenderer`](../../src/main/java/org/patinanetwork/patchats/api/email/TemplateRenderer.java)); then build
      `OutgoingEmail([recipient_1(, recipient_2)], subject, body, replyTo)` (drop a null `recipient_2`) and call
-     [`EmailSender.send`](../../src/main/java/org/patinanetwork/patchats/email/EmailSender.java). On success →
+     [`EmailSender.send`](../../src/main/java/org/patinanetwork/patchats/api/email/EmailSender.java). On success →
      `status='SENT'`, `sent_at=now()` (**commit per row** — keeps any duplicate window to ≤1 email). On failure —
      including a **render failure** (template edited into an invalid state, missing variable) — → `status='ERROR'`,
      `error_message=ex.getMessage()` (**no retry**). _(Cache templates per drain to avoid reloading the same one
@@ -188,13 +188,13 @@ or ShedLock for multi-instance.
   a shared render helper (wrapping `TemplateRenderer`, used by both `/preview` and the runner);
   `EmailDrainer` (depends on `EmailTemplateRepo` + the render helper + `EmailSender`),
   an executor config `@Configuration`.
-- **Modify:** [EmailController](../../src/main/java/org/patinanetwork/patchats/email/EmailController.java)
+- **Modify:** [EmailController](../../src/main/java/org/patinanetwork/patchats/api/email/EmailController.java)
   (add `/send/async`, `/templates` list, update `/preview`).
 
 ## Verification
 
 - **Unit** (fake `EmailSender`, like
-  [EmailServiceTest](../../src/test/java/org/patinanetwork/patchats/email/EmailServiceTest.java)):
+  [EmailServiceTest](../../src/test/java/org/patinanetwork/patchats/api/email/EmailServiceTest.java)):
   - `EmailEnqueueServiceTest` — enqueue stores `template_id` + `template_values` (no rendered output); an unknown
     `templateId` → `400`; one parent + N children inserted in a single transaction.
   - `EmailDrainerTest` — claims ≤50; **renders each row from its template** then `SENT` on success; a **send or
@@ -203,7 +203,7 @@ or ShedLock for multi-instance.
 - **Repository/integration** — Testcontainers or local Postgres ([db/README.md](../../db/README.md)) to run
   the `V0004` migration and exercise the claim `UPDATE … RETURNING`.
 - **End-to-end** — with the dev profile (logs instead of sending —
-  [LoggingEmailSender](../../src/main/java/org/patinanetwork/patchats/email/LoggingEmailSender.java)):
+  [LoggingEmailSender](../../src/main/java/org/patinanetwork/patchats/api/email/LoggingEmailSender.java)):
   `just dev`, `POST /api/email/send/async`, confirm `202 {requestId}` and rows move `PENDING→PROCESSING→SENT`
   in the logs; force a send failure to confirm straight-to-`ERROR`; restart mid-batch to confirm the boot
   reset takes `PROCESSING→ERROR`.
