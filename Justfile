@@ -39,7 +39,11 @@ backend-test *args:
 backend-testd *args:
   just backend-spotless && dotenvx run -f .env -- ./mvnw checkstyle:check verify -Dspring.profiles.active=ci -Dmaven.surefire.debug {{args}}
 
-# Run the frontend 
+# Run the matching algorithm on mock data up to the given layer (e.g. `just match-algo random 7`)
+match-algo layer="random" seed="42":
+  @./mvnw -q test-compile exec:java -Dexec.classpathScope=test -Dexec.mainClass=org.patinanetwork.patchats.matchingalgo.cli.MatchingCli -Dexec.args="{{layer}} {{seed}}"
+
+# Run the frontend
 frontend-dev *args:
   cd js && pnpm i && pnpm run dev {{args}}
 
