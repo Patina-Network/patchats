@@ -15,7 +15,7 @@ the runner, tables, and progress UI are reused unchanged. See [00-overview.md](0
 
 ## Backend
 
-- **Endpoint:** `POST /api/email/matching/send` — accepts selected pairs (interim: rows parsed from the
+- **Endpoint:** `POST /api/admin/email/matching/send` — accepts selected pairs (interim: rows parsed from the
   uploaded [pairings-test.csv](../../js/src/features/emails/examples/pairings-test.csv)) plus a `templateId`.
 - **Fan-out:** per pair → build one `Message` with **two recipients** (member A = `per1`, member B = `per2`),
   then call the **same `EmailEnqueueService.enqueue(...)`** from Increment 1 with `source=MATCHING`. Each pair
@@ -35,7 +35,7 @@ the runner, tables, and progress UI are reused unchanged. See [00-overview.md](0
 - **Show each pair's email status** (from `matches_id` lookups) so already-sent pairs are visibly
   disabled/warned — the UI half of the dedup guard.
 - **Select → preview → send:** reuse [EmailPreviewer](../../js/src/features/emails/_components/EmailPreviewer.tsx)
-  to render a `per1`/`per2` pairing email, then `POST /api/email/matching/send`, then reuse the
+  to render a `per1`/`per2` pairing email, then `POST /api/admin/email/matching/send`, then reuse the
   **Increment-3 progress view** for live status.
 
 ---

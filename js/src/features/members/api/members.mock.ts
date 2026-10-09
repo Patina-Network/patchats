@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 
 export const membersHandlers = [
-  http.get("/api/members", () =>
+  http.get("/api/admin/members", () =>
     HttpResponse.json({
       message: "Members retrieved successfully",
       payload: [
@@ -43,7 +43,7 @@ export const membersHandlers = [
       success: true,
     }),
   ),
-  http.patch("/api/members/:id/status", async ({ params, request }) => {
+  http.patch("/api/admin/members/:id/status", async ({ params, request }) => {
     const { active } = (await request.json()) as { active: boolean };
     return HttpResponse.json({
       message:

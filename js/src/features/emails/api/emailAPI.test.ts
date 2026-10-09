@@ -11,7 +11,7 @@ test("copies the CSRF cookie into the synchronous email request header", async (
   let csrfHeader: string | null = null;
 
   server.use(
-    http.post("/api/email/send", ({ request }) => {
+    http.post("/api/admin/email/send", ({ request }) => {
       csrfHeader = request.headers.get("X-XSRF-TOKEN");
       return HttpResponse.json({
         success: true,
@@ -32,7 +32,7 @@ test("copies the CSRF cookie into the preview request header", async () => {
   let csrfHeader: string | null = null;
 
   server.use(
-    http.post("/api/email/preview", ({ request }) => {
+    http.post("/api/admin/email/preview", ({ request }) => {
       csrfHeader = request.headers.get("X-XSRF-TOKEN");
       return HttpResponse.json({
         success: true,
