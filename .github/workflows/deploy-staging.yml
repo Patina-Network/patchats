@@ -130,8 +130,9 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup CI
-        uses: ./.github/composite/setup-ci
+        uses: tahminator/pipeline/actions/setup@52eb2a0451daba94989db6a6fa232e689144aa50 # 1.0.96
         with:
+          LINT_CI: true
           SECRETS: ${{ toJSON(secrets) }}
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
           HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
@@ -156,8 +157,9 @@ jobs:
           fetch-depth: 0
 
       - name: Setup CI
-        uses: ./.github/composite/setup-ci
+        uses: tahminator/pipeline/actions/setup@52eb2a0451daba94989db6a6fa232e689144aa50 # 1.0.96
         with:
+          LINT_CI: true
           SECRETS: ${{ toJSON(secrets) }}
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
           HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
@@ -178,8 +180,9 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup CI
-        uses: ./.github/composite/setup-ci
+        uses: tahminator/pipeline/actions/setup@52eb2a0451daba94989db6a6fa232e689144aa50 # 1.0.96
         with:
+          LINT_CI: true
           SECRETS: ${{ toJSON(secrets) }}
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
           HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}

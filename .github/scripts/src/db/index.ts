@@ -10,9 +10,7 @@ export type DatabaseEnvironment = {
   DATABASE_USER: string;
 };
 
-export async function migrateDb(
-  environment: DatabaseEnvironment,
-): Promise<void> {
+export async function migrateDb(environment: DatabaseEnvironment): Promise<void> {
   await $.env({
     ...process.env,
     ...environment,
@@ -59,9 +57,7 @@ function parseCiEnv(environment: string): DatabaseEnvironment {
     const value = process.env[variableName];
 
     if (!value) {
-      throw new Error(
-        `Missing ${variableName} from platform-infra patchats.yaml`,
-      );
+      throw new Error(`Missing ${variableName} from platform-infra patchats.yaml`);
     }
     return value;
   })();

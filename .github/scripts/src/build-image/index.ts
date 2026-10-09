@@ -1,44 +1,39 @@
-import {
-  DockerClient,
-  GitHubClient,
-  type Environment,
-} from "@tahminator/pipeline";
+import { DockerClient, GitHubClient, type Environment } from "@tahminator/pipeline";
 import { $ } from "bun";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 process.env.TZ = "America/New_York";
 
-const { environment, getGhaOutput, githubOutputFile, dockerFileName, arch } =
-  await yargs(hideBin(process.argv))
-    .option("environment", {
-      choices: ["staging", "production"] satisfies Environment[],
-      describe: "Deployment environment (staging or production)",
-      demandOption: true,
-    })
-    .option("getGhaOutput", {
-      type: "boolean",
-      describe:
-        "Enable GitHub Actions output to receive latest built tag version",
-      default: false,
-    })
-    .option("githubOutputFile", {
-      type: "string",
-      describe:
-        "Path to GITHUB_OUTPUT (this will be passed in automatically in CI)",
-      default: process.env.GITHUB_OUTPUT,
-    })
-    .option("dockerFileName", {
-      type: "string",
-      default: "Dockerfile",
-    })
-    .option("arch", {
-      choices: ["amd64", "arm64"] as const,
-      describe: "Docker build architecture",
-      default: "amd64" as const,
-    })
-    .strict()
-    .parse();
+const { environment, getGhaOutput, githubOutputFile, dockerFileName, arch } = await yargs(
+  hideBin(process.argv),
+)
+  .option("environment", {
+    choices: ["staging", "production"] satisfies Environment[],
+    describe: "Deployment environment (staging or production)",
+    demandOption: true,
+  })
+  .option("getGhaOutput", {
+    type: "boolean",
+    describe: "Enable GitHub Actions output to receive latest built tag version",
+    default: false,
+  })
+  .option("githubOutputFile", {
+    type: "string",
+    describe: "Path to GITHUB_OUTPUT (this will be passed in automatically in CI)",
+    default: process.env.GITHUB_OUTPUT,
+  })
+  .option("dockerFileName", {
+    type: "string",
+    default: "Dockerfile",
+  })
+  .option("arch", {
+    choices: ["amd64", "arm64"] as const,
+    describe: "Docker build architecture",
+    default: "amd64" as const,
+  })
+  .strict()
+  .parse();
 
 const dockerRepository = arch === "arm64" ? "patchats-arm" : "patchats";
 const platforms = [`linux/${arch}`];
@@ -51,10 +46,7 @@ async function main() {
   }
 
   const ghClient = await GitHubClient.createWithDefaultCiToken();
-  await using dockerClient = await DockerClient.create(
-    "patinanetwork",
-    DOCKER_HUB_PAT,
-  );
+  await using dockerClient = await DockerClient.create("patinanetwork", DOCKER_HUB_PAT);
 
   const tagPrefix = environment === "staging" ? "staging-" : "";
 
