@@ -161,7 +161,7 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
     }
 
     @Override
-    public List<MatchCycle> filterMatchCycles(MatchCycleFilterCriteria criteria) {
+    public List<MatchCycle> getMatchCycleByFilters(MatchCycleFilterCriteria criteria) {
         StringBuilder sql = new StringBuilder("SELECT * FROM match_cycles WHERE 1=1");
         MapSqlParameterSource params = new MapSqlParameterSource();
 
@@ -184,6 +184,10 @@ public class MatchCycleSqlRepo implements MatchCycleRepo {
             sql.append(" AND is_draft = :is_draft");
             params.addValue("is_draft", isDraft);
         });
+
+        sql.append(" ORDER BY run_at DESC, id DESC LIMIT :page_size OFFSET :offset");
+        params.addValue("page_size", criteria.pageSize());
+        params.addValue("offset", criteria.offset());
 
         return jdbc.sql(sql.toString())
                 .paramSource(params)

@@ -188,14 +188,14 @@ class MatchCycleSqlRepoTest {
     }
 
     @Test
-    void filterMatchCyclesAppliesEveryProvidedCriterion() {
+    void getMatchCycleByFiltersAppliesEveryProvidedCriterion() {
         final JdbcClient jdbc = mock(JdbcClient.class);
         final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
         final JdbcClient.MappedQuerySpec<MatchCycle> query = mock(JdbcClient.MappedQuerySpec.class);
         final Instant start = Instant.parse("2025-01-01T00:00:00Z");
         final Instant end = Instant.parse("2025-06-30T23:59:59Z");
         final MatchCycleFilterCriteria criteria = new MatchCycleFilterCriteria(
-                Optional.of("2025-Q1"), Optional.of(start), Optional.of(end), Optional.of(true));
+                Optional.of("2025-Q1"), Optional.of(start), Optional.of(end), Optional.of(true), 1, 25);
 
         when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
         when(statement.paramSource(ArgumentMatchers.any(MapSqlParameterSource.class)))
@@ -203,7 +203,7 @@ class MatchCycleSqlRepoTest {
         when(statement.query(ArgumentMatchers.<RowMapper<MatchCycle>>any())).thenReturn(query);
         when(query.list()).thenReturn(java.util.List.of());
 
-        final java.util.List<MatchCycle> result = new MatchCycleSqlRepo(jdbc).filterMatchCycles(criteria);
+        final java.util.List<MatchCycle> result = new MatchCycleSqlRepo(jdbc).getMatchCycleByFilters(criteria);
 
         assertEquals(java.util.List.of(), result);
         verify(jdbc).sql(ArgumentMatchers.anyString());
@@ -211,13 +211,14 @@ class MatchCycleSqlRepoTest {
     }
 
     @Test
-    void filterMatchCyclesOnlyIncludesProvidedCriteriaInWhereClause() {
+    void getMatchCycleByFiltersOnlyIncludesProvidedCriteriaInWhereClause() {
         final JdbcClient jdbc = mock(JdbcClient.class);
         final JdbcClient.StatementSpec statement = mock(JdbcClient.StatementSpec.class);
         final JdbcClient.MappedQuerySpec<MatchCycle> query = mock(JdbcClient.MappedQuerySpec.class);
         final MatchCycleFilterCriteria criteria = new MatchCycleFilterCriteria(
-                Optional.of("2025-Q1"), Optional.empty(), Optional.empty(), Optional.of(true));
+                Optional.of("2025-Q1"), Optional.empty(), Optional.empty(), Optional.of(true), 2, 3);
         final ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        final ArgumentCaptor<MapSqlParameterSource> paramsCaptor = ArgumentCaptor.forClass(MapSqlParameterSource.class);
 
         when(jdbc.sql(ArgumentMatchers.anyString())).thenReturn(statement);
         when(statement.paramSource(ArgumentMatchers.any(MapSqlParameterSource.class)))
@@ -225,11 +226,14 @@ class MatchCycleSqlRepoTest {
         when(statement.query(ArgumentMatchers.<RowMapper<MatchCycle>>any())).thenReturn(query);
         when(query.list()).thenReturn(java.util.List.of());
 
-        new MatchCycleSqlRepo(jdbc).filterMatchCycles(criteria);
+        new MatchCycleSqlRepo(jdbc).getMatchCycleByFilters(criteria);
 
         verify(jdbc).sql(sqlCaptor.capture());
+        verify(statement).paramSource(paramsCaptor.capture());
+        assertEquals(3, paramsCaptor.getValue().getValue("page_size"));
+        assertEquals(3L, paramsCaptor.getValue().getValue("offset"));
         assertEquals(
-                "SELECT * FROM match_cycles WHERE 1=1 AND period = :period AND is_draft = :is_draft",
+                "SELECT * FROM match_cycles WHERE 1=1 AND period = :period AND is_draft = :is_draft ORDER BY run_at DESC, id DESC LIMIT :page_size OFFSET :offset",
                 sqlCaptor.getValue());
     }
 }
