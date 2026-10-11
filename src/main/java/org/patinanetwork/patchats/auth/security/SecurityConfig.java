@@ -58,7 +58,8 @@ public class SecurityConfig {
         serializer.setUseSecureCookie(authProperties.isCookieSecure());
         serializer.setSameSite("Lax");
         serializer.setCookiePath("/");
-        // Persistent cookie matching the server-side inactivity timeout (spring.session.timeout).
+        // Persistent cookie matching the server-side inactivity timeout
+        // (spring.session.timeout).
         final Duration timeout = sessionProperties.getTimeout();
         serializer.setCookieMaxAge((int) timeout.toSeconds());
         return serializer;
@@ -82,11 +83,7 @@ public class SecurityConfig {
     @Profile("!dev")
     SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         return common(http)
-                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/api/email/**")
-                        .hasRole(ADMIN_ROLE)
-                        .requestMatchers(HttpMethod.GET, "/api/members")
-                        .hasRole(ADMIN_ROLE)
-                        .requestMatchers(HttpMethod.PATCH, "/api/members/admin/*/status")
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/admin/**")
                         .hasRole(ADMIN_ROLE)
                         .requestMatchers(HttpMethod.GET, "/api/session")
                         .authenticated()
@@ -116,9 +113,12 @@ public class SecurityConfig {
                                 PathPatternRequestMatcher.withDefaults()
                                         .matcher(HttpMethod.POST, "/api/auth/request-link"),
                                 PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/api/auth/verify"),
-                                // Sign-up is anonymous: a first-time visitor has no XSRF-TOKEN cookie yet (the SPA is
-                                // served by Vite in dev, so nothing has hit the backend), and there is no session to
-                                // ride, so the token would block real sign-ups while protecting nothing. Scoped to
+                                // Sign-up is anonymous: a first-time visitor has no XSRF-TOKEN cookie yet (the
+                                // SPA is
+                                // served by Vite in dev, so nothing has hit the backend), and there is no
+                                // session to
+                                // ride, so the token would block real sign-ups while protecting nothing. Scoped
+                                // to
                                 // POST only — the member domain's authenticated PATCH/DELETE must keep CSRF.
                                 PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/api/members")))
                 .requestCache(AbstractHttpConfigurer::disable)

@@ -16,7 +16,7 @@ whose implementation can be swapped).
 
 ```
 src/main/java/org/patinanetwork/patchats/email/
-  EmailController.java        POST /api/email/send →              ResponseEntity<ApiResponder<SendEmailResponse>>
+  EmailController.java        POST /api/admin/email/send →              ResponseEntity<ApiResponder<SendEmailResponse>>
   EmailService.java           orchestration: per message build vars → render → send → collect results (+ @Slf4j)
   EmailSender.java            PORT: void send(OutgoingEmail email)
   SmtpEmailSender.java        @Profile("!dev") — JavaMailSender + SimpleMailMessage (plain text)
@@ -39,7 +39,7 @@ The SMTP transport is the only piece that touches the outside world, so it sits 
 
 ## API contract
 
-`POST /api/email/send` — subject and body are templates; substitution runs **once per message**.
+`POST /api/admin/email/send` — subject and body are templates; substitution runs **once per message**.
 
 ### Request
 
@@ -109,7 +109,7 @@ To hit the endpoint locally with a real request:
 
 1. Install the **Postman** extension to the workspace
 2. Create a **New HTTP Request**.
-3. Set the method to **POST** and the URL to `localhost:8080/api/email/send`.
+3. Set the method to **POST** and the URL to `localhost:8080/api/admin/email/send`.
 4. Under **Body**, choose **raw**, then select **JSON** from the format dropdown.
 5. Write a request body that matches `SendEmailRequest`
    ([dto/SendEmailRequest.java](../src/main/java/org/patinanetwork/patchats/email/dto/SendEmailRequest.java)).

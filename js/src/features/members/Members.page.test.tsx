@@ -24,7 +24,7 @@ test("renders every member returned by the API", async () => {
 
 test("renders an empty state when there are no members", async () => {
   server.use(
-    http.get("/api/members", () =>
+    http.get("/api/admin/members", () =>
       HttpResponse.json({
         message: "Members retrieved successfully",
         payload: [],
@@ -43,7 +43,7 @@ test("applies form filters as API request parameters", async () => {
   const user = userEvent.setup();
   const requestedUrls: URL[] = [];
   server.use(
-    http.get("/api/members", ({ request }) => {
+    http.get("/api/admin/members", ({ request }) => {
       requestedUrls.push(new URL(request.url));
       return HttpResponse.json({
         message: "Members retrieved successfully",
@@ -84,7 +84,7 @@ test("allows status to be deselected and clears it with the other filters", asyn
   const user = userEvent.setup();
   const requestedUrls: URL[] = [];
   server.use(
-    http.get("/api/members", ({ request }) => {
+    http.get("/api/admin/members", ({ request }) => {
       requestedUrls.push(new URL(request.url));
       return HttpResponse.json({
         message: "Members retrieved successfully",
@@ -151,7 +151,7 @@ test("confirming deactivation calls the status endpoint and updates the row", as
   // the list endpoint's response reflects the change on refetch.
   let alexActive = true;
   server.use(
-    http.get("/api/members", () =>
+    http.get("/api/admin/members", () =>
       HttpResponse.json({
         message: "Members retrieved successfully",
         payload: [
@@ -176,7 +176,7 @@ test("confirming deactivation calls the status endpoint and updates the row", as
         success: true,
       }),
     ),
-    http.patch("/api/members/:id/status", async ({ request }) => {
+    http.patch("/api/admin/members/:id/status", async ({ request }) => {
       requestedBodies.push(await request.json());
       alexActive = false;
       return HttpResponse.json({
@@ -235,7 +235,7 @@ test("confirming reactivation calls the status endpoint and updates the row", as
   // reflecting the mutation's effect on the next list refetch.
   let jordanActive = false;
   server.use(
-    http.get("/api/members", () =>
+    http.get("/api/admin/members", () =>
       HttpResponse.json({
         message: "Members retrieved successfully",
         payload: [
@@ -260,7 +260,7 @@ test("confirming reactivation calls the status endpoint and updates the row", as
         success: true,
       }),
     ),
-    http.patch("/api/members/:id/status", async ({ request }) => {
+    http.patch("/api/admin/members/:id/status", async ({ request }) => {
       requestedBodies.push(await request.json());
       jordanActive = true;
       return HttpResponse.json({
@@ -323,7 +323,7 @@ test("cancelling the confirm modal makes no request", async () => {
   const user = userEvent.setup();
   const requestedBodies: unknown[] = [];
   server.use(
-    http.patch("/api/members/:id/status", async ({ request }) => {
+    http.patch("/api/admin/members/:id/status", async ({ request }) => {
       requestedBodies.push(await request.json());
       return HttpResponse.json({
         message: "Member deactivated successfully",

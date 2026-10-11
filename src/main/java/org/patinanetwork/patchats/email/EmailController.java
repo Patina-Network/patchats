@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /** REST endpoints for sending templated plain-text emails (sync legacy path + async outbox pipeline). */
 @RestController
-@RequestMapping("/api/email")
+@RequestMapping("/api/admin/email")
 @Tag(name = "Email")
 @Timed(value = "controller.execution")
 @EnableConfigurationProperties(EmailProperties.class)

@@ -12,7 +12,7 @@ export function useUpdateMemberStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, active }: UpdateMemberStatusVariables) =>
-      apiFetch<ApiResponder<Member>>(`/members/${id}/status`, {
+      apiFetch<ApiResponder<Member>>(`/admin/members/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ active }),
       }).then((res) => res.payload),

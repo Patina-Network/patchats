@@ -103,7 +103,7 @@ class SecurityWiringTest {
 
     @Test
     void emailEndpointRejectsAnonymousCallers() throws Exception {
-        mockMvc.perform(post("/api/email/send")
+        mockMvc.perform(post("/api/admin/email/send")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}")
                         .with(csrf()))
@@ -111,8 +111,14 @@ class SecurityWiringTest {
     }
 
     @Test
+    void adminReadEndpointsRejectAnonymousCallers() throws Exception {
+        mockMvc.perform(get("/api/admin/members")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/admin/email/templates")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void memberStatusEndpointStaysAdminOnlyAndFailsClosed() throws Exception {
-        mockMvc.perform(patch("/api/members/admin/{id}/status", UUID.randomUUID())
+        mockMvc.perform(patch("/api/admin/members/{id}/status", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"active\":false}")
                         .with(csrf()))
@@ -202,13 +208,20 @@ class SecurityWiringTest {
     void adminEndpointsAreForbiddenToASignedInNonAdmin() throws Exception {
         final MockHttpSession session = signIn(false);
 
-        mockMvc.perform(post("/api/email/send")
+        mockMvc.perform(post("/api/admin/email/send")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}")
                         .session(session)
                         .with(csrf()))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/members").session(session)).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/members").session(session)).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/email/templates").session(session)).andExpect(status().isForbidden());
+        mockMvc.perform(patch("/api/admin/members/{id}/status", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\":false}")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -219,7 +232,7 @@ class SecurityWiringTest {
                 .thenReturn(new SendEmailResponse(
                         1, 0, List.of(new SendEmailResponse.MessageResult(List.of("a@x.com"), true, null))));
 
-        mockMvc.perform(post("/api/email/send")
+        mockMvc.perform(post("/api/admin/email/send")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(
                                 "{\"templateId\":\"" + templateId
