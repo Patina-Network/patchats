@@ -88,6 +88,8 @@ public class SecurityConfig {
                         .hasRole(ADMIN_ROLE)
                         .requestMatchers(HttpMethod.PATCH, "/api/members/admin/*/status")
                         .hasRole(ADMIN_ROLE)
+                        .requestMatchers("/api/match", "/api/match/**")
+                        .hasRole(ADMIN_ROLE)
                         .requestMatchers(HttpMethod.GET, "/api/session")
                         .authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/members/me/status")

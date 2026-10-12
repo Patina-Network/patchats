@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.patinanetwork.patchats.api.match.db.models.Match;
+import org.patinanetwork.patchats.api.match.db.models.Match.MatchStatus;
 
 public interface MatchRepo {
     /**
@@ -33,7 +34,7 @@ public interface MatchRepo {
 
     Optional<Match> getMatchById(UUID id);
 
-    Optional<Match> setMatchStatus(UUID id, String status);
+    Optional<Match> setMatchStatus(UUID id, MatchStatus status);
 
     Optional<Match> setMatchScore(UUID id, Double score);
 
