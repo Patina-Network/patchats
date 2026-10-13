@@ -293,7 +293,7 @@ class SecurityWiringTest {
     void aMemberCannotUseTheAdminStatusEndpoint() throws Exception {
         final MockHttpSession session = signIn(false);
 
-        mockMvc.perform(patch("/api/members/admin/{id}/status", UUID.randomUUID())
+        mockMvc.perform(patch("/api/admin/members/{id}/status", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"active\":false}")
                         .session(session)
@@ -310,7 +310,7 @@ class SecurityWiringTest {
         when(memberService.updateMemberStatus(new UpdateMemberStatusRequest(false, Optional.empty()), someoneElse))
                 .thenReturn(MemberDto.builder().id(someoneElse).active(false).build());
 
-        mockMvc.perform(patch("/api/members/admin/{id}/status", someoneElse)
+        mockMvc.perform(patch("/api/admin/members/{id}/status", someoneElse)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"active\":false}")
                         .session(session)
