@@ -164,6 +164,9 @@ test.each([true, false])(
     await user.click(screen.getByRole("button", { name: "Add members" }));
     const dialog = await screen.findByRole("dialog");
     await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+    expect(
+      within(dialog).getByText("Members with existing emails will be skipped."),
+    ).toBeInTheDocument();
     const fileInput = dialog.querySelector('input[type="file"]');
     if (!(fileInput instanceof HTMLInputElement))
       throw new Error("Missing CSV input");
