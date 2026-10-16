@@ -18,7 +18,7 @@ test("confirms a member was added and refreshes the members table", async () => 
   const user = userEvent.setup();
   let createdMember: Record<string, unknown> | null = null;
   server.use(
-    http.get("/api/members", () =>
+    http.get("/api/admin/members", () =>
       HttpResponse.json({
         success: true,
         message: "Members retrieved successfully",
@@ -134,23 +134,90 @@ test.each([
   },
 );
 
-test("reports both successes and failures in a CSV import", async () => {
+test.each([true, false])(
+  "summarizes CSV successes with duplicate email: %s",
+  async (hasDuplicate) => {
+    const user = userEvent.setup();
+    server.use(
+      http.post("/api/members", async ({ request }) => {
+        const member = (await request.json()) as Record<string, unknown>;
+        return hasDuplicate && member.email === "existing@example.com" ?
+            HttpResponse.json(
+              {
+                success: false,
+                message: "Email already exists",
+                payload: null,
+              },
+              { status: 409 },
+            )
+          : HttpResponse.json({
+              success: true,
+              message: "Member created successfully",
+              payload: member,
+            });
+      }),
+    );
+
+    renderWithProviders(<MembersPage />);
+    await user.click(screen.getByRole("button", { name: "Add members" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+    expect(
+      within(dialog).getByText("Members with existing emails will be skipped."),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        "Required headers: firstName, lastName, email, introduction.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        "Optional headers: linkedInUrl, referralSource, matchPref, industryPref, rolePref, topics, extraNotes.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        "Column order: firstName, lastName, email, linkedInUrl, introduction, referralSource, matchPref, industryPref, rolePref, topics, extraNotes.",
+      ),
+    ).toBeInTheDocument();
+    const fileInput = dialog.querySelector('input[type="file"]');
+    if (!(fileInput instanceof HTMLInputElement))
+      throw new Error("Missing CSV input");
+    const file = new File([""], "members.csv", { type: "text/csv" });
+    Object.defineProperty(file, "text", {
+      value: async () =>
+        "firstName,lastName,email,linkedInUrl,introduction,referralSource,matchPref,industryPref,rolePref,topics,extraNotes\nTaylor,Quinn,new@example.com,,Hello,,,,,,\nAlex,Morgan,existing@example.com,,Hello,,,,,,",
+    });
+    await user.upload(fileInput, file);
+    const confirm = within(dialog).getByRole("button", {
+      name: "Confirm import",
+    });
+    await waitFor(() => expect(confirm).toBeEnabled());
+    await user.click(confirm);
+
+    expect(
+      await screen.findByText(
+        hasDuplicate ?
+          "1 member was added successfully. 1 member was skipped."
+        : "2 members were added successfully. 0 members were skipped.",
+      ),
+    ).toBeInTheDocument();
+    if (hasDuplicate) {
+      expect(
+        await screen.findByText(
+          "The email existing@example.com already exists.",
+        ),
+      ).toBeInTheDocument();
+    } else {
+      expect(
+        screen.queryByText("The email existing@example.com already exists."),
+      ).not.toBeInTheDocument();
+    }
+  },
+);
+
+test("rejects CSV files with unsupported columns", async () => {
   const user = userEvent.setup();
-  server.use(
-    http.post("/api/members", async ({ request }) => {
-      const member = (await request.json()) as Record<string, unknown>;
-      return member.email === "existing@example.com" ?
-          HttpResponse.json(
-            { success: false, message: "Email already exists", payload: null },
-            { status: 409 },
-          )
-        : HttpResponse.json({
-            success: true,
-            message: "Member created successfully",
-            payload: member,
-          });
-    }),
-  );
 
   renderWithProviders(<MembersPage />);
   await user.click(screen.getByRole("button", { name: "Add members" }));
@@ -162,21 +229,73 @@ test("reports both successes and failures in a CSV import", async () => {
   const file = new File([""], "members.csv", { type: "text/csv" });
   Object.defineProperty(file, "text", {
     value: async () =>
-      "firstName,lastName,email,introduction\nTaylor,Quinn,new@example.com,Hello\nAlex,Morgan,existing@example.com,Hello",
+      "firstName,lastName,email,linkedInUrl,introduction,referralSource,matchPref,industryPref,rolePref,topics,extraNotes,company\nTaylor,Quinn,taylor@example.com,,Hello,,,,,,,Patina",
   });
+
   await user.upload(fileInput, file);
-  const confirm = within(dialog).getByRole("button", {
-    name: "Confirm import",
-  });
-  await waitFor(() => expect(confirm).toBeEnabled());
-  await user.click(confirm);
 
   expect(
-    await screen.findByText("new@example.com was added successfully."),
+    await within(dialog).findByText("Unsupported header: company"),
   ).toBeInTheDocument();
   expect(
-    await screen.findByText("The email existing@example.com already exists."),
+    within(dialog).getByRole("button", { name: "Confirm import" }),
+  ).toBeDisabled();
+});
+
+test("rejects CSV files missing optional headers", async () => {
+  const user = userEvent.setup();
+
+  renderWithProviders(<MembersPage />);
+  await user.click(screen.getByRole("button", { name: "Add members" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+  const fileInput = dialog.querySelector('input[type="file"]');
+  if (!(fileInput instanceof HTMLInputElement))
+    throw new Error("Missing CSV input");
+  const file = new File([""], "members.csv", { type: "text/csv" });
+  Object.defineProperty(file, "text", {
+    value: async () =>
+      "firstName,lastName,email,introduction\nTaylor,Quinn,taylor@example.com,Hello",
+  });
+
+  await user.upload(fileInput, file);
+
+  expect(
+    await within(dialog).findByText(
+      "Missing optional headers: linkedInUrl, referralSource, matchPref, industryPref, rolePref, topics, extraNotes",
+    ),
   ).toBeInTheDocument();
+  expect(
+    within(dialog).getByRole("button", { name: "Confirm import" }),
+  ).toBeDisabled();
+});
+
+test("rejects CSV files with headers in the wrong order", async () => {
+  const user = userEvent.setup();
+
+  renderWithProviders(<MembersPage />);
+  await user.click(screen.getByRole("button", { name: "Add members" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+  const fileInput = dialog.querySelector('input[type="file"]');
+  if (!(fileInput instanceof HTMLInputElement))
+    throw new Error("Missing CSV input");
+  const file = new File([""], "members.csv", { type: "text/csv" });
+  Object.defineProperty(file, "text", {
+    value: async () =>
+      "lastName,firstName,email,linkedInUrl,introduction,referralSource,matchPref,industryPref,rolePref,topics,extraNotes\nQuinn,Taylor,taylor@example.com,,Hello,,,,,,",
+  });
+
+  await user.upload(fileInput, file);
+
+  expect(
+    await within(dialog).findByText(
+      "Headers must be in this order: firstName, lastName, email, linkedInUrl, introduction, referralSource, matchPref, industryPref, rolePref, topics, extraNotes",
+    ),
+  ).toBeInTheDocument();
+  expect(
+    within(dialog).getByRole("button", { name: "Confirm import" }),
+  ).toBeDisabled();
 });
 
 test("renders every member returned by the API", async () => {

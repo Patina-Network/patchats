@@ -61,20 +61,32 @@ export function useSubmitMembers() {
         ),
       );
 
-      results.forEach((result, index) => {
-        const email = payloads[index].email;
+      const addedCount = results.filter(
+        (result) => result.status === "fulfilled",
+      ).length;
+      const skippedCount = results.length - addedCount;
+
+      if (addedCount > 0) {
         notifications.show({
-          color: result.status === "fulfilled" ? "green" : "red",
-          title:
-            result.status === "fulfilled" ? "Member added" : "Member not added",
+          color: "green",
+          title: addedCount === 1 ? "Member added" : "Members added",
           message:
-            result.status === "fulfilled" ?
-              `${email} was added successfully.`
-            : submissionErrorMessage(result.reason, email),
+            payloads.length === 1 ?
+              `${payloads[0].email} was added successfully.`
+            : `${addedCount} ${addedCount === 1 ? "member was" : "members were"} added successfully. ${skippedCount} ${skippedCount === 1 ? "member was" : "members were"} skipped.`,
+        });
+      }
+
+      results.forEach((result, index) => {
+        if (result.status !== "rejected") return;
+        notifications.show({
+          color: "red",
+          title: "Member not added",
+          message: submissionErrorMessage(result.reason, payloads[index].email),
         });
       });
 
-      if (results.some((result) => result.status === "fulfilled")) {
+      if (addedCount > 0) {
         await queryClient.invalidateQueries({ queryKey: membersQueryKey });
       }
 
