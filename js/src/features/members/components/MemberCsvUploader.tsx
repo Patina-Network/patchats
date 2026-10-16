@@ -1,6 +1,9 @@
 import {
+  MEMBER_CSV_FIELDS,
   MemberCsvParseResult,
+  OPTIONAL_MEMBER_CSV_FIELDS,
   parseMemberCsv,
+  REQUIRED_MEMBER_CSV_FIELDS,
 } from "@/features/members/api/parseMemberCsv";
 import {
   Alert,
@@ -29,6 +32,16 @@ const PREVIEW_FIELDS = [
   ["topics", "Topics"],
   ["extraNotes", "Extra notes"],
 ] as const;
+
+const CSV_HEADER_DESCRIPTION = (
+  <>
+    <span>Required headers: {REQUIRED_MEMBER_CSV_FIELDS.join(", ")}.</span>
+    <br />
+    <span>Optional headers: {OPTIONAL_MEMBER_CSV_FIELDS.join(", ")}.</span>
+    <br />
+    <span>Column order: {MEMBER_CSV_FIELDS.join(", ")}.</span>
+  </>
+);
 
 interface MemberCsvUploaderProps {
   disabled?: boolean;
@@ -147,7 +160,7 @@ export function MemberCsvUploader({
           <FileInput
             accept=".csv,text/csv"
             clearable
-            description="Required headers: firstName, lastName, email, and introduction"
+            description={CSV_HEADER_DESCRIPTION}
             disabled={isDisabled}
             label="Member CSV"
             leftSection={<IconFileSpreadsheet size={16} />}
