@@ -180,8 +180,8 @@ test.each([true, false])(
     expect(
       await screen.findByText(
         hasDuplicate ?
-          "1 member was added successfully."
-        : "2 members were added successfully.",
+          "1 member was added successfully. 1 member was skipped."
+        : "2 members were added successfully. 0 members were skipped.",
       ),
     ).toBeInTheDocument();
     if (hasDuplicate) {

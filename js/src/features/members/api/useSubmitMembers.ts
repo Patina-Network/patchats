@@ -64,6 +64,7 @@ export function useSubmitMembers() {
       const addedCount = results.filter(
         (result) => result.status === "fulfilled",
       ).length;
+      const skippedCount = results.length - addedCount;
 
       if (addedCount > 0) {
         notifications.show({
@@ -72,7 +73,7 @@ export function useSubmitMembers() {
           message:
             payloads.length === 1 ?
               `${payloads[0].email} was added successfully.`
-            : `${addedCount} ${addedCount === 1 ? "member was" : "members were"} added successfully.`,
+            : `${addedCount} ${addedCount === 1 ? "member was" : "members were"} added successfully. ${skippedCount} ${skippedCount === 1 ? "member was" : "members were"} skipped.`,
         });
       }
 
