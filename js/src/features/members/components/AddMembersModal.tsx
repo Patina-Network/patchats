@@ -119,9 +119,14 @@ export function AddMembersModal({ opened, onClose }: AddMembersModalProps) {
         </Tabs.Panel>
         <Tabs.Panel value="csv" keepMounted>
           <Stack gap="md">
-            <Text c="dimmed" size="sm">
-              Choose a CSV file to validate and preview multiple members.
-            </Text>
+            <Stack gap={2}>
+              <Text c="dimmed" size="sm">
+                Choose a CSV file to validate and preview multiple members.
+              </Text>
+              <Text c="dimmed" size="xs">
+                Members with existing emails will be skipped.
+              </Text>
+            </Stack>
             <MemberCsvUploader
               disabled={isSubmitting}
               onChange={setCsvResult}
