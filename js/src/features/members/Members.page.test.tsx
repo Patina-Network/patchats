@@ -167,13 +167,28 @@ test.each([true, false])(
     expect(
       within(dialog).getByText("Members with existing emails will be skipped."),
     ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        "Required headers: firstName, lastName, email, introduction.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        "Optional headers: linkedInUrl, referralSource, matchPref, industryPref, rolePref, topics, extraNotes.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(
+        "Column order: firstName, lastName, email, linkedInUrl, introduction, referralSource, matchPref, industryPref, rolePref, topics, extraNotes.",
+      ),
+    ).toBeInTheDocument();
     const fileInput = dialog.querySelector('input[type="file"]');
     if (!(fileInput instanceof HTMLInputElement))
       throw new Error("Missing CSV input");
     const file = new File([""], "members.csv", { type: "text/csv" });
     Object.defineProperty(file, "text", {
       value: async () =>
-        "firstName,lastName,email,introduction\nTaylor,Quinn,new@example.com,Hello\nAlex,Morgan,existing@example.com,Hello",
+        "firstName,lastName,email,linkedInUrl,introduction,referralSource,matchPref,industryPref,rolePref,topics,extraNotes\nTaylor,Quinn,new@example.com,,Hello,,,,,,\nAlex,Morgan,existing@example.com,,Hello,,,,,,",
     });
     await user.upload(fileInput, file);
     const confirm = within(dialog).getByRole("button", {
@@ -202,6 +217,88 @@ test.each([true, false])(
     }
   },
 );
+
+test("rejects CSV files with unsupported columns", async () => {
+  const user = userEvent.setup();
+
+  renderWithProviders(<MembersPage />);
+  await user.click(screen.getByRole("button", { name: "Add members" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+  const fileInput = dialog.querySelector('input[type="file"]');
+  if (!(fileInput instanceof HTMLInputElement))
+    throw new Error("Missing CSV input");
+  const file = new File([""], "members.csv", { type: "text/csv" });
+  Object.defineProperty(file, "text", {
+    value: async () =>
+      "firstName,lastName,email,linkedInUrl,introduction,referralSource,matchPref,industryPref,rolePref,topics,extraNotes,company\nTaylor,Quinn,taylor@example.com,,Hello,,,,,,,Patina",
+  });
+
+  await user.upload(fileInput, file);
+
+  expect(
+    await within(dialog).findByText("Unsupported header: company"),
+  ).toBeInTheDocument();
+  expect(
+    within(dialog).getByRole("button", { name: "Confirm import" }),
+  ).toBeDisabled();
+});
+
+test("rejects CSV files missing optional headers", async () => {
+  const user = userEvent.setup();
+
+  renderWithProviders(<MembersPage />);
+  await user.click(screen.getByRole("button", { name: "Add members" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+  const fileInput = dialog.querySelector('input[type="file"]');
+  if (!(fileInput instanceof HTMLInputElement))
+    throw new Error("Missing CSV input");
+  const file = new File([""], "members.csv", { type: "text/csv" });
+  Object.defineProperty(file, "text", {
+    value: async () =>
+      "firstName,lastName,email,introduction\nTaylor,Quinn,taylor@example.com,Hello",
+  });
+
+  await user.upload(fileInput, file);
+
+  expect(
+    await within(dialog).findByText(
+      "Missing optional headers: linkedInUrl, referralSource, matchPref, industryPref, rolePref, topics, extraNotes",
+    ),
+  ).toBeInTheDocument();
+  expect(
+    within(dialog).getByRole("button", { name: "Confirm import" }),
+  ).toBeDisabled();
+});
+
+test("rejects CSV files with headers in the wrong order", async () => {
+  const user = userEvent.setup();
+
+  renderWithProviders(<MembersPage />);
+  await user.click(screen.getByRole("button", { name: "Add members" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+  const fileInput = dialog.querySelector('input[type="file"]');
+  if (!(fileInput instanceof HTMLInputElement))
+    throw new Error("Missing CSV input");
+  const file = new File([""], "members.csv", { type: "text/csv" });
+  Object.defineProperty(file, "text", {
+    value: async () =>
+      "lastName,firstName,email,linkedInUrl,introduction,referralSource,matchPref,industryPref,rolePref,topics,extraNotes\nQuinn,Taylor,taylor@example.com,,Hello,,,,,,",
+  });
+
+  await user.upload(fileInput, file);
+
+  expect(
+    await within(dialog).findByText(
+      "Headers must be in this order: firstName, lastName, email, linkedInUrl, introduction, referralSource, matchPref, industryPref, rolePref, topics, extraNotes",
+    ),
+  ).toBeInTheDocument();
+  expect(
+    within(dialog).getByRole("button", { name: "Confirm import" }),
+  ).toBeDisabled();
+});
 
 test("renders every member returned by the API", async () => {
   renderWithProviders(<MembersPage />);
