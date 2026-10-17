@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - "/.github/composite/**"
+    schedule: { interval: weekly }
+  - package-ecosystem: bun
+    directory: /.github/scripts
+    schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: /js
+    schedule: { interval: weekly }
+  - package-ecosystem: maven
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: docker
+    directory: /infra
+    schedule: { interval: weekly }
