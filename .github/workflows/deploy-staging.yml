@@ -20,7 +20,7 @@ permissions:
 jobs:
   backendPretest:
     name: Backend Pretests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -30,7 +30,7 @@ jobs:
 
   frontendPretest:
     name: Frontend Pretests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     defaults:
       run:
         working-directory: js
@@ -43,7 +43,7 @@ jobs:
 
   backendTest:
     name: Backend Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: backendPretest
 
     steps:
@@ -55,7 +55,7 @@ jobs:
 
   frontendTest:
     name: Frontend Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: frontendPretest
 
     steps:
@@ -67,7 +67,7 @@ jobs:
 
   runLocalDb:
     name: Test Run Database Locally
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: backendTest
 
     steps:
@@ -102,7 +102,7 @@ jobs:
 
   runBackendInstance:
     name: Test Run Backend Instance
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: backendTest
 
     steps:
@@ -121,9 +121,9 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            runner: ubuntu-latest
+            runner: ubuntu-26.04
           - arch: arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
 
     steps:
       - name: Checkout repository
@@ -146,7 +146,7 @@ jobs:
 
   migrateDatabase:
     name: Migrate Staging Database
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [buildImage]
 
     steps:
@@ -172,7 +172,7 @@ jobs:
 
   updateK8sTag:
     name: Change Tag in K8s
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [migrateDatabase]
 
     steps:

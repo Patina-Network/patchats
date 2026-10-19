@@ -18,7 +18,7 @@ permissions:
 jobs:
   verify-main:
     name: Verify Main Branch
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     if: github.ref_name == 'main'
 
@@ -27,7 +27,7 @@ jobs:
 
   backend-pretest:
     name: Backend Pretests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: verify-main
     steps:
       - name: Checkout repository
@@ -38,7 +38,7 @@ jobs:
 
   frontend-pretest:
     name: Frontend Pretests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: verify-main
     defaults:
       run:
@@ -52,7 +52,7 @@ jobs:
 
   backend-test:
     name: Backend Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: backend-pretest
 
     steps:
@@ -64,7 +64,7 @@ jobs:
 
   frontend-test:
     name: Frontend Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: frontend-pretest
 
     steps:
@@ -76,7 +76,7 @@ jobs:
 
   run-local-db:
     name: Test Run Database Locally
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: backend-test
 
     steps:
@@ -111,7 +111,7 @@ jobs:
 
   run-backend-instance:
     name: Test Run Backend Instance
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: backend-test
 
     steps:
@@ -130,9 +130,9 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            runner: ubuntu-latest
+            runner: ubuntu-26.04
           - arch: arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
 
     steps:
       - name: Checkout repository
@@ -155,7 +155,7 @@ jobs:
 
   migrate-database:
     name: Migrate production database
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [build-image]
 
     steps:
@@ -181,7 +181,7 @@ jobs:
 
   update-k8s-tag:
     name: Change Tag in K8s
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [migrate-database]
 
     steps:
