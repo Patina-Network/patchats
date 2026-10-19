@@ -5,7 +5,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup CI
-      uses: tahminator/pipeline/actions/setup@52eb2a0451daba94989db6a6fa232e689144aa50 # 1.0.96
+      uses: tahminator/pipeline/actions/setup@0d54deb9e9abab9530e4aa889a6c79c88a0ff5c7 # 1.0.99
       with:
         LINT_CI: true
 
