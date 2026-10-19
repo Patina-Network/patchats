@@ -9,6 +9,9 @@ export default function AdminPage() {
       <Button component={Link} to="/admin/members" w="fit-content">
         Members
       </Button>
+      <Button component={Link} to="/admin/email" w="fit-content">
+        Send standalone email
+      </Button>
     </Stack>
   );
 }
