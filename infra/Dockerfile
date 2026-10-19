@@ -1,5 +1,5 @@
 # Build the React frontend
-FROM mirror.gcr.io/library/node:20 AS frontend-build
+FROM mirror.gcr.io/library/node:26 AS frontend-build
 
 WORKDIR /js
 COPY js/package.json js/pnpm-lock.yaml ./
