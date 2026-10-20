@@ -31,7 +31,7 @@ jobs:
     needs: verify-main
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Run workflow
         uses: ./.github/composite/test/backend-pretest
@@ -45,7 +45,7 @@ jobs:
         working-directory: js
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Run workflow
         uses: ./.github/composite/test/frontend-pretest
@@ -57,7 +57,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Run workflow
         uses: ./.github/composite/test/backend-test
@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Run workflow
         uses: ./.github/composite/test/frontend-test
@@ -81,7 +81,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -116,7 +116,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Run workflow
         uses: ./.github/composite/run-backend-instance
@@ -136,10 +136,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup CI
-        uses: tahminator/pipeline/actions/setup@52eb2a0451daba94989db6a6fa232e689144aa50 # 1.0.96
+        uses: tahminator/pipeline/actions/setup@a424f92d486342e1255fcdf377a7569eb230aabe # 1.0.97
         with:
           LINT_CI: true
           SECRETS: ${{ toJSON(secrets) }}
@@ -160,13 +160,13 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Setup CI
-        uses: tahminator/pipeline/actions/setup@52eb2a0451daba94989db6a6fa232e689144aa50 # 1.0.96
+        uses: tahminator/pipeline/actions/setup@a424f92d486342e1255fcdf377a7569eb230aabe # 1.0.97
         with:
           LINT_CI: true
           SECRETS: ${{ toJSON(secrets) }}
@@ -186,10 +186,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup CI
-        uses: tahminator/pipeline/actions/setup@52eb2a0451daba94989db6a6fa232e689144aa50 # 1.0.96
+        uses: tahminator/pipeline/actions/setup@a424f92d486342e1255fcdf377a7569eb230aabe # 1.0.97
         with:
           LINT_CI: true
           SECRETS: ${{ toJSON(secrets) }}
