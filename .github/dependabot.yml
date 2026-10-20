@@ -1,19 +1,45 @@
 version: 2
+
+multi-ecosystem-groups:
+  main:
+    schedule: { interval: weekly }
+    commit-message: { prefix: "deps(main)" }
+  cicd:
+    schedule: { interval: weekly }
+    commit-message: { prefix: "deps(ci)" }
+  # uncomment this section to run dependabot on tooling that is not part of the main app and/or is not very important to the main repository
+  # non-main:
+  #   schedule: { interval: monthly }
+  #   commit-message: { prefix: "deps(non-main)" }
+
 updates:
+  # main
+  - package-ecosystem: maven
+    directory: /
+    patterns: ["*"]
+    cooldown: { default-days: 7 }
+    multi-ecosystem-group: main
+  - package-ecosystem: npm
+    directory: /js
+    patterns: ["*"]
+    cooldown: { default-days: 7 }
+    multi-ecosystem-group: main
+  - package-ecosystem: docker
+    directory: /infra
+    patterns: ["*"]
+    cooldown: { default-days: 7 }
+    multi-ecosystem-group: main
+  # cicd
   - package-ecosystem: github-actions
     directories:
       - /
       - "/.github/composite/**"
-    schedule: { interval: weekly }
-  - package-ecosystem: bun
-    directory: /.github/scripts
-    schedule: { interval: weekly }
-  - package-ecosystem: npm
-    directory: /js
-    schedule: { interval: weekly }
-  - package-ecosystem: maven
-    directory: /
-    schedule: { interval: weekly }
-  - package-ecosystem: docker
-    directory: /infra
-    schedule: { interval: weekly }
+    patterns: ["*"]
+    cooldown: { default-days: 7 }
+    multi-ecosystem-group: cicd
+  # cannot enable until https://github.com/dependabot/dependabot-core/issues/15237 is fixed
+  # - package-ecosystem: bun
+  #   directory: /.github/scripts
+  #   patterns: ["*"]
+  #   cooldown: { default-days: 7 }
+  #   multi-ecosystem-group: cicd
