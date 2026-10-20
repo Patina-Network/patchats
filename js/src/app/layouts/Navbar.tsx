@@ -47,16 +47,25 @@ export function Navbar() {
             w="auto"
           />
         </Link>
-        <Group gap={isDesktop ? "xl" : "xs"}>
+        <Group gap={isDesktop ? "xl" : "xs"} wrap="nowrap">
           {isPending ?
             null
           : session ?
             <>
               {session.isAdmin &&
                 (isDesktop ?
-                  <Badge color="red">Admin</Badge>
+                  <Badge
+                    component={Link}
+                    to="/admin"
+                    color="red"
+                    style={{ cursor: "pointer", textDecoration: "none" }}
+                  >
+                    Admin
+                  </Badge>
                 : <Tooltip label="Admin" withArrow>
                     <Box
+                      component={Link}
+                      to="/admin"
                       aria-label="Admin"
                       title="Admin"
                       bg="red"
