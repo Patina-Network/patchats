@@ -14,7 +14,7 @@ function submissionErrorMessage(error: unknown, email: string): string {
     const body = error.body as Partial<ApiResponder<unknown>> | undefined;
     if (
       error.status >= 400 &&
-      error.status < 500 &&
+      error.status < 600 &&
       typeof body?.message === "string" &&
       body.message.trim()
     ) {

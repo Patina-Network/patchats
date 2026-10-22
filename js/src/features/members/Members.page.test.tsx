@@ -18,7 +18,7 @@ test("confirms a member was added and refreshes the members table", async () => 
   const user = userEvent.setup();
   let createdMember: Record<string, unknown> | null = null;
   server.use(
-    http.get("/api/members", () =>
+    http.get("/api/admin/members", () =>
       HttpResponse.json({
         success: true,
         message: "Members retrieved successfully",
@@ -89,7 +89,12 @@ test.each([
   {
     status: 500,
     message: "Internal database error",
-    expected: "An unknown error occurred.",
+    expected: "Internal database error",
+  },
+  {
+    status: 503,
+    message: "Service temporarily unavailable",
+    expected: "Service temporarily unavailable",
   },
   { status: 0, message: "", expected: "An unknown error occurred." },
 ])(
@@ -127,9 +132,6 @@ test.each([
     expect(await screen.findByText(expected)).toBeInTheDocument();
     expect(
       screen.queryByText("taylor@example.com was added successfully."),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Internal database error"),
     ).not.toBeInTheDocument();
   },
 );
