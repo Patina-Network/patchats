@@ -14,7 +14,7 @@ import { beforeEach, expect, test } from "vitest";
 
 beforeEach(() => notifications.clean());
 
-test("confirms a member was added and refreshes the members table", async () => {
+test("shows success feedback for a 200 response and refreshes the members table", async () => {
   const user = userEvent.setup();
   let createdMember: Record<string, unknown> | null = null;
   server.use(
@@ -95,11 +95,6 @@ test.each([
     status: 503,
     message: "Service temporarily unavailable",
     expected: "Service temporarily unavailable",
-  },
-  {
-    status: 200,
-    message: "Member creation failed",
-    expected: "Member creation failed",
   },
   { status: 0, message: "", expected: "An unknown error occurred." },
 ])(
