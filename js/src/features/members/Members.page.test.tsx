@@ -178,9 +178,7 @@ test.each([true, false])(
       ),
     ).toBeInTheDocument();
     expect(
-      within(dialog).getByText(
-        "Column order: firstName, lastName, email, linkedInUrl, introduction, referralSource, matchPref, industryPref, rolePref, topics, extraNotes.",
-      ),
+      within(dialog).getByText("Columns may appear in any order."),
     ).toBeInTheDocument();
     const fileInput = dialog.querySelector('input[type="file"]');
     if (!(fileInput instanceof HTMLInputElement))
@@ -319,7 +317,7 @@ test("rejects CSV files missing optional headers", async () => {
   ).toBeDisabled();
 });
 
-test("rejects CSV files with headers in the wrong order", async () => {
+test("accepts CSV files with headers in any order", async () => {
   const user = userEvent.setup();
 
   renderWithProviders(<MembersPage />);
@@ -337,14 +335,12 @@ test("rejects CSV files with headers in the wrong order", async () => {
 
   await user.upload(fileInput, file);
 
-  expect(
-    await within(dialog).findByText(
-      "Headers must be in this order: firstName, lastName, email, linkedInUrl, introduction, referralSource, matchPref, industryPref, rolePref, topics, extraNotes",
-    ),
-  ).toBeInTheDocument();
+  expect(await within(dialog).findByText("CSV validated")).toBeInTheDocument();
+  expect(within(dialog).getByText("Taylor")).toBeInTheDocument();
+  expect(within(dialog).getByText("Quinn")).toBeInTheDocument();
   expect(
     within(dialog).getByRole("button", { name: "Confirm import" }),
-  ).toBeDisabled();
+  ).toBeEnabled();
 });
 
 test("renders every member returned by the API", async () => {

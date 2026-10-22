@@ -83,9 +83,6 @@ export function parseMemberCsv(csv: string): MemberCsvParseResult {
     (header) =>
       !MEMBER_CSV_FIELDS.some((supportedHeader) => supportedHeader === header),
   );
-  const hasExpectedHeaderOrder =
-    headers.length === MEMBER_CSV_FIELDS.length &&
-    MEMBER_CSV_FIELDS.every((field, index) => headers[index] === field);
   const fileErrors: string[] = [];
 
   if (missingRequiredHeaders.length > 0) {
@@ -103,17 +100,6 @@ export function parseMemberCsv(csv: string): MemberCsvParseResult {
   if (unsupportedHeaders.length > 0) {
     fileErrors.push(
       `Unsupported ${unsupportedHeaders.length === 1 ? "header" : "headers"}: ${unsupportedHeaders.join(", ")}`,
-    );
-  }
-
-  if (
-    missingRequiredHeaders.length === 0 &&
-    missingOptionalHeaders.length === 0 &&
-    unsupportedHeaders.length === 0 &&
-    !hasExpectedHeaderOrder
-  ) {
-    fileErrors.push(
-      `Headers must be in this order: ${MEMBER_CSV_FIELDS.join(", ")}`,
     );
   }
 

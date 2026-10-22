@@ -1,5 +1,4 @@
 import {
-  MEMBER_CSV_FIELDS,
   MemberCsvParseResult,
   OPTIONAL_MEMBER_CSV_FIELDS,
   parseMemberCsv,
@@ -39,7 +38,7 @@ const CSV_HEADER_DESCRIPTION = (
     <br />
     <span>Optional headers: {OPTIONAL_MEMBER_CSV_FIELDS.join(", ")}.</span>
     <br />
-    <span>Column order: {MEMBER_CSV_FIELDS.join(", ")}.</span>
+    <span>Columns may appear in any order.</span>
   </>
 );
 
