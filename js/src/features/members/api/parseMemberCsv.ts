@@ -19,6 +19,18 @@ export type MemberCsvField = (typeof MEMBER_CSV_FIELDS)[number];
 
 export type CreateMemberPayload = Record<MemberCsvField, string>;
 
+export const REQUIRED_MEMBER_CSV_FIELDS: readonly MemberCsvField[] = [
+  "firstName",
+  "lastName",
+  "email",
+  "introduction",
+];
+
+export const OPTIONAL_MEMBER_CSV_FIELDS: readonly MemberCsvField[] =
+  MEMBER_CSV_FIELDS.filter(
+    (field) => !REQUIRED_MEMBER_CSV_FIELDS.includes(field),
+  );
+
 export interface ParsedMemberRow {
   errors: string[];
   rowNumber: number;
@@ -29,13 +41,6 @@ export interface MemberCsvParseResult {
   fileErrors: string[];
   rows: ParsedMemberRow[];
 }
-
-const REQUIRED_FIELDS: MemberCsvField[] = [
-  "firstName",
-  "lastName",
-  "email",
-  "introduction",
-];
 
 const memberSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -68,15 +73,35 @@ export function parseMemberCsv(csv: string): MemberCsvParseResult {
     transformHeader: (header) => header.replace(/^\uFEFF/, "").trim(),
   });
   const headers = parsed.meta.fields ?? [];
-  const missingHeaders = REQUIRED_FIELDS.filter(
+  const missingRequiredHeaders = REQUIRED_MEMBER_CSV_FIELDS.filter(
     (field) => !headers.includes(field),
   );
-  const fileErrors =
-    missingHeaders.length > 0 ?
-      [
-        `Missing required ${missingHeaders.length === 1 ? "header" : "headers"}: ${missingHeaders.join(", ")}`,
-      ]
-    : [];
+  const missingOptionalHeaders = OPTIONAL_MEMBER_CSV_FIELDS.filter(
+    (field) => !headers.includes(field),
+  );
+  const unsupportedHeaders = headers.filter(
+    (header) =>
+      !MEMBER_CSV_FIELDS.some((supportedHeader) => supportedHeader === header),
+  );
+  const fileErrors: string[] = [];
+
+  if (missingRequiredHeaders.length > 0) {
+    fileErrors.push(
+      `Missing required ${missingRequiredHeaders.length === 1 ? "header" : "headers"}: ${missingRequiredHeaders.join(", ")}`,
+    );
+  }
+
+  if (missingOptionalHeaders.length > 0) {
+    fileErrors.push(
+      `Missing optional ${missingOptionalHeaders.length === 1 ? "header" : "headers"}: ${missingOptionalHeaders.join(", ")}`,
+    );
+  }
+
+  if (unsupportedHeaders.length > 0) {
+    fileErrors.push(
+      `Unsupported ${unsupportedHeaders.length === 1 ? "header" : "headers"}: ${unsupportedHeaders.join(", ")}`,
+    );
+  }
 
   if (parsed.data.length === 0) {
     fileErrors.push("The CSV does not contain any member rows");
