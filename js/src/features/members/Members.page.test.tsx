@@ -211,8 +211,59 @@ test.each([true, false])(
         ),
       ).toBeInTheDocument();
     }
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    await user.click(screen.getByRole("button", { name: "Add members" }));
+    const reopenedDialog = await screen.findByRole("dialog");
+    await user.click(
+      within(reopenedDialog).getByRole("tab", { name: "Upload CSV" }),
+    );
+    expect(
+      within(reopenedDialog).getByRole("button", { name: "Confirm import" }),
+    ).toBeDisabled();
+    expect(
+      within(reopenedDialog).queryByText("CSV validated"),
+    ).not.toBeInTheDocument();
   },
 );
+
+test("clears a validated CSV when the modal is closed and reopened", async () => {
+  const user = userEvent.setup();
+
+  renderWithProviders(<MembersPage />);
+  await user.click(screen.getByRole("button", { name: "Add members" }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("tab", { name: "Upload CSV" }));
+  const fileInput = dialog.querySelector('input[type="file"]');
+  if (!(fileInput instanceof HTMLInputElement))
+    throw new Error("Missing CSV input");
+  const file = new File([""], "members.csv", { type: "text/csv" });
+  Object.defineProperty(file, "text", {
+    value: async () =>
+      "firstName,lastName,email,linkedInUrl,introduction,referralSource,matchPref,industryPref,rolePref,topics,extraNotes\nTaylor,Quinn,taylor@example.com,,Hello,,,,,,",
+  });
+  await user.upload(fileInput, file);
+  expect(await within(dialog).findByText("CSV validated")).toBeInTheDocument();
+
+  await user.keyboard("{Escape}");
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+  );
+  await user.click(screen.getByRole("button", { name: "Add members" }));
+  const reopenedDialog = await screen.findByRole("dialog");
+  await user.click(
+    within(reopenedDialog).getByRole("tab", { name: "Upload CSV" }),
+  );
+
+  expect(
+    within(reopenedDialog).getByRole("button", { name: "Confirm import" }),
+  ).toBeDisabled();
+  expect(
+    within(reopenedDialog).queryByText("CSV validated"),
+  ).not.toBeInTheDocument();
+});
 
 test("rejects CSV files with unsupported columns", async () => {
   const user = userEvent.setup();

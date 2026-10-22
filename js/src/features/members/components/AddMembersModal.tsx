@@ -60,11 +60,16 @@ export function AddMembersModal({ opened, onClose }: AddMembersModalProps) {
     csvResult.fileErrors.length === 0 &&
     csvResult.rows.length > 0 &&
     csvResult.rows.every((row) => row.errors.length === 0);
+  const handleClose = () => {
+    setCsvResult(null);
+    form.reset();
+    onClose();
+  };
 
   return (
     <Modal
       opened={opened}
-      onClose={onClose}
+      onClose={handleClose}
       title="Add members"
       size="xl"
       centered
@@ -141,9 +146,16 @@ export function AddMembersModal({ opened, onClose }: AddMembersModalProps) {
               <Button
                 disabled={!isCsvValid || isSubmitting}
                 loading={isSubmitting}
-                onClick={() => {
+                onClick={async () => {
                   if (!isCsvValid || !csvResult) return;
-                  submitMembers(csvResult.rows.map((row) => row.values));
+                  const results = await submitMembers(
+                    csvResult.rows.map((row) => row.values),
+                  );
+                  if (
+                    results?.some((result) => result.status === "fulfilled")
+                  ) {
+                    handleClose();
+                  }
                 }}
               >
                 Confirm import
