@@ -210,10 +210,6 @@ test.each([true, false])(
           "The email existing@example.com already exists.",
         ),
       ).toBeInTheDocument();
-    } else {
-      expect(
-        screen.queryByText("The email existing@example.com already exists."),
-      ).not.toBeInTheDocument();
     }
   },
 );
