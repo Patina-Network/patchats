@@ -96,6 +96,11 @@ test.each([
     message: "Service temporarily unavailable",
     expected: "Service temporarily unavailable",
   },
+  {
+    status: 200,
+    message: "Member creation failed",
+    expected: "Member creation failed",
+  },
   { status: 0, message: "", expected: "An unknown error occurred." },
 ])(
   "shows submission feedback for a $status error",

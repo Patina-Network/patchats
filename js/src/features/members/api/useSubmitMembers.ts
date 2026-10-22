@@ -54,7 +54,7 @@ export function useSubmitMembers() {
             body: JSON.stringify(payload),
           }).then((res) => {
             if (!res.success) {
-              throw new ApiError(200, res.message, res);
+              throw new ApiError(500, res.message, res);
             }
             return res.payload;
           }),
