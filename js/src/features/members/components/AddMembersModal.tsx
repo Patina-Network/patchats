@@ -31,8 +31,8 @@ const memberTextFields = [
 ] as const;
 
 interface AddMembersModalProps {
-  opened: boolean;
-  onClose: () => void;
+  readonly opened: boolean;
+  readonly onClose: () => void;
 }
 
 export function AddMembersModal({ opened, onClose }: AddMembersModalProps) {
