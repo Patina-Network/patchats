@@ -83,7 +83,10 @@ export const MembersTable = ({
                   <Table.Td fw={600}>
                     <Group gap="xs">
                       {member.firstName} {member.lastName}
-                      {admins.some((a) => a.email === member.email) && (
+                      {admins.some(
+                        (a) =>
+                          a.email.toLowerCase() === member.email.toLowerCase(),
+                      ) && (
                         <Badge color="red" size="xs" variant="light">
                           Admin
                         </Badge>

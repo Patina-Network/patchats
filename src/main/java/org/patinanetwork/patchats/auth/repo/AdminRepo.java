@@ -17,7 +17,8 @@ public interface AdminRepo {
 
     /**
      * Removes an email from the allowlist. Normalisation is applied before lookup, so casing and surrounding whitespace
-     * are ignored. Returns {@code true} if a row was deleted, {@code false} if the address was not found.
+     * are ignored. Throws {@link org.patinanetwork.patchats.common.web.exception.AdminNotFoundException} if the address
+     * is not on the list.
      */
-    boolean removeAdmin(String email);
+    void removeAdmin(String email);
 }

@@ -10,7 +10,6 @@ import org.patinanetwork.patchats.auth.dto.AddAdminRequest;
 import org.patinanetwork.patchats.auth.dto.AdminDto;
 import org.patinanetwork.patchats.auth.repo.AdminRepo;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,23 +40,15 @@ public class AdminController {
     @Operation(summary = "Add an email to the admin allowlist")
     @PostMapping
     public ResponseEntity<ApiResponder<AdminDto>> addAdmin(@Valid @RequestBody final AddAdminRequest request) {
-        try {
-            final AdminDto admin = adminRepo.addAdmin(request.email(), request.note());
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponder.success("Admin added: %s".formatted(admin.email()), admin));
-        } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(ApiResponder.failure("%s is already an admin".formatted(request.email())));
-        }
+        final AdminDto admin = adminRepo.addAdmin(request.email(), request.note());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponder.success("Admin added: %s".formatted(admin.email()), admin));
     }
 
     @Operation(summary = "Remove an email from the admin allowlist")
     @DeleteMapping("/{email:.+}")
     public ResponseEntity<ApiResponder<Void>> removeAdmin(@PathVariable final String email) {
-        if (!adminRepo.removeAdmin(email)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponder.failure("Admin not found: %s".formatted(email)));
-        }
+        adminRepo.removeAdmin(email);
         return ResponseEntity.ok(ApiResponder.success("Admin removed: %s".formatted(email), null));
     }
 }

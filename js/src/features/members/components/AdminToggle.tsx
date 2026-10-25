@@ -18,9 +18,14 @@ export function AdminToggle({
   const addAdmin = useAddAdmin();
   const removeAdmin = useRemoveAdmin();
 
-  const isAdmin = admins.some((a) => a.email === member.email);
+  const memberEmailLower = member.email.toLowerCase();
+  const isAdmin = admins.some(
+    (a) => a.email.toLowerCase() === memberEmailLower,
+  );
   const isLastAdmin = isAdmin && admins.length === 1;
-  const isSelf = session?.email === member.email;
+  const isSelf =
+    session ? session.email.toLowerCase() === memberEmailLower : true;
+  const isMutating = addAdmin.isPending || removeAdmin.isPending;
 
   const handleToggle = () => {
     if (isAdmin) {
@@ -79,12 +84,8 @@ export function AdminToggle({
   return (
     <Button
       color={isAdmin ? "red" : "green"}
-      disabled={isLastAdmin}
-      loading={
-        isAdmin ?
-          removeAdmin.isPending && removeAdmin.variables === member.email
-        : addAdmin.isPending && addAdmin.variables?.email === member.email
-      }
+      disabled={isLastAdmin || isMutating}
+      loading={isMutating}
       onClick={handleToggle}
       size="xs"
       variant="light"
