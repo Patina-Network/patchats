@@ -124,9 +124,7 @@ public class MemberSqlRepo implements MemberRepo {
         final String whereClause = filters.isEmpty()
                 ? ""
                 : filters.keySet().stream()
-                        .map(column -> "active".equals(column)
-                                ? "    active = :active"
-                                : "    LOWER(" + column + ") = LOWER(:" + column + ")")
+                        .map(MemberSqlRepo::toFilterCondition)
                         .collect(Collectors.joining("\nAND\n", "WHERE\n", "\n"));
 
         JdbcClient.StatementSpec statement = jdbc.sql(sql.formatted(whereClause));
@@ -136,6 +134,14 @@ public class MemberSqlRepo implements MemberRepo {
         statement = statement.param("page_size", criteria.pageSize()).param("offset", criteria.offset());
 
         return statement.query(memberRowMapper).list();
+    }
+
+    private static String toFilterCondition(String column) {
+        return switch (column) {
+            case "active" -> "    active = :active";
+            case "industry_pref" -> "    LOWER(industry_pref) LIKE '%' || LOWER(:industry_pref) || '%'";
+            default -> "    LOWER(" + column + ") = LOWER(:" + column + ")";
+        };
     }
 
     @Override
