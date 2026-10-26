@@ -7,7 +7,8 @@ httpOnly cookie.
 **Form-first membership.** The sign-up form is the only way a member row is created; magic links
 purely sign in **existing** members. Requesting a link for an email with no member row therefore
 **fails with 404**, and the login page turns that into a dead-end panel offering the two ways
-forward: try another address, or go sign up.
+forward: try another address, or go sign up. After signing up, the new member is emailed their
+first sign-in link automatically.
 
 ## The shape
 
@@ -91,7 +92,7 @@ just dev       # backend :8080 (dev profile) + frontend :5173
    no email composed.)
 3. The dev profile does not send real email — `LoggingEmailSender` prints the full body to the
    **backend terminal**. Copy the `http://localhost:5173/auth/verify?token=...` URL from the log.
-4. Open it: you land on `/`. Check DevTools → Application → Cookies for `patchats_session`
+4. Open it: you land on `/profile`. Check DevTools → Application → Cookies for `patchats_session`
    (httpOnly, Lax, not Secure in dev).
 5. Open the same link again → "invalid or expired" (single-use). Request a **second** link before
    using the first, then open the first: it still signs you in — outstanding links are not

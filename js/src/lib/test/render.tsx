@@ -11,7 +11,7 @@ import { MemoryRouter } from "react-router-dom";
  * A fresh QueryClient per render so tests never share cache. Retries are off so
  * failed requests surface immediately instead of hanging the test.
  */
-function createWrapper(route: string) {
+function createWrapper(route: InitialRoute) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -34,8 +34,11 @@ function createWrapper(route: string) {
   };
 }
 
+/** A path, or a path plus router state (e.g. data handed over by `navigate`). */
+type InitialRoute = string | { pathname: string; state?: unknown };
+
 interface RenderWithProvidersOptions extends Omit<RenderOptions, "wrapper"> {
-  route?: string;
+  route?: InitialRoute;
 }
 
 /** Render a component wrapped in the app's providers (Query, Mantine, Router). */
