@@ -1,3 +1,7 @@
+import {
+  INDUSTRIES,
+  MATCH_PREFS,
+} from "@/features/member-profile/api/memberProfileOptions";
 import { MemberFilters } from "@/features/members/api/useMembers";
 import {
   Button,
@@ -15,13 +19,19 @@ import { z } from "zod";
 
 type MemberFilterValues = z.infer<typeof memberFiltersSchema>;
 
+const matchPreferenceOptions = MATCH_PREFS.map((value) => ({
+  label: value,
+  value,
+}));
+const industryOptions = INDUSTRIES.map((value) => ({ label: value, value }));
+
 const initialFilterValues: MemberFilterValues = {
   active: null,
   email: "",
   firstName: "",
-  industryPref: "",
+  industryPref: null,
   lastName: "",
-  matchPref: "",
+  matchPref: null,
   rolePref: "",
   topics: "",
 };
@@ -45,9 +55,9 @@ const memberFiltersSchema = z.object({
   active: z.enum(["true", "false"]).nullable(),
   email: z.string(),
   firstName: z.string(),
-  industryPref: z.string(),
+  industryPref: z.enum(INDUSTRIES).nullable(),
   lastName: z.string(),
-  matchPref: z.string(),
+  matchPref: z.enum(MATCH_PREFS).nullable(),
   rolePref: z.string(),
   topics: z.string(),
 });
@@ -111,14 +121,18 @@ export function MembersFiltersForm({
                 placeholder="Any status"
                 {...form.getInputProps("active")}
               />
-              <TextInput
+              <Select
+                clearable
+                data={matchPreferenceOptions}
                 label="Match preference"
-                placeholder="Peer"
+                placeholder="Any match preference"
                 {...form.getInputProps("matchPref")}
               />
-              <TextInput
+              <Select
+                clearable
+                data={industryOptions}
                 label="Industry"
-                placeholder="Technology"
+                placeholder="Any industry"
                 {...form.getInputProps("industryPref")}
               />
               <TextInput

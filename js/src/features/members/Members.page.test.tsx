@@ -394,8 +394,17 @@ test("applies form filters as API request parameters", async () => {
   await user.type(screen.getByLabelText("Email"), "alex@example.com");
   await user.click(screen.getByPlaceholderText("Any status"));
   fireEvent.click(screen.getByRole("option", { hidden: true, name: "Active" }));
-  await user.type(screen.getByLabelText("Match preference"), "Peer");
-  await user.type(screen.getByLabelText("Industry"), "Technology");
+  await user.click(screen.getByRole("textbox", { name: "Match preference" }));
+  fireEvent.click(
+    screen.getByRole("option", {
+      hidden: true,
+      name: "Peer - I am looking for someone at a similar level",
+    }),
+  );
+  await user.click(screen.getByRole("textbox", { name: "Industry" }));
+  fireEvent.click(
+    screen.getByRole("option", { hidden: true, name: "Technology" }),
+  );
   await user.type(screen.getByLabelText("Role"), "Engineering");
   await user.type(screen.getByLabelText("Topics"), "Community building");
   await user.click(screen.getByRole("button", { name: "Apply filters" }));
@@ -406,7 +415,9 @@ test("applies form filters as API request parameters", async () => {
   expect(requestedUrl.searchParams.get("lastName")).toBe("Morgan");
   expect(requestedUrl.searchParams.get("email")).toBe("alex@example.com");
   expect(requestedUrl.searchParams.get("active")).toBe("true");
-  expect(requestedUrl.searchParams.get("matchPref")).toBe("Peer");
+  expect(requestedUrl.searchParams.get("matchPref")).toBe(
+    "Peer - I am looking for someone at a similar level",
+  );
   expect(requestedUrl.searchParams.get("industryPref")).toBe("Technology");
   expect(requestedUrl.searchParams.get("rolePref")).toBe("Engineering");
   expect(requestedUrl.searchParams.get("topics")).toBe("Community building");
