@@ -106,6 +106,27 @@ class MemberSqlRepoTest {
     }
 
     @Test
+    void getMembersByFilters_industryMatchesContainedValueIgnoringCase() {
+        member.setIndustryPref("Financial technology and consulting");
+        memberRepo.updateMember(member);
+        final MemberFilterCriteria criteria = new MemberFilterCriteria(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of("TECHNOLOGY"),
+                Optional.empty(),
+                Optional.empty(),
+                MemberFilterCriteria.DEFAULT_PAGE,
+                MemberFilterCriteria.DEFAULT_PAGE_SIZE);
+
+        final List<Member> result = memberRepo.getMembersByFilters(criteria);
+
+        assertTrue(result.stream().anyMatch(foundMember -> foundMember.getId().equals(member.getId())));
+    }
+
+    @Test
     void updateMember_updatesEveryField() {
         final Member originalMember = member;
         final Member updatedMember = Member.builder()

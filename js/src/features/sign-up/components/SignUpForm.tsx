@@ -1,9 +1,9 @@
-import { memberProfileSchema } from "@/features/member-profile/api/schemas";
-import { MemberProfileValues } from "@/features/member-profile/types";
 import {
   INDUSTRIES,
   MATCH_PREFS,
-} from "@/features/sign-up/components/signUpFormConfig";
+} from "@/features/member-profile/api/memberProfileOptions";
+import { memberProfileSchema } from "@/features/member-profile/api/schemas";
+import { MemberProfileValues } from "@/features/member-profile/types";
 import {
   Alert,
   Button,
@@ -19,7 +19,7 @@ import {
 } from "@mantine/core";
 import { useState } from "react";
 
-// Options for select fields. Defined in SignUpFormConfig
+// Options for select fields. Defined in memberProfileOptions
 const matchPrefOptions = MATCH_PREFS.map((v) => ({
   value: v,
   label: v,
