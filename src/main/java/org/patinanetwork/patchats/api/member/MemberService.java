@@ -92,6 +92,7 @@ public class MemberService {
         return MemberDto.from(updatedMember);
     }
 
+    // Keep "" as "", not NULL: the profile walkthrough treats NULL as "never asked".
     private void validateAndUpdate(
             Optional<String> field, Consumer<String> setter, String fieldName, boolean required) {
         if (field.isPresent()) {

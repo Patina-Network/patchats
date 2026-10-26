@@ -10,7 +10,9 @@ import coffeeChatPhoto7 from "@/assets/coffee-chat-pics/coffee-chat-07.jpg";
 import coffeeChatPhoto8 from "@/assets/coffee-chat-pics/coffee-chat-08.jpg";
 import coffeeChatPhoto9 from "@/assets/coffee-chat-pics/coffee-chat-09.jpg";
 import coffeeChatPhoto10 from "@/assets/coffee-chat-pics/coffee-chat-10.jpg";
+import { useSession } from "@/features/auth/api/useSession";
 import {
+  Anchor,
   Box,
   Container,
   Flex,
@@ -21,6 +23,7 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
+import { Link } from "react-router-dom";
 
 const tile: CSSProperties = {
   width: "100%",
@@ -132,6 +135,7 @@ function getPhotoLayout(
 
 export default function HomePage() {
   const theme = useMantineTheme();
+  const { data: session, isPending } = useSession();
   const isStacked = !useMediaQuery(
     `(min-width: ${theme.breakpoints.lg})`,
     undefined,
@@ -180,6 +184,14 @@ export default function HomePage() {
               aspirations and have some fun while we&apos;re at it!
             </List.Item>
           </List>
+          {!isPending && !session && (
+            <Text c="dimmed" lh={1.25}>
+              Want to join next month&apos;s chats?{" "}
+              <Anchor component={Link} to="/sign-up" inherit fw={600}>
+                Sign up
+              </Anchor>
+            </Text>
+          )}
         </Stack>
         <Box
           style={{

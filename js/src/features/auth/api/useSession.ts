@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 
 /**
  * The current authenticated member. Members are created exclusively by the
- * sign-up form, so a session always carries a complete profile.
- */
+ * sign-up form, so a session always has a name and email
+ **/
 export interface Session {
   id: string;
   name: string;
