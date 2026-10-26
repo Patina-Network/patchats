@@ -21,7 +21,7 @@ export default function VerifyPage() {
   const verify = useVerifyMagicLink(token);
 
   if (verify.isSuccess) {
-    return <Navigate replace to="/" />;
+    return <Navigate replace to="/profile" />;
   }
 
   if (!token || verify.isError) {

@@ -1,325 +1,361 @@
-import { memberProfileSchema } from "@/features/member-profile/api/schemas";
+import { CharacterCount } from "@/components/CharacterCount";
+import {
+  profileEditSchema,
+  ProfileEditValues,
+} from "@/features/member-profile/api/schemas";
 import { useMemberProfile } from "@/features/member-profile/api/useMemberProfile";
 import { useUpdateMemberProfile } from "@/features/member-profile/api/useUpdateMemberProfile";
+import {
+  Choice,
+  INDUSTRY_CHOICES,
+  MATCH_CHOICES,
+  toChoice,
+} from "@/features/member-profile/components/profileFormConfig";
 import { SelfActivationToggle } from "@/features/member-profile/components/SelfActivationToggle";
-import {
-  MemberProfileValues,
-  toFormValues,
-} from "@/features/member-profile/types";
-import {
-  INDUSTRIES,
-  MATCH_PREFS,
-} from "@/features/sign-up/components/signUpFormConfig";
+import { MemberProfile, toFormValues } from "@/features/member-profile/types";
+import { normalizeLinkedInUrl } from "@/features/member-profile/utils";
+import { trimValues } from "@/lib/utils/trimValues";
 import {
   Alert,
+  Anchor,
   Button,
-  Divider,
+  Container,
+  Flex,
   Group,
   Loader,
   Paper,
   Select,
+  SimpleGrid,
   Stack,
   Text,
   Textarea,
   TextInput,
   Title,
 } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useForm } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
+import { zodResolver } from "mantine-form-zod-resolver";
+import { ReactNode, useId, useState } from "react";
 
-// Options for select fields. Defined in SignUpFormConfig
-const matchPrefOptions = MATCH_PREFS.map((v) => ({
-  value: v,
-  label: v,
-}));
-const industryPrefOptions = INDUSTRIES.map((v) => ({ value: v, label: v }));
+const INTRODUCTION_MAX =
+  profileEditSchema.shape.introduction.maxLength ?? undefined;
+const ROLE_MAX = profileEditSchema.shape.rolePref.maxLength ?? undefined;
+const TOPICS_MAX = profileEditSchema.shape.topics.maxLength ?? undefined;
+const EXTRA_NOTES_MAX =
+  profileEditSchema.shape.extraNotes.maxLength ?? undefined;
+
+/** Only real LinkedIn profile URLs become links; anything else shows as text. */
+const LINKEDIN_URL = /^https:\/\/(www\.)?linkedin\.com\/in\//;
+
+const validateProfile = zodResolver(profileEditSchema);
+
+/** Keeps a stored answer that isn't one of the options visible, not blank. */
+function withCurrent(options: Choice[], current: string) {
+  return current && !options.some((option) => option.value === current) ?
+      [...options, { value: current, label: current }]
+    : options;
+}
 
 export function MemberProfileForm({
   id,
+  title,
   showActivationToggle = false,
 }: {
   id: string;
+  title: string;
   showActivationToggle?: boolean;
 }) {
   const { data: member, isLoading, isError } = useMemberProfile(id);
   const updateMutation = useUpdateMemberProfile(id);
-
-  // State management
-  const [values, setValues] = useState<MemberProfileValues | null>(null);
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof MemberProfileValues, string>>
-  >({});
+  const formId = useId();
   const [isEditing, setIsEditing] = useState(false);
 
-  // Keep the draft in sync whenever the fetched member changes (e.g. on first load)
-
-  useEffect(() => {
-    if (member && !isEditing) setValues(toFormValues(member));
-  }, [member, isEditing]);
-
-  // Helper function
-  const normalizeLinkedInUrl = (value: string): string => {
-    const trimmed = value.trim();
-    if (!trimmed) return "";
-    if (trimmed.includes("linkedin.com/in/") && !trimmed.startsWith("http")) {
-      return `https://${trimmed}`;
-    }
-    return trimmed;
+  const stopEditing = () => {
+    updateMutation.reset();
+    setIsEditing(false);
   };
 
   if (isLoading) return <Loader />;
   if (isError || !member)
     return <Alert color="red">Failed to load profile.</Alert>;
-  if (!values) return <Loader />;
-
-  // Handlers
-  const handleFieldChange = <K extends keyof MemberProfileValues>(
-    field: K,
-    value: MemberProfileValues[K],
-  ) => {
-    if (!isEditing) return;
-    setValues({ ...values, [field]: value });
-    setErrors((current) => ({ ...current, [field]: undefined }));
-  };
-
-  const handleFieldBlur = (
-    field: keyof MemberProfileValues,
-    overrideValue?: string,
-  ) => {
-    if (!isEditing) return;
-    const valueToValidate = overrideValue ?? values[field];
-    const fieldSchema = memberProfileSchema.pick({ [field]: true } as Record<
-      typeof field,
-      true
-    >);
-    const result = fieldSchema.safeParse({ [field]: valueToValidate });
-    if (!result.success) {
-      const message = result.error.flatten().fieldErrors[field]?.[0];
-      if (message) setErrors((current) => ({ ...current, [field]: message }));
-    }
-  };
-
-  // Validation logic
-  const validateForm = (values: MemberProfileValues) => {
-    const result = memberProfileSchema.safeParse(values);
-    const fieldErrors =
-      result.success ? {} : result.error?.flatten().fieldErrors;
-    const errors = {} as Partial<Record<keyof MemberProfileValues, string>>;
-    for (const key in fieldErrors) {
-      if (fieldErrors[key as keyof MemberProfileValues]?.[0]) {
-        errors[key as keyof MemberProfileValues] =
-          fieldErrors[key as keyof MemberProfileValues]?.[0];
-      }
-    }
-    return errors;
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setValues(toFormValues(member));
-    setErrors({});
-    setIsEditing(false);
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const validationErrors = validateForm(values);
-    setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
-
-    try {
-      await updateMutation.mutateAsync(values);
-      setIsEditing(false);
-    } catch {
-      // updateMutation.isError drives the error Alert below
-    }
-  };
 
   return (
-    <Paper withBorder p="xl" radius="md">
-      <form onSubmit={handleSubmit} noValidate>
-        <Stack gap="lg">
-          <Title order={3}>Contact</Title>
-          <TextInput
-            required
-            label="First Name"
-            value={values.firstName}
-            disabled={!isEditing}
-            onChange={(event) =>
-              handleFieldChange("firstName", event.target.value)
-            }
-            onBlur={() => handleFieldBlur("firstName")}
-            error={errors.firstName}
-          />
-          <TextInput
-            required
-            label="Last Name"
-            value={values.lastName}
-            disabled={!isEditing}
-            onChange={(event) =>
-              handleFieldChange("lastName", event.target.value)
-            }
-            onBlur={() => handleFieldBlur("lastName")}
-            error={errors.lastName}
-          />
-          <TextInput
-            required
-            type="email"
-            label="Email Address"
-            description="Use an email address you check regularly, as this is how we will contact you about your matches! (Email changes are not currently supported.)"
-            value={values.email}
-            // Always disabled for now until we implement email change verification
-            disabled
-            onChange={(event) => handleFieldChange("email", event.target.value)}
-            onBlur={() => handleFieldBlur("email")}
-            error={errors.email}
-          />
-          <TextInput
-            label="LinkedIn"
-            description="Use the format linkedin.com/in/your-profile"
-            value={values.linkedInUrl}
-            disabled={!isEditing}
-            onChange={(event) =>
-              handleFieldChange("linkedInUrl", event.target.value)
-            }
-            onBlur={() => {
-              const normalized = normalizeLinkedInUrl(values.linkedInUrl);
-              handleFieldChange("linkedInUrl", normalized);
-              handleFieldBlur("linkedInUrl", normalized);
-            }}
-            error={errors.linkedInUrl}
-          />
-          <Divider />
-          <Title order={3}>Introduction</Title>
-          <Textarea
-            required
-            label="Introduce yourself to your PatChats match in 1-2 sentences, written in third person"
-            description="e.g. Jane is a marketing manager with 5 years of experience in the tech industry. She is passionate about mentorship and is looking for opportunities to connect with students."
-            value={values.introduction}
-            disabled={!isEditing}
-            onChange={(event) =>
-              handleFieldChange("introduction", event.target.value)
-            }
-            onBlur={() => handleFieldBlur("introduction")}
-            error={errors.introduction}
-            minRows={4}
-          />
-          <TextInput
-            label="How did you find out about us?"
-            description="If you were referred by a friend, please include their name!"
-            value={values.referralSource}
-            disabled={!isEditing}
-            onChange={(event) =>
-              handleFieldChange("referralSource", event.target.value)
-            }
-            onBlur={() => handleFieldBlur("referralSource")}
-            error={errors.referralSource}
-          />
-          <Divider />
-          <Title order={3}>Matching</Title>
-          <Text size="sm" c="dimmed">
-            We will do our best to accommodate your preferences.
-          </Text>
-          <Select
-            label="Matching Preference"
-            placeholder="No Preference"
-            data={matchPrefOptions}
-            value={values.matchPref}
-            disabled={!isEditing}
-            onChange={(value) =>
-              handleFieldChange(
-                "matchPref",
-                (value || "") as MemberProfileValues["matchPref"],
-              )
-            }
-            onBlur={() => handleFieldBlur("matchPref")}
-            error={errors.matchPref}
-          />
-          <Select
-            label="What industry are you in, or looking to get into?"
-            placeholder="No Preference"
-            data={industryPrefOptions}
-            value={values.industryPref}
-            disabled={!isEditing}
-            onChange={(value) =>
-              handleFieldChange(
-                "industryPref",
-                (value || "") as MemberProfileValues["industryPref"],
-              )
-            }
-            onBlur={() => handleFieldBlur("industryPref")}
-            error={errors.industryPref}
-          />
-          <TextInput
-            label="What role(s) would you like to get matched with?"
-            placeholder="Optional"
-            value={values.rolePref}
-            disabled={!isEditing}
-            onChange={(event) =>
-              handleFieldChange("rolePref", event.target.value)
-            }
-            onBlur={() => handleFieldBlur("rolePref")}
-            error={errors.rolePref}
-          />
-          <TextInput
-            label="What are some things you would like to talk about?"
-            placeholder="Optional"
-            value={values.topics}
-            disabled={!isEditing}
-            onChange={(event) =>
-              handleFieldChange("topics", event.target.value)
-            }
-            onBlur={() => handleFieldBlur("topics")}
-            error={errors.topics}
-          />
-          <Textarea
-            label="Anything else you would like us to consider when matching you?"
-            placeholder="Optional"
-            value={values.extraNotes}
-            disabled={!isEditing}
-            onChange={(event) =>
-              handleFieldChange("extraNotes", event.target.value)
-            }
-            onBlur={() => handleFieldBlur("extraNotes")}
-            error={errors.extraNotes}
-            minRows={3}
-          />
-          {updateMutation.isError && (
-            <Alert color="red">
-              Failed to update profile. Please try again.
-            </Alert>
-          )}
-          <Group justify="flex-end" mt="md">
-            {isEditing ?
-              <>
-                <Button
-                  type="button"
-                  variant="default"
-                  onClick={handleCancel}
-                  disabled={updateMutation.isPending}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" loading={updateMutation.isPending}>
-                  Save
-                </Button>
-              </>
-            : <Button type="button" onClick={handleEditClick}>
-                Edit
+    <Container size="lg" py="xl">
+      <Stack gap="xl">
+        <Group justify="space-between">
+          <Title order={2} size="h3">
+            {title}
+          </Title>
+          {isEditing ?
+            <Group gap="sm">
+              <Button
+                variant="default"
+                onClick={stopEditing}
+                disabled={updateMutation.isPending}
+              >
+                Cancel
               </Button>
-            }
-          </Group>
-          {showActivationToggle && (
-            <>
-              <Divider />
-              <SelfActivationToggle member={member} />
-            </>
-          )}
+              <Button
+                type="submit"
+                form={formId}
+                loading={updateMutation.isPending}
+              >
+                Save
+              </Button>
+            </Group>
+          : <Button variant="default" onClick={() => setIsEditing(true)}>
+              Edit
+            </Button>
+          }
+        </Group>
+        {isEditing ?
+          <ProfileEditForm
+            member={member}
+            formId={formId}
+            updateMutation={updateMutation}
+            onDone={stopEditing}
+          />
+        : <ProfileDetails member={member} />}
+        {showActivationToggle && <MatchingStatus member={member} />}
+      </Stack>
+    </Container>
+  );
+}
+
+function ProfileDetails({ member }: { member: MemberProfile }) {
+  const linkedIn = member.linkedInUrl;
+
+  return (
+    <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+      <Section title="About">
+        <Detail label="Name">
+          {member.firstName} {member.lastName}
+        </Detail>
+        <Detail label="Email">{member.email}</Detail>
+        <Detail label="LinkedIn">
+          {linkedIn && LINKEDIN_URL.test(linkedIn) ?
+            <Anchor href={linkedIn} target="_blank" rel="noreferrer">
+              {linkedIn.replace(/^https:\/\/(www\.)?/, "")}
+            </Anchor>
+          : linkedIn}
+        </Detail>
+        <Detail label="Introduction">{member.introduction}</Detail>
+        <Detail label="Heard about us from">{member.referralSource}</Detail>
+      </Section>
+      <Section title="Matching">
+        <Detail label="Match type">
+          {member.matchPref && toChoice(member.matchPref).label}
+        </Detail>
+        <Detail label="Industry">{member.industryPref}</Detail>
+        <Detail label="Roles to meet">{member.rolePref}</Detail>
+        <Detail label="Topics">{member.topics}</Detail>
+        <Detail label="Anything else">{member.extraNotes}</Detail>
+      </Section>
+    </SimpleGrid>
+  );
+}
+
+function Detail({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <Flex
+      direction={{ base: "column", xs: "row" }}
+      align={{ xs: "baseline" }}
+      columnGap="md"
+      rowGap={4}
+    >
+      <Text c="dimmed" size="sm" w={{ xs: 140 }} style={{ flexShrink: 0 }}>
+        {label}
+      </Text>
+      {children ?
+        <Text style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+          {children}
+        </Text>
+      : <Text c="dimmed">Not set</Text>}
+    </Flex>
+  );
+}
+
+function ProfileEditForm({
+  member,
+  formId,
+  updateMutation,
+  onDone,
+}: {
+  member: MemberProfile;
+  formId: string;
+  updateMutation: ReturnType<typeof useUpdateMemberProfile>;
+  onDone: () => void;
+}) {
+  const initialValues = toFormValues(member);
+
+  const form = useForm<ProfileEditValues>({
+    initialValues,
+    // "linkedin.com/in/you" is accepted as shorthand, so check the full URL.
+    validate: (values) =>
+      validateProfile({
+        ...values,
+        linkedInUrl: normalizeLinkedInUrl(values.linkedInUrl),
+      }),
+    transformValues: (values) => ({
+      ...trimValues(values),
+      linkedInUrl: normalizeLinkedInUrl(values.linkedInUrl),
+    }),
+  });
+
+  const handleSubmit = form.onSubmit((values) =>
+    updateMutation.mutate(values, {
+      onSuccess: () => {
+        notifications.show({
+          color: "green",
+          title: "Profile saved",
+          message: "Changes apply from the next matching cycle.",
+        });
+        onDone();
+      },
+    }),
+  );
+
+  return (
+    <form id={formId} onSubmit={handleSubmit} noValidate>
+      <Stack gap="lg">
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+          <Section title="About">
+            <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md">
+              <TextInput
+                required
+                size="md"
+                label="First name"
+                {...form.getInputProps("firstName")}
+              />
+              <TextInput
+                required
+                size="md"
+                label="Last name"
+                {...form.getInputProps("lastName")}
+              />
+            </SimpleGrid>
+            <TextInput
+              size="md"
+              label="LinkedIn"
+              description="So your match can look you up before you meet."
+              placeholder="linkedin.com/in/your-name"
+              {...form.getInputProps("linkedInUrl")}
+            />
+            <Textarea
+              required
+              size="md"
+              label="Introduce yourself"
+              description="One or two sentences in third person, for the email introducing you to your match."
+              autosize
+              minRows={3}
+              maxLength={INTRODUCTION_MAX}
+              inputContainer={(input) => (
+                <>
+                  {input}
+                  <CharacterCount
+                    value={form.getValues().introduction}
+                    max={INTRODUCTION_MAX}
+                  />
+                </>
+              )}
+              {...form.getInputProps("introduction")}
+            />
+          </Section>
+          <Section title="Matching">
+            <Select
+              size="md"
+              label="What kind of match are you looking for?"
+              placeholder="Not set"
+              data={withCurrent(MATCH_CHOICES, initialValues.matchPref)}
+              allowDeselect={false}
+              renderOption={({ option }) => {
+                const { label, detail } = toChoice(option.value);
+                return (
+                  <div>
+                    <Text size="sm">{label}</Text>
+                    <Text size="xs" c="dimmed">
+                      {detail}
+                    </Text>
+                  </div>
+                );
+              }}
+              {...form.getInputProps("matchPref")}
+            />
+            <Select
+              size="md"
+              label="What industry are you in, or hoping to get into?"
+              placeholder="Not set"
+              data={withCurrent(INDUSTRY_CHOICES, initialValues.industryPref)}
+              allowDeselect={false}
+              {...form.getInputProps("industryPref")}
+            />
+            <TextInput
+              size="md"
+              label="What roles would you like to meet?"
+              placeholder="e.g. designers, data scientists"
+              maxLength={ROLE_MAX}
+              {...form.getInputProps("rolePref")}
+            />
+            <TextInput
+              size="md"
+              label="What would you like to talk about?"
+              placeholder="e.g. switching careers"
+              maxLength={TOPICS_MAX}
+              {...form.getInputProps("topics")}
+            />
+            <Textarea
+              size="md"
+              label="Anything else we should know when matching you?"
+              placeholder="e.g. I'm free most weekday evenings"
+              autosize
+              minRows={2}
+              maxLength={EXTRA_NOTES_MAX}
+              {...form.getInputProps("extraNotes")}
+            />
+          </Section>
+        </SimpleGrid>
+        {updateMutation.isError && (
+          <Alert color="red">
+            Couldn&apos;t save your changes. Check your connection and try
+            again.
+          </Alert>
+        )}
+      </Stack>
+    </form>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Paper p={{ base: "lg", xs: "xl" }} radius="md" withBorder>
+      <Stack gap="md">
+        <Title order={3} size="h4">
+          {title}
+        </Title>
+        {children}
+      </Stack>
+    </Paper>
+  );
+}
+
+function MatchingStatus({ member }: { member: MemberProfile }) {
+  return (
+    <Paper p={{ base: "lg", xs: "xl" }} radius="md" withBorder>
+      <Group justify="space-between" wrap="nowrap">
+        <Stack gap="xs">
+          <Text fw={600}>
+            {member.active ?
+              "You're in next month's matching"
+            : "Matching is paused"}
+          </Text>
+          <Text c="dimmed" size="sm">
+            {member.active ?
+              "Taking a break? Deactivate to skip matching until you're back."
+            : "Reactivate to be included in the next matching cycle."}
+          </Text>
         </Stack>
-      </form>
+        <SelfActivationToggle member={member} />
+      </Group>
     </Paper>
   );
 }

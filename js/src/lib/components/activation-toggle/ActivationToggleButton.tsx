@@ -4,10 +4,12 @@ export function ActivationToggleButton({
   active,
   loading,
   onClick,
+  size = "xs",
 }: {
   active: boolean;
   loading: boolean;
   onClick: () => void;
+  size?: "xs" | "sm";
 }) {
   return (
     <Stack>
@@ -15,7 +17,7 @@ export function ActivationToggleButton({
         color={active ? "red" : "green"}
         loading={loading}
         onClick={onClick}
-        size="xs"
+        size={size}
         variant="light"
       >
         {active ? "Deactivate" : "Reactivate"}

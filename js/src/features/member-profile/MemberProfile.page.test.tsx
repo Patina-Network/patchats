@@ -13,7 +13,7 @@ test("does not offer the self-service opt-out when viewing a member's profile", 
     { route: "/admin/members/b3a1c2d4-0000-4000-8000-000000000002" },
   );
 
-  expect(await screen.findByDisplayValue("Ann")).toBeInTheDocument();
+  expect(await screen.findByText("Ann Example")).toBeInTheDocument();
   expect(
     screen.queryByRole("button", { name: "Deactivate" }),
   ).not.toBeInTheDocument();
