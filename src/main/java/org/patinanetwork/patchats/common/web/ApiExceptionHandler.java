@@ -5,6 +5,8 @@ import org.patinanetwork.patchats.auth.InvalidMagicLinkException;
 import org.patinanetwork.patchats.auth.TooManyLinkRequestsException;
 import org.patinanetwork.patchats.auth.UnregisteredEmailException;
 import org.patinanetwork.patchats.common.dto.ApiResponder;
+import org.patinanetwork.patchats.common.web.exception.AdminDuplicateException;
+import org.patinanetwork.patchats.common.web.exception.AdminNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.EmailNotFoundException;
 import org.patinanetwork.patchats.common.web.exception.EmailNotResendableException;
 import org.patinanetwork.patchats.common.web.exception.EmailTemplateNotFoundException;
@@ -45,6 +47,16 @@ public class ApiExceptionHandler {
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ResponseEntity<ApiResponder<Void>> handleParameterValidation(final HandlerMethodValidationException ex) {
         return ResponseEntity.badRequest().body(ApiResponder.failure("Invalid query parameters"));
+    }
+
+    @ExceptionHandler(AdminNotFoundException.class)
+    public ResponseEntity<ApiResponder<Void>> handleAdminNotFound(final AdminNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponder.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(AdminDuplicateException.class)
+    public ResponseEntity<ApiResponder<Void>> handleAdminDuplicate(final AdminDuplicateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponder.failure(ex.getMessage()));
     }
 
     @ExceptionHandler(MemberNotFoundException.class)

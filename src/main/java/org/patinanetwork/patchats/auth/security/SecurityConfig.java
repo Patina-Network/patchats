@@ -99,7 +99,9 @@ public class SecurityConfig {
     @Profile("dev")
     SecurityFilterChain devSecurityFilterChain(final HttpSecurity http) throws Exception {
         return common(http)
-                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/api/session")
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/admin/**")
+                        .hasRole(ADMIN_ROLE)
+                        .requestMatchers(HttpMethod.GET, "/api/session")
                         .authenticated()
                         .anyRequest()
                         .permitAll())
