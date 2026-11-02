@@ -224,6 +224,7 @@ class MemberControllerTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty());
 
         final MemberDto response = MemberDto.builder()
@@ -267,6 +268,7 @@ class MemberControllerTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty());
 
         when(memberService.updateMember(any(UpdateMemberRequest.class), eq(id)))
@@ -287,6 +289,7 @@ class MemberControllerTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.of("existing@example.com"),
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -318,6 +321,7 @@ class MemberControllerTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty());
 
         when(memberService.updateMember(any(UpdateMemberRequest.class), eq(id)))
@@ -335,6 +339,7 @@ class MemberControllerTest {
     void updateMember_badRequestWhenInvalidUuid() throws Exception {
         final UpdateMemberRequest request = new UpdateMemberRequest(
                 Optional.of("UpdatedFirstName"),
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),

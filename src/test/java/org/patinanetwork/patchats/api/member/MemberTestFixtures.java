@@ -29,7 +29,8 @@ final class MemberTestFixtures {
             Optional.of("Technology"),
             Optional.of("Software Engineer"),
             Optional.of("AI,ML"),
-            Optional.of("Notes"));
+            Optional.of("Notes"),
+            Optional.empty());
 
     private MemberTestFixtures() {}
 }

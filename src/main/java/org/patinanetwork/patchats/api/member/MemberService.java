@@ -67,7 +67,8 @@ public class MemberService {
                         request.industryPref(),
                         request.rolePref(),
                         request.topics(),
-                        request.extraNotes())
+                        request.extraNotes(),
+                        request.profileSetupDone())
                 .noneMatch(Optional::isPresent);
         if (hasNoUpdates) {
             return MemberDto.from(member);
@@ -86,13 +87,13 @@ public class MemberService {
         validateAndUpdate(request.rolePref(), member::setRolePref, "rolePref", false);
         validateAndUpdate(request.topics(), member::setTopics, "topics", false);
         validateAndUpdate(request.extraNotes(), member::setExtraNotes, "extraNotes", false);
+        request.profileSetupDone().ifPresent(member::setProfileSetupDone);
 
         // Duplicate-email check removed with email-change support; see 512ed6f — revisit once email verification ships
         Member updatedMember = memberRepo.updateMember(member).orElseThrow(() -> new MemberNotFoundException(id));
         return MemberDto.from(updatedMember);
     }
 
-    // Keep "" as "", not NULL: the profile walkthrough treats NULL as "never asked".
     private void validateAndUpdate(
             Optional<String> field, Consumer<String> setter, String fieldName, boolean required) {
         if (field.isPresent()) {

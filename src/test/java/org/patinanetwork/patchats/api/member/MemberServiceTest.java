@@ -172,6 +172,7 @@ class MemberServiceTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty());
 
         final Member existingMember = Member.builder()
@@ -205,9 +206,36 @@ class MemberServiceTest {
     }
 
     @Test
+    void updateMember_marksProfileSetupDone() {
+        final UUID id = UUID.randomUUID();
+        final UpdateMemberRequest request = new UpdateMemberRequest(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(true));
+        final Member existingMember = Member.builder().id(id).build();
+        final ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+        when(memberRepo.getMemberById(id)).thenReturn(Optional.of(existingMember));
+        when(memberRepo.updateMember(any(Member.class))).thenReturn(Optional.of(existingMember));
+
+        memberService.updateMember(request, id);
+
+        verify(memberRepo).updateMember(captor.capture());
+        assertTrue(captor.getValue().isProfileSetupDone());
+    }
+
+    @Test
     void updateMemberSuccessWithAllNullFields() {
         final UUID id = UUID.randomUUID();
         final UpdateMemberRequest request = new UpdateMemberRequest(
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -299,6 +327,7 @@ class MemberServiceTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty());
 
         final Member existingMember = Member.builder()
@@ -320,6 +349,7 @@ class MemberServiceTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.of("new@example.com"),
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -348,6 +378,7 @@ class MemberServiceTest {
                 Optional.of("UpdatedFirstName"),
                 Optional.empty(),
                 Optional.of("john@example.com"),
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),

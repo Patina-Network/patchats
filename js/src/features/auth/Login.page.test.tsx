@@ -1,4 +1,5 @@
 import {
+  linkSentResponse,
   rateLimitedResponse,
   unregisteredEmailResponse,
 } from "@/features/auth/api/auth.mock";
@@ -6,7 +7,7 @@ import LoginPage from "@/features/auth/Login.page";
 import { renderWithProviders, screen } from "@/lib/test/render";
 import { server } from "@/lib/test/server";
 import userEvent from "@testing-library/user-event";
-import { http, HttpResponse } from "msw";
+import { http } from "msw";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { expect, test } from "vitest";
 
@@ -125,9 +126,6 @@ test("the sign-up link carries over an email that has no account", async () => {
   ).toBeInTheDocument();
 });
 
-const ok = () =>
-  HttpResponse.json({ success: true, message: "ok", payload: null });
-
 /** Answers link requests in order (the last answer repeats) and records them. */
 function respondInOrder(...answers: (() => Response)[]) {
   const requests: unknown[] = [];
@@ -153,7 +151,7 @@ async function requestThenResend(user: ReturnType<typeof userEvent.setup>) {
 }
 
 test("requesting another link resends it on the same screen", async () => {
-  const requests = respondInOrder(ok);
+  const requests = respondInOrder(linkSentResponse);
 
   await requestThenResend(userEvent.setup());
 
@@ -168,7 +166,7 @@ test("requesting another link resends it on the same screen", async () => {
 });
 
 test("a rate-limited resend says why", async () => {
-  respondInOrder(ok, rateLimitedResponse);
+  respondInOrder(linkSentResponse, rateLimitedResponse);
 
   await requestThenResend(userEvent.setup());
 

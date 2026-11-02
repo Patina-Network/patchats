@@ -16,7 +16,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { beforeEach, expect, test } from "vitest";
 
-const REASON_LABEL = "Why are you deactivating?";
+const REASON_LABEL = "Reason (optional)";
 
 beforeEach(() => {
   server.use(http.get("/api/session", () => sessionResponse(memberSession)));
@@ -89,9 +89,7 @@ test("confirming deactivation sends the typed reason and flips the button to rea
   expect(
     await screen.findByRole("button", { name: "Reactivate" }),
   ).toBeInTheDocument();
-  expect(
-    await screen.findByText("Your profile is now inactive."),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Profile deactivated")).toBeInTheDocument();
 });
 
 test("deactivating without typing a reason sends no reason at all", async () => {
@@ -124,9 +122,7 @@ test("reactivating skips the reason prompt, sends only the status, and flips the
   expect(
     await screen.findByRole("button", { name: "Deactivate" }),
   ).toBeInTheDocument();
-  expect(
-    await screen.findByText("Your profile is now active."),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Profile reactivated")).toBeInTheDocument();
 });
 
 test("cancelling the confirm modal makes no request", async () => {
@@ -231,39 +227,49 @@ test("editing saves the trimmed changes and goes back to the profile", async () 
 
 const LINKEDIN = "What's your LinkedIn?";
 const TOPICS = /would you like to talk about/i;
+const PEER = "Peer - I am looking for someone at a similar level";
 
-test("a member with no unanswered questions goes straight to their profile", async () => {
-  renderWithProviders(<MyProfilePage />);
-
-  expect(await screen.findByText("My Profile")).toBeInTheDocument();
-  expect(screen.queryByText(/question 1 of/i)).not.toBeInTheDocument();
-});
-
-test("unanswered (NULL) questions get the onboarding page instead of the profile", async () => {
-  respondWithProfile({ topics: null, linkedInUrl: null });
-  renderWithProviders(<MyProfilePage />);
-
-  expect(await screen.findByText(/question 1 of 2/i)).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: TOPICS })).toBeInTheDocument();
-  expect(screen.getByLabelText(TOPICS)).toHaveFocus();
-  expect(screen.queryByText("My Profile")).not.toBeInTheDocument();
-  // Only brand-new members are greeted; this one has answered some already.
-  expect(screen.queryByText(/welcome to patchats/i)).not.toBeInTheDocument();
-});
-
-/** A brand-new member: every optional field is still NULL. */
+/** A member who hasn't done profile setup; every optional field is still empty. */
 function respondWithNewMember() {
   respondWithProfile({
-    linkedInUrl: null,
-    matchPref: null,
-    industryPref: null,
-    rolePref: null,
-    topics: null,
-    extraNotes: null,
+    profileSetupDone: false,
+    linkedInUrl: "",
+    matchPref: "",
+    industryPref: "",
+    rolePref: "",
+    topics: "",
+    extraNotes: "",
   });
 }
 
-test("a brand-new member is greeted, then asked the one-click questions first", async () => {
+/** Skips ahead to the given question (1-based). */
+async function skipTo(
+  user: ReturnType<typeof userEvent.setup>,
+  question: number,
+) {
+  for (let current = 1; current < question; current++) {
+    await user.click(await screen.findByRole("button", { name: "Skip" }));
+  }
+  await screen.findByText(`Question ${question} of 4`);
+}
+
+test("a member whose profile setup isn't done is asked every question, pre-filled with saved answers", async () => {
+  const user = userEvent.setup();
+  respondWithProfile({
+    profileSetupDone: false,
+    matchPref: PEER,
+    topics: "Community",
+  });
+  renderWithProviders(<MyProfilePage />);
+
+  expect(await screen.findByText(/question 1 of 4/i)).toBeInTheDocument();
+  expect(screen.queryByText("My Profile")).not.toBeInTheDocument();
+  expect(screen.getByRole("radio", { name: /^peer/i })).toBeChecked();
+  await skipTo(user, 3);
+  expect(screen.getByLabelText(TOPICS)).toHaveValue("Community");
+});
+
+test("a new member is greeted, then asked the one-click questions first", async () => {
   respondWithNewMember();
   renderWithProviders(<MyProfilePage />);
 
@@ -278,79 +284,80 @@ test("a brand-new member is greeted, then asked the one-click questions first", 
   expect(screen.getByRole("radio", { name: /^mentor/i })).not.toHaveFocus();
 });
 
-test("skip for now skips every question for good", async () => {
+test("exit setup asks to confirm, then marks profile setup done", async () => {
   const user = userEvent.setup();
   const bodies = captureProfileUpdates();
   respondWithNewMember();
   renderWithProviders(<MyProfilePage />);
 
-  await user.click(await screen.findByRole("button", { name: "Skip for now" }));
+  await user.click(await screen.findByRole("button", { name: "Exit setup" }));
+  const dialog = await screen.findByRole("dialog");
+  expect(
+    within(dialog).getByText(/answer them on your profile anytime/i),
+  ).toBeInTheDocument();
+  await user.click(within(dialog).getByRole("button", { name: "Exit setup" }));
 
-  await waitFor(() =>
-    expect(bodies).toEqual([
-      { matchPref: "", industryPref: "", topics: "", linkedInUrl: "" },
-    ]),
-  );
+  await waitFor(() => expect(bodies).toEqual([{ profileSetupDone: true }]));
   expect(await screen.findByText("My Profile")).toBeInTheDocument();
 });
 
 test("continue saves just that answer, trimmed, and moves on", async () => {
   const user = userEvent.setup();
   const bodies = captureProfileUpdates();
-  respondWithProfile({ topics: null, linkedInUrl: null });
+  respondWithNewMember();
   renderWithProviders(<MyProfilePage />);
 
-  const topics = await screen.findByLabelText(TOPICS);
-  expect(topics).toHaveAttribute("maxlength", "200");
+  await skipTo(user, 3);
+  const topics = screen.getByLabelText(TOPICS);
+  expect(topics).toHaveFocus();
   await user.type(topics, " Design systems ");
   await user.click(screen.getByRole("button", { name: "Continue" }));
 
   await waitFor(() => expect(bodies).toEqual([{ topics: "Design systems" }]));
-  expect(await screen.findByText(/question 2 of 2/i)).toBeInTheDocument();
+  expect(await screen.findByText(/question 4 of 4/i)).toBeInTheDocument();
 });
 
-test("a LinkedIn shorthand is saved as the full URL", async () => {
+test("finishing saves a LinkedIn shorthand as the full URL, then shows the profile", async () => {
   const user = userEvent.setup();
   const bodies = captureProfileUpdates();
-  respondWithProfile({ linkedInUrl: null });
+  respondWithNewMember();
   renderWithProviders(<MyProfilePage />);
 
-  await user.type(
-    await screen.findByLabelText(LINKEDIN),
-    "linkedin.com/in/ann",
-  );
+  await skipTo(user, 4);
+  await user.type(screen.getByLabelText(LINKEDIN), "linkedin.com/in/ann");
   await user.click(screen.getByRole("button", { name: "Finish" }));
 
   await waitFor(() =>
-    expect(bodies).toEqual([{ linkedInUrl: "https://linkedin.com/in/ann" }]),
+    expect(bodies).toEqual([
+      { linkedInUrl: "https://linkedin.com/in/ann", profileSetupDone: true },
+    ]),
   );
+  expect(await screen.findByText("You're all set")).toBeInTheDocument();
+  expect(await screen.findByText("My Profile")).toBeInTheDocument();
 });
 
 test("picking a choice and continuing saves the full option", async () => {
   const user = userEvent.setup();
   const bodies = captureProfileUpdates();
-  respondWithProfile({ matchPref: null, topics: null });
+  respondWithNewMember();
   renderWithProviders(<MyProfilePage />);
 
   await user.click(await screen.findByRole("radio", { name: /^peer/i }));
   expect(bodies).toHaveLength(0);
   await user.click(screen.getByRole("button", { name: "Continue" }));
 
-  await waitFor(() =>
-    expect(bodies).toEqual([
-      { matchPref: "Peer - I am looking for someone at a similar level" },
-    ]),
-  );
-  expect(await screen.findByText(/question 2 of 2/i)).toBeInTheDocument();
+  await waitFor(() => expect(bodies).toEqual([{ matchPref: PEER }]));
+  expect(await screen.findByText(/question 2 of 4/i)).toBeInTheDocument();
 });
 
 test("an invalid answer shows the error and saves nothing", async () => {
   const user = userEvent.setup();
   const bodies = captureProfileUpdates();
-  respondWithProfile({ linkedInUrl: null });
+  respondWithNewMember();
   renderWithProviders(<MyProfilePage />);
 
-  await user.type(await screen.findByLabelText(LINKEDIN), "not a url");
+  await skipTo(user, 4);
+  await user.type(screen.getByLabelText(LINKEDIN), "not a url");
   await user.click(screen.getByRole("button", { name: "Finish" }));
 
   expect(
@@ -359,60 +366,63 @@ test("an invalid answer shows the error and saves nothing", async () => {
   expect(bodies).toHaveLength(0);
 });
 
-test("skip saves an empty answer, so the question is never asked again", async () => {
+test("a failed save shows an error and stays on the question", async () => {
+  const user = userEvent.setup();
+  server.use(
+    http.patch("/api/members/:id", () =>
+      HttpResponse.json({ success: false, message: "boom" }, { status: 500 }),
+    ),
+  );
+  respondWithNewMember();
+  renderWithProviders(<MyProfilePage />);
+
+  await user.click(await screen.findByRole("radio", { name: /^peer/i }));
+  await user.click(screen.getByRole("button", { name: "Continue" }));
+
+  expect(
+    await screen.findByText(/couldn't save your answer/i),
+  ).toBeInTheDocument();
+  expect(screen.getByText(/question 1 of 4/i)).toBeInTheDocument();
+});
+
+test("continue is disabled until there's an answer", async () => {
+  const user = userEvent.setup();
+  respondWithNewMember();
+  renderWithProviders(<MyProfilePage />);
+
+  const continueButton = await screen.findByRole("button", {
+    name: "Continue",
+  });
+  expect(continueButton).toBeDisabled();
+  await user.click(screen.getByRole("radio", { name: /^peer/i }));
+  expect(continueButton).toBeEnabled();
+
+  await skipTo(user, 3);
+  await user.type(screen.getByLabelText(TOPICS), "  ");
+  expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
+});
+
+test("skip saves nothing and moves on", async () => {
   const user = userEvent.setup();
   const bodies = captureProfileUpdates();
-  respondWithProfile({ topics: null, linkedInUrl: null });
+  respondWithNewMember();
   renderWithProviders(<MyProfilePage />);
 
   await user.click(await screen.findByRole("button", { name: "Skip" }));
 
-  await waitFor(() => expect(bodies).toEqual([{ topics: "" }]));
-  expect(await screen.findByText(/question 2 of 2/i)).toBeInTheDocument();
+  expect(await screen.findByText(/question 2 of 4/i)).toBeInTheDocument();
+  expect(bodies).toHaveLength(0);
 });
 
-test("skip for now keeps answers already given and skips only the rest", async () => {
+test("skipping the last question still marks profile setup done", async () => {
   const user = userEvent.setup();
   const bodies = captureProfileUpdates();
-  respondWithProfile({ topics: null, linkedInUrl: null });
+  respondWithNewMember();
   renderWithProviders(<MyProfilePage />);
 
-  await user.type(await screen.findByLabelText(TOPICS), "Design");
-  await user.click(screen.getByRole("button", { name: "Continue" }));
-  await screen.findByText(/question 2 of 2/i);
-  await user.click(screen.getByRole("button", { name: "Skip for now" }));
-
-  await waitFor(() =>
-    expect(bodies).toEqual([{ topics: "Design" }, { linkedInUrl: "" }]),
-  );
-  expect(await screen.findByText("My Profile")).toBeInTheDocument();
-});
-
-test("finishing shows a confirmation and then the profile", async () => {
-  const user = userEvent.setup();
-  captureProfileUpdates();
-  respondWithProfile({ topics: null });
-  renderWithProviders(<MyProfilePage />);
-
-  await user.type(await screen.findByLabelText(TOPICS), "Design systems");
-  await user.click(screen.getByRole("button", { name: "Finish" }));
-
-  expect(await screen.findByText("You're all set")).toBeInTheDocument();
-  expect(await screen.findByText("My Profile")).toBeInTheDocument();
-});
-
-test("going back to a saved answer and skipping keeps that answer", async () => {
-  const user = userEvent.setup();
-  const bodies = captureProfileUpdates();
-  respondWithProfile({ topics: null, linkedInUrl: null });
-  renderWithProviders(<MyProfilePage />);
-
-  await user.type(await screen.findByLabelText(TOPICS), "Design");
-  await user.click(screen.getByRole("button", { name: "Continue" }));
-  await screen.findByText(/question 2 of 2/i);
-  await user.click(screen.getByRole("button", { name: "Back" }));
+  await skipTo(user, 4);
   await user.click(screen.getByRole("button", { name: "Skip" }));
 
-  await screen.findByText(/question 2 of 2/i);
-  expect(bodies).toEqual([{ topics: "Design" }]);
+  await waitFor(() => expect(bodies).toEqual([{ profileSetupDone: true }]));
+  expect(await screen.findByText("My Profile")).toBeInTheDocument();
 });

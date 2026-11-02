@@ -33,8 +33,9 @@ export const SelfActivationToggle = ({ member }: { member: MemberProfile }) => {
             </Text>
             <Textarea
               ref={deactivationReasonRef}
-              label="Why are you deactivating?"
-              description="Optional. It helps us improve PatChats."
+              label="Reason (optional)"
+              description="Helps us improve PatChats."
+              placeholder="e.g. Taking a break for the summer"
               autosize
               minRows={2}
             />
@@ -58,7 +59,10 @@ export const SelfActivationToggle = ({ member }: { member: MemberProfile }) => {
             onSuccess: () =>
               notifyActivationToggleSuccess(
                 nextActive,
-                `Your profile is now ${nextActive ? "active" : "inactive"}.`,
+                nextActive ?
+                  "You'll be included in the next matching cycle."
+                : "You won't be matched until you reactivate.",
+                nextActive ? "Profile reactivated" : "Profile deactivated",
               ),
           },
         ),

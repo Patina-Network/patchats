@@ -14,7 +14,7 @@ export interface MemberProfileValues {
   extraNotes: string;
 }
 
-/** Optional columns: the API returns NULL for any a member was never asked. */
+/** Optional columns: empty answers are "", but older rows may hold NULL. */
 type OptionalProfileField =
   | "linkedInUrl"
   | "referralSource"
@@ -30,6 +30,7 @@ export interface MemberProfile
   id: string;
   active: boolean;
   deactivationReason?: string;
+  profileSetupDone: boolean;
   createdAt: string;
   updatedAt: string;
 }

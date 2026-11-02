@@ -143,6 +143,7 @@ class MemberSqlRepoTest {
                 .rolePref("Product Manager")
                 .topics("Leadership")
                 .extraNotes("Available on weekends")
+                .profileSetupDone(true)
                 .build();
 
         final Member result = memberRepo.updateMember(updatedMember).orElseThrow();
@@ -263,5 +264,6 @@ class MemberSqlRepoTest {
         assertEquals(expected.getTopics(), actual.getTopics());
         assertEquals(expected.getExtraNotes(), actual.getExtraNotes());
         assertEquals(expected.getDeactivationReason(), actual.getDeactivationReason());
+        assertEquals(expected.isProfileSetupDone(), actual.isProfileSetupDone());
     }
 }

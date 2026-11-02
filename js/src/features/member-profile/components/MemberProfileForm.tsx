@@ -207,8 +207,7 @@ function ProfileEditForm({
       onSuccess: () => {
         notifications.show({
           color: "green",
-          title: "Profile saved",
-          message: "Changes apply from the next matching cycle.",
+          message: "Profile saved",
         });
         onDone();
       },

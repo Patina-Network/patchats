@@ -1,10 +1,16 @@
-import { rateLimitedResponse } from "@/features/auth/api/auth.mock";
-import { duplicateMemberResponse } from "@/features/sign-up/api/sign-up.mock";
+import {
+  linkSentResponse,
+  rateLimitedResponse,
+} from "@/features/auth/api/auth.mock";
+import {
+  duplicateMemberResponse,
+  memberCreatedResponse,
+} from "@/features/sign-up/api/sign-up.mock";
 import { SignUpPage } from "@/features/sign-up/SignUp.page";
-import { renderWithProviders, screen, waitFor } from "@/lib/test/render";
+import { renderWithProviders, screen } from "@/lib/test/render";
 import { server } from "@/lib/test/server";
 import userEvent from "@testing-library/user-event";
-import { http, HttpResponse } from "msw";
+import { http } from "msw";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { expect, test } from "vitest";
 
@@ -24,9 +30,6 @@ function renderSignUp() {
   );
 }
 
-const ok = () =>
-  HttpResponse.json({ success: true, message: "ok", payload: null });
-
 /** Records every body sent to the sign-up and request-link endpoints. */
 function captureRequests() {
   const signUps: unknown[] = [];
@@ -34,11 +37,11 @@ function captureRequests() {
   server.use(
     http.post("/api/members", async ({ request }) => {
       signUps.push(await request.json());
-      return ok();
+      return memberCreatedResponse();
     }),
     http.post("/api/auth/request-link", async ({ request }) => {
       linkRequests.push(await request.json());
-      return ok();
+      return linkSentResponse();
     }),
   );
   return { signUps, linkRequests };
@@ -72,7 +75,7 @@ test("rejects missing required fields without calling the API", async () => {
   expect(signUps).toHaveLength(0);
 });
 
-test("signing up sends only the sign-up fields, then emails the sign-in link", async () => {
+test("signing up sends the sign-up fields with the rest as empty, then emails the sign-in link", async () => {
   const user = userEvent.setup();
   const { signUps, linkRequests } = captureRequests();
   renderSignUp();
@@ -84,7 +87,6 @@ test("signing up sends only the sign-up fields, then emails the sign-in link", a
     await screen.findByRole("heading", { name: "Welcome, Jane!" }),
   ).toBeInTheDocument();
   expect(screen.getByText("jane@example.com")).toBeInTheDocument();
-  // Optional profile fields are omitted, not sent as "", so they stay NULL.
   expect(signUps).toEqual([
     {
       firstName: "Jane",
@@ -92,6 +94,12 @@ test("signing up sends only the sign-up fields, then emails the sign-in link", a
       email: "jane@example.com",
       introduction: "Jane is a designer who loves mentoring.",
       referralSource: "",
+      linkedInUrl: "",
+      matchPref: "",
+      industryPref: "",
+      rolePref: "",
+      topics: "",
+      extraNotes: "",
     },
   ]);
   expect(linkRequests).toEqual([{ email: "jane@example.com" }]);
@@ -132,7 +140,7 @@ test("an existing email offers to log in instead and sends no link", async () =>
   expect(
     await screen.findByText("login page for jane@example.com"),
   ).toBeInTheDocument();
-  await waitFor(() => expect(linkRequests).toHaveLength(0));
+  expect(linkRequests).toHaveLength(0);
 });
 
 test("pre-fills an email handed over by login", async () => {

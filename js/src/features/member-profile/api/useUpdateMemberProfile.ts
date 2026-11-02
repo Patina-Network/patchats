@@ -9,7 +9,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 export function useUpdateMemberProfile(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (values: Partial<MemberProfileValues>) =>
+    mutationFn: (
+      values: Partial<MemberProfileValues & { profileSetupDone: boolean }>,
+    ) =>
       apiFetch<ApiResponder<MemberProfile>>(`/members/${id}`, {
         method: "PATCH",
         body: JSON.stringify(values),

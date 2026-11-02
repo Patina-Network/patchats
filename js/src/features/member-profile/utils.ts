@@ -1,5 +1,3 @@
-import { MemberProfile } from "@/features/member-profile/types";
-
 /** Accepts "linkedin.com/in/you" as shorthand for the full https URL. */
 export function normalizeLinkedInUrl(value: string): string {
   const trimmed = value.trim();
@@ -22,8 +20,3 @@ export const WALKTHROUGH_FIELDS = [
 ] as const;
 
 export type WalkthroughField = (typeof WALKTHROUGH_FIELDS)[number];
-
-/** The walkthrough fields still NULL, i.e. never asked. */
-export function unaskedFields(member: MemberProfile): WalkthroughField[] {
-  return WALKTHROUGH_FIELDS.filter((field) => member[field] === null);
-}

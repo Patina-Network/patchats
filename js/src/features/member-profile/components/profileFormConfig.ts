@@ -1,18 +1,7 @@
-const MATCH_PREFS = [
-  "Mentor - I am looking for guidance from someone with more experience",
-  "Mentee - I am looking to provide guidance to someone with less experience",
-  "Peer - I am looking for someone at a similar level",
-  "No Preference - I am open to any type of match",
-] as const;
-
-const INDUSTRIES = [
-  "Technology",
-  "Finance",
-  "Business",
-  "Design",
-  "Other",
-  "No Preference",
-] as const;
+import {
+  INDUSTRIES,
+  MATCH_PREFS,
+} from "@/features/member-profile/api/memberProfileOptions";
 
 export interface Choice {
   /** The exact string saved, which matching and the admin views read. */

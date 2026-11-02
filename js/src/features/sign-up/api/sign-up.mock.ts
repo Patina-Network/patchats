@@ -14,12 +14,13 @@ export const duplicateMemberResponse = (email: string) =>
     { status: 409 },
   );
 
+export const memberCreatedResponse = () =>
+  HttpResponse.json({
+    success: true,
+    message: "Member created successfully",
+    payload: null,
+  });
+
 export const signUpHandlers = [
-  http.post("/api/members", () =>
-    HttpResponse.json({
-      success: true,
-      message: "Member created successfully",
-      payload: null,
-    }),
-  ),
+  http.post("/api/members", () => memberCreatedResponse()),
 ];

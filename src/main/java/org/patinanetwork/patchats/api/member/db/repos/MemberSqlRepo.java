@@ -32,6 +32,7 @@ public class MemberSqlRepo implements MemberRepo {
             .topics(rs.getString("topics"))
             .extraNotes(rs.getString("extra_notes"))
             .deactivationReason(rs.getString("deactivation_reason"))
+            .profileSetupDone(rs.getBoolean("profile_setup_done"))
             .createdAt(rs.getObject("created_at", OffsetDateTime.class))
             .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
             .build();
@@ -52,7 +53,8 @@ public class MemberSqlRepo implements MemberRepo {
                 .param("role_pref", member.getRolePref())
                 .param("topics", member.getTopics())
                 .param("extra_notes", member.getExtraNotes())
-                .param("deactivation_reason", member.getDeactivationReason());
+                .param("deactivation_reason", member.getDeactivationReason())
+                .param("profile_setup_done", member.isProfileSetupDone());
     }
 
     @Override
@@ -72,7 +74,8 @@ public class MemberSqlRepo implements MemberRepo {
                 "role_pref",
                 "topics",
                 "extra_notes",
-                "deactivation_reason"
+                "deactivation_reason",
+                "profile_setup_done"
             )
             VALUES(
                 :id,
@@ -88,7 +91,8 @@ public class MemberSqlRepo implements MemberRepo {
                 :role_pref,
                 :topics,
                 :extra_notes,
-                :deactivation_reason
+                :deactivation_reason,
+                :profile_setup_done
             )
             RETURNING
                 *
@@ -161,6 +165,7 @@ public class MemberSqlRepo implements MemberRepo {
                 "topics" = :topics,
                 "extra_notes" = :extra_notes,
                 "deactivation_reason" = :deactivation_reason,
+                "profile_setup_done" = :profile_setup_done,
                 "updated_at" = NOW()
             WHERE "id" = :id
             RETURNING *

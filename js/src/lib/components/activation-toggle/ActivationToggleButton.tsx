@@ -14,7 +14,7 @@ export function ActivationToggleButton({
   return (
     <Stack>
       <Button
-        color={active ? "red" : "green"}
+        color={active ? "red" : undefined}
         loading={loading}
         onClick={onClick}
         size={size}

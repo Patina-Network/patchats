@@ -11,7 +11,8 @@ INSERT INTO members (
     industry_pref,
     role_pref,
     topics,
-    extra_notes
+    extra_notes,
+    profile_setup_done
 )
 VALUES
     (
@@ -27,7 +28,8 @@ VALUES
         'Financial Technology',
         'Product Designer',
         'Design systems, Financial literacy, Career growth',
-        'Available for coffee in Manhattan or a virtual chat.'
+        'Available for coffee in Manhattan or a virtual chat.',
+        TRUE
     ),
     (
         '10000000-0000-4000-8000-000000000002',
@@ -42,7 +44,8 @@ VALUES
         'Healthcare Technology',
         'Software Engineer',
         'Distributed systems, Leadership, Open source',
-        'Usually available after work on Tuesdays and Thursdays.'
+        'Usually available after work on Tuesdays and Thursdays.',
+        TRUE
     ),
     (
         '10000000-0000-4000-8000-000000000003',
@@ -57,7 +60,8 @@ VALUES
         'Climate Technology',
         'Founder',
         'Fundraising, Sustainability, Product strategy',
-        'Happy to meet virtually or in Brooklyn.'
+        'Happy to meet virtually or in Brooklyn.',
+        TRUE
     ),
     (
         '10000000-0000-4000-8000-000000000004',
@@ -72,7 +76,8 @@ VALUES
         'Education',
         'Data Analyst',
         'Analytics, Public policy, Mentorship',
-        'Taking a break from matching this month.'
+        'Taking a break from matching this month.',
+        TRUE
     ),
     (
         '10000000-0000-4000-8000-000000000005',
@@ -87,7 +92,8 @@ VALUES
         'Nonprofit',
         'Program Director',
         'Community building, Social impact, Volunteer engagement',
-        'Prefers an in-person conversation when possible.'
+        'Prefers an in-person conversation when possible.',
+        TRUE
     ),
     (
         '10000000-0000-4000-8000-000000000006',
@@ -102,7 +108,8 @@ VALUES
         'Artificial Intelligence',
         'Graduate Researcher',
         'Responsible AI, Research careers, Entrepreneurship',
-        NULL
+        NULL,
+        TRUE
     ),
     (
         '10000000-0000-4000-8000-000000000007',
@@ -117,7 +124,8 @@ VALUES
         'Media',
         'Marketing Strategist',
         'Brand strategy, Creator economy, Storytelling',
-        'Virtual chats work best during weekday mornings.'
+        'Virtual chats work best during weekday mornings.',
+        TRUE
     ),
     (
         '10000000-0000-4000-8000-000000000008',
@@ -132,7 +140,8 @@ VALUES
         'Hospitality',
         'Operations Manager',
         'Operations, Customer experience, Small business',
-        'Available in Queens or by video call.'
+        'Available in Queens or by video call.',
+        TRUE
     ),
     (
         '10000000-0000-4000-8000-000000000009',
@@ -147,7 +156,8 @@ VALUES
         'Professional Services',
         'People Operations Director',
         'Inclusive hiring, Management, Organizational design',
-        'Open to meeting anywhere near a major subway line.'
+        'Open to meeting anywhere near a major subway line.',
+        TRUE
     ),
     (
         '10000000-0000-4000-8000-000000000010',
@@ -162,6 +172,7 @@ VALUES
         'Retail',
         'Business Consultant',
         'Digital transformation, Consulting, Local business',
-        'Inactive seed record for testing member status filters.'
+        'Inactive seed record for testing member status filters.',
+        TRUE
     )
 ON CONFLICT (email) DO NOTHING;

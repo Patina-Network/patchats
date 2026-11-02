@@ -1,4 +1,4 @@
-import { memberProfileSchema } from "@/features/member-profile/api/schemas";
+import { profileEditSchema } from "@/features/member-profile/api/schemas";
 import { useUpdateMemberProfile } from "@/features/member-profile/api/useUpdateMemberProfile";
 import {
   Choice,
@@ -8,7 +8,6 @@ import {
 import { MemberProfile } from "@/features/member-profile/types";
 import {
   normalizeLinkedInUrl,
-  unaskedFields,
   WALKTHROUGH_FIELDS,
   WalkthroughField,
 } from "@/features/member-profile/utils";
@@ -20,12 +19,14 @@ import {
   Group,
   Progress,
   Radio,
+  rem,
   SimpleGrid,
   Stack,
   Text,
   TextInput,
   Title,
 } from "@mantine/core";
+import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { ReactNode, useEffect, useId, useRef, useState } from "react";
 
@@ -61,7 +62,7 @@ const QUESTIONS: Record<WalkthroughField, Question> = {
     kind: "text",
     title: "What would you like to talk about?",
     placeholder: "e.g. switching careers",
-    maxLength: memberProfileSchema.shape.topics.maxLength ?? undefined,
+    maxLength: profileEditSchema.shape.topics.maxLength ?? undefined,
   },
   linkedInUrl: {
     kind: "text",
@@ -72,9 +73,9 @@ const QUESTIONS: Record<WalkthroughField, Question> = {
 };
 
 /**
- * Asks the profile questions a new member hasn't seen yet, one per screen.
- * NULL means "never asked" and Skip saves "", so skipped questions aren't
- * asked again.
+ * Asks a member whose profile setup isn't done the profile questions, one per
+ * screen, pre-filled with any saved answers. Finishing or exiting setup marks
+ * profile setup done.
  */
 export function ProfileWalkthrough({
   member,
@@ -86,21 +87,20 @@ export function ProfileWalkthrough({
   const updateMutation = useUpdateMemberProfile(member.id);
   const titleId = useId();
 
-  // Fixed on mount, so the list doesn't shrink as answers are saved.
-  const [fields] = useState(() => unaskedFields(member));
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<
     Partial<Record<WalkthroughField, string>>
-  >({});
-  const [saved, setSaved] = useState<ReadonlySet<WalkthroughField>>(
-    () => new Set(),
+  >(() =>
+    Object.fromEntries(
+      WALKTHROUGH_FIELDS.map((field) => [field, member[field] ?? ""]),
+    ),
   );
   const [error, setError] = useState<string | undefined>();
 
-  const field = fields[step];
+  const field = WALKTHROUGH_FIELDS[step];
   const question = QUESTIONS[field];
   const answer = answers[field] ?? "";
-  const isLast = step === fields.length - 1;
+  const isLast = step === WALKTHROUGH_FIELDS.length - 1;
   const isSaving = updateMutation.isPending;
 
   const setAnswer = (value: string) => {
@@ -127,21 +127,17 @@ export function ProfileWalkthrough({
     onDone();
   };
 
+  // The last question's save also marks profile setup done.
   const save = (value: string) =>
     updateMutation.mutate(
-      { [field]: value },
-      {
-        onSuccess: () => {
-          setSaved((current) => new Set(current).add(field));
-          advance();
-        },
-      },
+      isLast ? { [field]: value, profileSetupDone: true } : { [field]: value },
+      { onSuccess: advance },
     );
 
   const submit = () => {
     const value =
       field === "linkedInUrl" ? normalizeLinkedInUrl(answer) : answer.trim();
-    const result = memberProfileSchema
+    const result = profileEditSchema
       .pick({ [field]: true } as Record<WalkthroughField, true>)
       .safeParse({ [field]: value });
     if (!result.success) {
@@ -152,46 +148,65 @@ export function ProfileWalkthrough({
     save(value);
   };
 
-  // Brand-new members (nothing answered yet) are greeted once on arrival. The
-  // ref stops StrictMode's double-run effects from greeting them twice.
+  // Members are greeted each time they arrive. The ref stops StrictMode's
+  // double-run effects from greeting them twice.
   const greeted = useRef(false);
   useEffect(() => {
-    if (greeted.current || fields.length < WALKTHROUGH_FIELDS.length) return;
+    if (greeted.current) return;
     greeted.current = true;
     notifications.show({
       title: `Welcome to PatChats, ${member.firstName}!`,
       message:
         "A few quick questions help us find you a good match. They're all optional.",
     });
-  }, [fields.length, member.firstName]);
+  }, [member.firstName]);
 
-  // Marks every question not yet saved as skipped, so none is asked again;
-  // they can still be filled in on the profile.
+  // Marks profile setup done, so the walkthrough isn't shown again; the
+  // questions can still be answered on the profile.
   const skipRest = () =>
     updateMutation.mutate(
-      Object.fromEntries(
-        fields
-          .filter((unasked) => !saved.has(unasked))
-          .map((unasked) => [unasked, ""]),
-      ),
+      { profileSetupDone: true },
       {
         onSuccess: () => {
           notifications.show({
-            title: "No problem",
-            message: "You can add these on your profile anytime.",
+            title: "Welcome to PatChats!",
+            message: "You can edit your profile anytime.",
           });
           onDone();
         },
       },
     );
 
-  // Skipping an answer saved earlier (reached with Back) keeps it.
+  // Same modal look as the profile's deactivate/reactivate confirm.
+  const confirmExitSetup = () =>
+    modals.openConfirmModal({
+      title: "Exit setup?",
+      centered: true,
+      radius: "md",
+      padding: rem(24),
+      styles: {
+        title: { fontSize: "var(--mantine-font-size-lg)", fontWeight: 600 },
+      },
+      children: (
+        <Text size="sm">
+          You won&apos;t see these questions again, but you can answer them on
+          your profile anytime.
+        </Text>
+      ),
+      labels: { confirm: "Exit setup", cancel: "Keep going" },
+      groupProps: { mt: rem(24) },
+      cancelProps: { "data-autofocus": "true" },
+      onConfirm: skipRest,
+    });
+
+  // Skip saves nothing, except that skipping the last question still marks
+  // profile setup done.
   const skip = () => {
-    if (saved.has(field)) {
+    if (!isLast) {
       advance();
       return;
     }
-    save("");
+    updateMutation.mutate({ profileSetupDone: true }, { onSuccess: advance });
   };
 
   const answerId = `${titleId}-answer`;
@@ -201,14 +216,14 @@ export function ProfileWalkthrough({
       <Stack gap="xs">
         <Group justify="space-between">
           <Text c="dimmed" size="sm">
-            Question {step + 1} of {fields.length}
+            Question {step + 1} of {WALKTHROUGH_FIELDS.length}
           </Text>
-          <QuietLink onClick={skipRest} disabled={isSaving}>
-            Skip for now
+          <QuietLink onClick={confirmExitSetup} disabled={isSaving}>
+            Exit setup
           </QuietLink>
         </Group>
         <Progress
-          value={((step + 1) / fields.length) * 100}
+          value={((step + 1) / WALKTHROUGH_FIELDS.length) * 100}
           size="sm"
           aria-label="Profile questions progress"
         />
@@ -250,7 +265,6 @@ export function ProfileWalkthrough({
                   description={choice.detail}
                   checked={answer === choice.value}
                   onChange={() => setAnswer(choice.value)}
-                  disabled={isSaving}
                 />
               ))}
             </SimpleGrid>
@@ -281,7 +295,11 @@ export function ProfileWalkthrough({
               <QuietLink onClick={skip} disabled={isSaving}>
                 Skip
               </QuietLink>
-              <Button type="submit" loading={isSaving}>
+              <Button
+                type="submit"
+                loading={isSaving && Boolean(answer.trim())}
+                disabled={!answer.trim()}
+              >
                 {isLast ? "Finish" : "Continue"}
               </Button>
             </Group>

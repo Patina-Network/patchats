@@ -3,7 +3,6 @@ import { useMemberProfile } from "@/features/member-profile/api/useMemberProfile
 import { MemberProfileForm } from "@/features/member-profile/components/MemberProfileForm";
 import { ProfileWalkthrough } from "@/features/member-profile/components/ProfileWalkthrough";
 import { MemberProfile } from "@/features/member-profile/types";
-import { unaskedFields } from "@/features/member-profile/utils";
 import { Alert, Center, Loader } from "@mantine/core";
 import { useState } from "react";
 
@@ -34,10 +33,10 @@ function MyProfile({ id }: { id: string }) {
   return <WalkthroughOrProfile member={member} />;
 }
 
-/** Shows the walkthrough first if any questions are unanswered (checked once). */
+/** Shows the walkthrough first if profile setup isn't done (checked once). */
 function WalkthroughOrProfile({ member }: { member: MemberProfile }) {
   const [inWalkthrough, setInWalkthrough] = useState(
-    () => unaskedFields(member).length > 0,
+    () => !member.profileSetupDone,
   );
 
   if (inWalkthrough) {

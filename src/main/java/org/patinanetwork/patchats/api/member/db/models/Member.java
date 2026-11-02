@@ -56,6 +56,9 @@ public class Member {
     @Setter
     private String deactivationReason;
 
+    @Setter
+    private boolean profileSetupDone;
+
     private OffsetDateTime createdAt;
 
     private OffsetDateTime updatedAt;
