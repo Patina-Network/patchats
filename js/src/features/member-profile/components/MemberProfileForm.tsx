@@ -12,6 +12,7 @@ import {
 } from "@/features/member-profile/types";
 import {
   Alert,
+  Box,
   Button,
   Divider,
   Group,
@@ -294,7 +295,9 @@ export function MemberProfileForm({
             </Alert>
           )}
           <Divider />
-          {/* Deactivate is hidden while editing so it never sits beside Save. */}
+          {/* Deactivate is hidden while editing so it never sits beside Save,
+              but stays mounted so an in-flight status update keeps its
+              loading state and still shows its result notification. */}
           <Group gap="sm">
             {isEditing ?
               <>
@@ -314,19 +317,19 @@ export function MemberProfileForm({
                   Save
                 </Button>
               </>
-            : <>
-                <Button
-                  type="button"
-                  leftSection={<IconPencil size={16} />}
-                  onClick={handleEditClick}
-                >
-                  Edit
-                </Button>
-                {showActivationToggle && (
-                  <SelfActivationToggle member={member} />
-                )}
-              </>
+            : <Button
+                type="button"
+                leftSection={<IconPencil size={16} />}
+                onClick={handleEditClick}
+              >
+                Edit
+              </Button>
             }
+            {showActivationToggle && (
+              <Box hidden={isEditing}>
+                <SelfActivationToggle member={member} />
+              </Box>
+            )}
           </Group>
         </Stack>
       </form>
