@@ -295,7 +295,7 @@ export function MemberProfileForm({
             </Alert>
           )}
           <Divider />
-          {/* Deactivate is hidden while editing so it never sits beside Save,
+          {/* Deactivate is hidden while editing or when not requested,
               but stays mounted so an in-flight status update keeps its
               loading state and still shows its result notification. */}
           <Group gap="sm">
@@ -325,11 +325,9 @@ export function MemberProfileForm({
                 Edit
               </Button>
             }
-            {showActivationToggle && (
-              <Box hidden={isEditing}>
-                <SelfActivationToggle member={member} />
-              </Box>
-            )}
+            <Box hidden={isEditing || !showActivationToggle}>
+              <SelfActivationToggle member={member} />
+            </Box>
           </Group>
         </Stack>
       </form>
