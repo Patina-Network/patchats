@@ -14,7 +14,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { zodResolver } from "mantine-form-zod-resolver";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 /**
  * Passwordless login: ask for an email and request a magic link. Three states —
@@ -24,9 +24,13 @@ import { Link } from "react-router-dom";
  */
 export default function LoginPage() {
   const requestLink = useRequestLink();
+  /** Set by the sign-up form so a new member lands here ready to sign in. */
+  const signedUpEmail = (
+    useLocation().state as { signedUpEmail?: string } | null
+  )?.signedUpEmail;
 
   const form = useForm<LoginFormValues>({
-    initialValues: { email: "" },
+    initialValues: { email: signedUpEmail ?? "" },
     validate: zodResolver(loginSchema),
   });
 
@@ -103,6 +107,11 @@ export default function LoginPage() {
       <Paper p="lg" withBorder>
         <form onSubmit={handleSubmit} noValidate>
           <Stack gap="md">
+            {signedUpEmail && (
+              <Alert color="green" title="You're signed up!">
+                Request a sign-in link below to view your profile.
+              </Alert>
+            )}
             <Title order={2}>Sign in to PatChats</Title>
             <Text c="dimmed" size="sm">
               Enter your email and we&apos;ll send you a sign-in link — no

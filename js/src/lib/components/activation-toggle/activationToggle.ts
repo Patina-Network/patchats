@@ -29,7 +29,7 @@ export function notifyActivationToggleSuccess(
   message: string,
 ) {
   notifications.show({
-    color: "green",
+    color: nextActive ? "green" : "red",
     message,
     title: nextActive ? "Member reactivated" : "Member deactivated",
   });

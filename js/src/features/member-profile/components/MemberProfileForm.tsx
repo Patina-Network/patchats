@@ -12,6 +12,7 @@ import {
 } from "@/features/member-profile/types";
 import {
   Alert,
+  Box,
   Button,
   Divider,
   Group,
@@ -24,6 +25,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { IconCheck, IconPencil } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 // Options for select fields. Defined in memberProfileOptions
@@ -292,7 +294,11 @@ export function MemberProfileForm({
               Failed to update profile. Please try again.
             </Alert>
           )}
-          <Group justify="flex-end" mt="md">
+          <Divider />
+          {/* Deactivate is hidden while editing or when not requested,
+              but stays mounted so an in-flight status update keeps its
+              loading state and still shows its result notification. */}
+          <Group gap="sm">
             {isEditing ?
               <>
                 <Button
@@ -303,21 +309,26 @@ export function MemberProfileForm({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" loading={updateMutation.isPending}>
+                <Button
+                  type="submit"
+                  leftSection={<IconCheck size={16} />}
+                  loading={updateMutation.isPending}
+                >
                   Save
                 </Button>
               </>
-            : <Button type="button" onClick={handleEditClick}>
+            : <Button
+                type="button"
+                leftSection={<IconPencil size={16} />}
+                onClick={handleEditClick}
+              >
                 Edit
               </Button>
             }
-          </Group>
-          {showActivationToggle && (
-            <>
-              <Divider />
+            <Box hidden={isEditing || !showActivationToggle}>
               <SelfActivationToggle member={member} />
-            </>
-          )}
+            </Box>
+          </Group>
         </Stack>
       </form>
     </Paper>
