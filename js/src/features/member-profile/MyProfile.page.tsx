@@ -9,7 +9,7 @@ export function MyProfilePage() {
   if (!id) return <Alert color="red">No member ID provided.</Alert>;
 
   return (
-    <Container py="xl" size="lg">
+    <Container py="xl" size="sm">
       <Stack gap="xl">
         <Title order={2}>My Profile</Title>
         <MemberProfileForm id={id} showActivationToggle={true} />

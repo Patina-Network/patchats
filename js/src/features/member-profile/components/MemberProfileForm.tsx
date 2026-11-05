@@ -24,6 +24,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { IconCheck, IconPencil } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 // Options for select fields. Defined in memberProfileOptions
@@ -292,7 +293,9 @@ export function MemberProfileForm({
               Failed to update profile. Please try again.
             </Alert>
           )}
-          <Group justify="flex-end" mt="md">
+          <Divider />
+          {/* Deactivate is hidden while editing so it never sits beside Save. */}
+          <Group gap="sm">
             {isEditing ?
               <>
                 <Button
@@ -303,21 +306,28 @@ export function MemberProfileForm({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" loading={updateMutation.isPending}>
+                <Button
+                  type="submit"
+                  leftSection={<IconCheck size={16} />}
+                  loading={updateMutation.isPending}
+                >
                   Save
                 </Button>
               </>
-            : <Button type="button" onClick={handleEditClick}>
-                Edit
-              </Button>
+            : <>
+                <Button
+                  type="button"
+                  leftSection={<IconPencil size={16} />}
+                  onClick={handleEditClick}
+                >
+                  Edit
+                </Button>
+                {showActivationToggle && (
+                  <SelfActivationToggle member={member} />
+                )}
+              </>
             }
           </Group>
-          {showActivationToggle && (
-            <>
-              <Divider />
-              <SelfActivationToggle member={member} />
-            </>
-          )}
         </Stack>
       </form>
     </Paper>

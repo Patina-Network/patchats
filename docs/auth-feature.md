@@ -91,7 +91,7 @@ just dev       # backend :8080 (dev profile) + frontend :5173
    no email composed.)
 3. The dev profile does not send real email — `LoggingEmailSender` prints the full body to the
    **backend terminal**. Copy the `http://localhost:5173/auth/verify?token=...` URL from the log.
-4. Open it: you land on `/`. Check DevTools → Application → Cookies for `patchats_session`
+4. Open it: you land on `/profile`. Check DevTools → Application → Cookies for `patchats_session`
    (httpOnly, Lax, not Secure in dev).
 5. Open the same link again → "invalid or expired" (single-use). Request a **second** link before
    using the first, then open the first: it still signs you in — outstanding links are not

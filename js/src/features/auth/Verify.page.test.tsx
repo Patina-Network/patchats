@@ -11,16 +11,16 @@ function renderVerify(url: string) {
   return renderWithProviders(
     <Routes>
       <Route path="/auth/verify" element={<VerifyPage />} />
-      <Route path="/" element={<div>home page</div>} />
+      <Route path="/profile" element={<div>profile page</div>} />
     </Routes>,
     { route: url },
   );
 }
 
-test("a verified member lands on the home page", async () => {
+test("a verified member lands on their profile", async () => {
   renderVerify("/auth/verify?token=good-token");
 
-  expect(await screen.findByText("home page")).toBeInTheDocument();
+  expect(await screen.findByText("profile page")).toBeInTheDocument();
 });
 
 test("an invalid or expired link shows the server message and a retry path", async () => {

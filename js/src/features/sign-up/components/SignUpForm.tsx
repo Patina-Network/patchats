@@ -18,6 +18,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Options for select fields. Defined in memberProfileOptions
 const matchPrefOptions = MATCH_PREFS.map((v) => ({
@@ -42,6 +43,8 @@ const initialFormValues: MemberProfileValues = {
 };
 
 export function SignUpForm() {
+  const navigate = useNavigate();
+
   // State management
   const [values, setValues] = useState<MemberProfileValues>(() => ({
     ...initialFormValues,
@@ -52,7 +55,6 @@ export function SignUpForm() {
   >({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Helper function
@@ -72,7 +74,6 @@ export function SignUpForm() {
   ) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
-    setSuccessMessage(null);
     setSubmitError(null);
   };
 
@@ -109,7 +110,6 @@ export function SignUpForm() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSuccessMessage(null);
     setSubmitError(null);
 
     const validationErrors = validateForm(values);
@@ -129,8 +129,7 @@ export function SignUpForm() {
         body: JSON.stringify(values),
       });
       if (response.ok) {
-        setSuccessMessage("Your form was submitted successfully.");
-        setValues({ ...initialFormValues });
+        navigate("/login", { state: { signedUpEmail: values.email.trim() } });
       } else {
         const data = await response.json();
         setSubmitError(
@@ -285,7 +284,6 @@ export function SignUpForm() {
             minRows={3}
           />
           {submitError && <Alert color="red">{submitError}</Alert>}
-          {successMessage && <Alert color="green">{successMessage}</Alert>}
           <Group align="right" mt="md">
             <Button
               type="submit"

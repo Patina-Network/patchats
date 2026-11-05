@@ -1,20 +1,18 @@
-import { sessionQueryKey } from "@/features/auth/api/useSession";
 import { apiFetch } from "@/lib/api/client";
 import { ApiResponder } from "@/lib/api/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 
-/** Signs out: the backend invalidates the session and expires the cookie. */
+/**
+ * Signs out: the backend invalidates the session and expires the cookie, then
+ * a full page load to the home page resets the app. The reload (rather than a
+ * client-side navigate) also drops every cached query from the signed-in user.
+ */
 export function useLogout() {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-
   return useMutation({
     mutationFn: () =>
       apiFetch<ApiResponder<null>>("/auth/logout", { method: "POST" }),
     onSuccess: () => {
-      queryClient.setQueryData(sessionQueryKey, null);
-      navigate("/");
+      window.location.assign("/");
     },
   });
 }
