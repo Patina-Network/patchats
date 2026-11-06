@@ -19,31 +19,27 @@ export const SelfActivationToggle = ({ member }: { member: MemberProfile }) => {
     const nextActive = !member.active;
     confirmActivationToggle({
       nextActive,
-      body: (
-        <Stack>
+      title:
+        nextActive ? "Reactivate your profile?" : "Deactivate your profile?",
+      body:
+        nextActive ?
           <Text size="sm">
-            {nextActive ?
-              `Reactivate your profile? You will be included in the next matching cycle.`
-            : <>
-                <Text size="sm">
-                  Deactivate your profile? You won't be included in the next
-                  matching cycle until reactivated.
-                </Text>
-                <br />
-                <Text size="sm">
-                  You may still log in and edit your profile.
-                </Text>
-              </>
-            }
+            You&apos;ll be included in the next matching cycle.
           </Text>
-          {!nextActive && (
+        : <Stack gap="md">
+            <Text size="sm">
+              You won&apos;t be matched until you reactivate. You can still log
+              in and edit your profile.
+            </Text>
             <Textarea
               ref={deactivationReasonRef}
-              label="Why do you want to opt out of PatChats? (optional)"
+              label="Reason (optional)"
+              description="Helps us improve PatChats."
+              placeholder="e.g. Taking a break for the summer"
+              autosize
+              minRows={2}
             />
-          )}
-        </Stack>
-      ),
+          </Stack>,
       onConfirm: () =>
         updateStatus(
           {
@@ -63,7 +59,10 @@ export const SelfActivationToggle = ({ member }: { member: MemberProfile }) => {
             onSuccess: () =>
               notifyActivationToggleSuccess(
                 nextActive,
-                `Your profile is now ${nextActive ? "active" : "inactive"}.`,
+                nextActive ?
+                  "You'll be included in the next matching cycle."
+                : "You won't be matched until you reactivate.",
+                nextActive ? "Profile reactivated" : "Profile deactivated",
               ),
           },
         ),
@@ -75,6 +74,7 @@ export const SelfActivationToggle = ({ member }: { member: MemberProfile }) => {
       active={member.active}
       loading={isUpdatingStatus}
       onClick={handleToggleStatus}
+      size="sm"
     />
   );
 };

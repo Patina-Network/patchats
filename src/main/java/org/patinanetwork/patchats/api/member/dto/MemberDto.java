@@ -59,6 +59,9 @@ public class MemberDto {
     private String deactivationReason;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    private Boolean profileSetupDone;
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private OffsetDateTime createdAt;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -80,6 +83,7 @@ public class MemberDto {
                 .topics(member.getTopics())
                 .extraNotes(member.getExtraNotes())
                 .deactivationReason(member.getDeactivationReason())
+                .profileSetupDone(member.isProfileSetupDone())
                 .createdAt(member.getCreatedAt())
                 .updatedAt(member.getUpdatedAt())
                 .build();

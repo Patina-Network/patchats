@@ -13,4 +13,5 @@ public record UpdateMemberRequest(
         Optional<String> industryPref,
         Optional<String> rolePref,
         Optional<String> topics,
-        Optional<String> extraNotes) {}
+        Optional<String> extraNotes,
+        Optional<Boolean> profileSetupDone) {}

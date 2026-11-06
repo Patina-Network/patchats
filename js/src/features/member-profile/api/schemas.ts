@@ -36,3 +36,11 @@ export const memberProfileSchema = z.object({
     .string()
     .max(500, "Extra notes must be 500 characters or fewer."),
 });
+
+/** What a member can change on their profile; email and referral source are fixed. */
+export const profileEditSchema = memberProfileSchema.omit({
+  email: true,
+  referralSource: true,
+});
+
+export type ProfileEditValues = z.infer<typeof profileEditSchema>;

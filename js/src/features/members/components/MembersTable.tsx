@@ -99,10 +99,10 @@ export const MembersTable = ({
                       {member.active ? "Active" : "Inactive"}
                     </Badge>
                   </Table.Td>
-                  <Table.Td>{member.matchPref ?? "—"}</Table.Td>
-                  <Table.Td>{member.industryPref ?? "—"}</Table.Td>
-                  <Table.Td>{member.rolePref ?? "—"}</Table.Td>
-                  <Table.Td>{member.topics ?? "—"}</Table.Td>
+                  <Table.Td>{member.matchPref || "—"}</Table.Td>
+                  <Table.Td>{member.industryPref || "—"}</Table.Td>
+                  <Table.Td>{member.rolePref || "—"}</Table.Td>
+                  <Table.Td>{member.topics || "—"}</Table.Td>
                   <Table.Td>
                     {dateFormatter.format(new Date(member.createdAt))}
                   </Table.Td>

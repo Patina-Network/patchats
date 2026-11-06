@@ -4,6 +4,7 @@ import {
   DEFAULT_THEME,
   MantineThemeOverride,
   mergeMantineTheme,
+  Radio,
   rem,
   Tooltip,
 } from "@mantine/core";
@@ -39,6 +40,13 @@ export const themeOverride = {
         padding: "lg",
         radius: "md",
         withBorder: true,
+      },
+    }),
+
+    Radio: Radio.extend({
+      styles: {
+        root: { "--radio-icon-transform": "scale(0.2)" },
+        label: { fontWeight: 600 },
       },
     }),
   },

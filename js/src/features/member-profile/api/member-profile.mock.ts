@@ -17,6 +17,7 @@ export const memberProfile: MemberProfile = {
   rolePref: "Design",
   topics: "Community",
   extraNotes: "",
+  profileSetupDone: true,
   createdAt: "2026-01-15T14:30:00Z",
   updatedAt: "2026-01-15T14:30:00Z",
 };

@@ -116,39 +116,22 @@ export function Navbar() {
                 </Button>
               </Group>
             </>
-          : <>
-              <Button
-                component={Link}
-                to="/sign-up"
-                fw={400}
-                fz={{ base: 14, xs: 16 }}
-                h={{ base: 36, xs: 40 }}
-                px={{ base: 16, xs: 24 }}
-                style={{
-                  backgroundColor: "#60D1B7",
-                  borderRadius: "1px",
-                  color: "#000000",
-                  fontFamily: "Figtree, sans-serif",
-                }}
-              >
-                Sign up
-              </Button>
-              <Button
-                component={Link}
-                to="/login"
-                variant="transparent"
-                c="white"
-                fw={400}
-                fz={{ base: 14, xs: 16 }}
-                h={{ base: 36, xs: 40 }}
-                px={{ base: 16, xs: 24 }}
-                style={{
-                  fontFamily: "Figtree, sans-serif",
-                }}
-              >
-                Log in
-              </Button>
-            </>
+          : <Button
+              component={Link}
+              to="/login"
+              fw={400}
+              fz={{ base: 14, xs: 16 }}
+              h={{ base: 36, xs: 40 }}
+              px={{ base: 16, xs: 24 }}
+              style={{
+                backgroundColor: "#60D1B7",
+                borderRadius: "5px",
+                color: "#000000",
+                fontFamily: "Figtree, sans-serif",
+              }}
+            >
+              Log in
+            </Button>
           }
         </Group>
       </Flex>

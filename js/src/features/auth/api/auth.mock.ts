@@ -53,14 +53,15 @@ export const rateLimitedResponse = () =>
 export const sessionResponse = (session: Session) =>
   HttpResponse.json({ success: true, message: "Signed in.", payload: session });
 
+export const linkSentResponse = () =>
+  HttpResponse.json({
+    success: true,
+    message: "Check your email for a sign-in link.",
+    payload: null,
+  });
+
 export const authHandlers = [
-  http.post("/api/auth/request-link", () =>
-    HttpResponse.json({
-      success: true,
-      message: "Check your email for a sign-in link.",
-      payload: null,
-    }),
-  ),
+  http.post("/api/auth/request-link", () => linkSentResponse()),
   http.post("/api/auth/verify", () => sessionResponse(memberSession)),
   http.get("/api/session", () =>
     HttpResponse.json(
