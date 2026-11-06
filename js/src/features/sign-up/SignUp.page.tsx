@@ -23,6 +23,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 const INTRODUCTION_MAX = signUpSchema.shape.introduction.maxLength ?? undefined;
 const REFERRAL_MAX = signUpSchema.shape.referralSource.maxLength ?? undefined;
 
+const validateSignUp = zodResolver(signUpSchema);
+
 /** Creates the member, then emails their first sign-in link automatically. */
 export function SignUpPage() {
   const navigate = useNavigate();
@@ -41,7 +43,8 @@ export function SignUpPage() {
       introduction: "",
       referralSource: "",
     },
-    validate: zodResolver(signUpSchema),
+    // Check what's sent, so a field of only spaces counts as empty.
+    validate: (values) => validateSignUp(trimValues(values)),
     transformValues: trimValues,
   });
 

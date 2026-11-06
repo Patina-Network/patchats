@@ -225,6 +225,23 @@ test("editing saves the trimmed changes and goes back to the profile", async () 
   expect(await screen.findByText("Annie Example")).toBeInTheDocument();
 });
 
+test("a required field of only spaces is rejected and nothing is saved", async () => {
+  const user = userEvent.setup();
+  const bodies = captureProfileUpdates();
+  renderWithProviders(<MyProfilePage />);
+
+  await user.click(await screen.findByRole("button", { name: "Edit" }));
+  const firstName = screen.getByLabelText(/first name/i);
+  await user.clear(firstName);
+  await user.type(firstName, "   ");
+  await user.click(screen.getByRole("button", { name: "Save" }));
+
+  expect(
+    await screen.findByText("First Name is required."),
+  ).toBeInTheDocument();
+  expect(bodies).toHaveLength(0);
+});
+
 const LINKEDIN = "What's your LinkedIn?";
 const TOPICS = /would you like to talk about/i;
 const PEER = "Peer - I am looking for someone at a similar level";
@@ -253,17 +270,19 @@ async function skipTo(
   await screen.findByText(`Question ${question} of 4`);
 }
 
-test("a member whose profile setup isn't done is asked every question, pre-filled with saved answers", async () => {
+test("a returning member picks up at the first unanswered question, with saved answers pre-filled", async () => {
   const user = userEvent.setup();
   respondWithProfile({
     profileSetupDone: false,
     matchPref: PEER,
+    industryPref: "",
     topics: "Community",
   });
   renderWithProviders(<MyProfilePage />);
 
-  expect(await screen.findByText(/question 1 of 4/i)).toBeInTheDocument();
+  expect(await screen.findByText(/question 2 of 4/i)).toBeInTheDocument();
   expect(screen.queryByText("My Profile")).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Back" }));
   expect(screen.getByRole("radio", { name: /^peer/i })).toBeChecked();
   await skipTo(user, 3);
   expect(screen.getByLabelText(TOPICS)).toHaveValue("Community");

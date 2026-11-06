@@ -188,18 +188,17 @@ function ProfileEditForm({
 }) {
   const initialValues = toFormValues(member);
 
+  // "linkedin.com/in/you" is accepted as shorthand, so send the full URL.
+  const toSubmitted = (values: ProfileEditValues) => ({
+    ...trimValues(values),
+    linkedInUrl: normalizeLinkedInUrl(values.linkedInUrl),
+  });
+
   const form = useForm<ProfileEditValues>({
     initialValues,
-    // "linkedin.com/in/you" is accepted as shorthand, so check the full URL.
-    validate: (values) =>
-      validateProfile({
-        ...values,
-        linkedInUrl: normalizeLinkedInUrl(values.linkedInUrl),
-      }),
-    transformValues: (values) => ({
-      ...trimValues(values),
-      linkedInUrl: normalizeLinkedInUrl(values.linkedInUrl),
-    }),
+    // Check what's sent, so a field of only spaces counts as empty.
+    validate: (values) => validateProfile(toSubmitted(values)),
+    transformValues: toSubmitted,
   });
 
   const handleSubmit = form.onSubmit((values) =>

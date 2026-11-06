@@ -61,11 +61,13 @@ async function fillRequiredFields(user: ReturnType<typeof userEvent.setup>) {
   );
 }
 
-test("rejects missing required fields without calling the API", async () => {
+test("rejects missing or blank required fields without calling the API", async () => {
   const user = userEvent.setup();
   const { signUps } = captureRequests();
   renderSignUp();
 
+  // Only spaces counts as blank.
+  await user.type(screen.getByLabelText(/first name/i), "   ");
   await user.click(screen.getByRole("button", { name: "Sign up" }));
 
   expect(

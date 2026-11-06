@@ -74,8 +74,9 @@ const QUESTIONS: Record<WalkthroughField, Question> = {
 
 /**
  * Asks a member whose profile setup isn't done the profile questions, one per
- * screen, pre-filled with any saved answers. Finishing or exiting setup marks
- * profile setup done.
+ * screen, pre-filled with any saved answers. A returning member picks up at the
+ * first unanswered question. Finishing or exiting setup marks profile setup
+ * done.
  */
 export function ProfileWalkthrough({
   member,
@@ -87,7 +88,12 @@ export function ProfileWalkthrough({
   const updateMutation = useUpdateMemberProfile(member.id);
   const titleId = useId();
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() =>
+    Math.max(
+      0,
+      WALKTHROUGH_FIELDS.findIndex((field) => !member[field]),
+    ),
+  );
   const [answers, setAnswers] = useState<
     Partial<Record<WalkthroughField, string>>
   >(() =>
