@@ -75,6 +75,7 @@ export const SelfActivationToggle = ({ member }: { member: MemberProfile }) => {
       active={member.active}
       loading={isUpdatingStatus}
       onClick={handleToggleStatus}
+      size="sm"
     />
   );
 };

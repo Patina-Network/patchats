@@ -3,6 +3,7 @@ import {
   memberProfile,
   memberProfileResponse,
 } from "@/features/member-profile/api/member-profile.mock";
+import { MemberProfileForm } from "@/features/member-profile/components/MemberProfileForm";
 import { MyProfilePage } from "@/features/member-profile/MyProfile.page";
 import { MemberProfile } from "@/features/member-profile/types";
 import {
@@ -12,6 +13,7 @@ import {
   within,
 } from "@/lib/test/render";
 import { server } from "@/lib/test/server";
+import { notifications } from "@mantine/notifications";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { beforeEach, expect, test } from "vitest";
@@ -19,6 +21,7 @@ import { beforeEach, expect, test } from "vitest";
 const REASON_LABEL = "Why do you want to opt out of PatChats? (optional)";
 
 beforeEach(() => {
+  notifications.clean();
   server.use(http.get("/api/session", () => sessionResponse(memberSession)));
 });
 
@@ -158,3 +161,58 @@ test("a failed update shows an error and leaves the profile active", async () =>
     screen.queryByRole("button", { name: "Reactivate" }),
   ).not.toBeInTheDocument();
 });
+
+test.each([true, false])(
+  "keeps a pending status update and its notification when hidden (success=%s)",
+  async (success) => {
+    const user = userEvent.setup();
+    let finishRequest!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      finishRequest = resolve;
+    });
+    server.use(
+      http.patch("/api/members/me/status", async () => {
+        await pending;
+        return success ?
+            memberProfileResponse({ ...memberProfile, active: false })
+          : HttpResponse.json({ message: "boom" }, { status: 500 });
+      }),
+    );
+    const { rerender } = renderWithProviders(
+      <MemberProfileForm id={memberProfile.id} showActivationToggle />,
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Deactivate" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Deactivate" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Deactivate" })).toBeDisabled(),
+    );
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    rerender(
+      <MemberProfileForm id={memberProfile.id} showActivationToggle={false} />,
+    );
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(
+      screen.queryByRole("button", { name: "Deactivate" }),
+    ).not.toBeInTheDocument();
+    rerender(<MemberProfileForm id={memberProfile.id} showActivationToggle />);
+    expect(screen.getByRole("button", { name: "Deactivate" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+
+    finishRequest();
+    expect(
+      await screen.findByText(
+        success ? "Your profile is now inactive." : "Update failed",
+      ),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(
+      screen.getByRole("button", {
+        name: success ? "Reactivate" : "Deactivate",
+      }),
+    ).toBeEnabled();
+  },
+);
