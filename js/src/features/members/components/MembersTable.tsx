@@ -1,14 +1,17 @@
+import { useAdmins } from "@/features/members/api/useAdmins";
 import {
   Member,
   useMembers,
   MemberFilters,
 } from "@/features/members/api/useMembers";
 import { AdminActivationToggle } from "@/features/members/components/AdminActivationToggle";
+import { AdminToggle } from "@/features/members/components/AdminToggle";
 import {
   Alert,
   Anchor,
   Badge,
   Center,
+  Group,
   Loader,
   Paper,
   Stack,
@@ -29,6 +32,7 @@ export const MembersTable = ({
   filters: MemberFilters;
 }) => {
   const { isError, isPending } = useMembers(filters);
+  const { data: admins = [] } = useAdmins();
 
   if (isPending) {
     return (
@@ -69,6 +73,7 @@ export const MembersTable = ({
                 <Table.Th>Topics</Table.Th>
                 <Table.Th>Joined</Table.Th>
                 <Table.Th>Profile</Table.Th>
+                <Table.Th>Admin</Table.Th>
                 <Table.Th>Actions</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -76,7 +81,17 @@ export const MembersTable = ({
               {members.map((member) => (
                 <Table.Tr key={member.id}>
                   <Table.Td fw={600}>
-                    {member.firstName} {member.lastName}
+                    <Group gap="xs">
+                      {member.firstName} {member.lastName}
+                      {admins.some(
+                        (a) =>
+                          a.email.toLowerCase() === member.email.toLowerCase(),
+                      ) && (
+                        <Badge color="red" size="xs" variant="light">
+                          Admin
+                        </Badge>
+                      )}
+                    </Group>
                   </Table.Td>
                   <Table.Td>
                     <Anchor href={`mailto:${member.email}`}>
@@ -110,6 +125,9 @@ export const MembersTable = ({
                     <Anchor component={Link} to={`/admin/members/${member.id}`}>
                       View
                     </Anchor>
+                  </Table.Td>
+                  <Table.Td>
+                    <AdminToggle admins={admins} member={member} />
                   </Table.Td>
                   <Table.Td>
                     <AdminActivationToggle member={member} />

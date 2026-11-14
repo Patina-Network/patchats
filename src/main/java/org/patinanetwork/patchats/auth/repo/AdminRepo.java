@@ -1,12 +1,24 @@
 package org.patinanetwork.patchats.auth.repo;
 
-/**
- * Access to {@code admins}, the hand-maintained allowlist of administrator emails. There is deliberately no write path
- * here: rows are inserted directly against the database, so this repository only ever asks the one question sign-in
- * needs.
- */
+import java.util.List;
+import org.patinanetwork.patchats.auth.dto.AdminDto;
+
+/** Access to {@code admins}, the allowlist of administrator emails. */
 public interface AdminRepo {
 
     /** Whether the raw address is on the admin allowlist. */
     boolean isAdmin(String email);
+
+    /** All current admins, ordered by creation date ascending. */
+    List<AdminDto> listAdmins();
+
+    /** Adds an email to the allowlist and returns the stored row. Throws on a duplicate email. */
+    AdminDto addAdmin(String email, String note);
+
+    /**
+     * Removes an email from the allowlist. Normalisation is applied before lookup, so casing and surrounding whitespace
+     * are ignored. Throws {@link org.patinanetwork.patchats.common.web.exception.AdminNotFoundException} if the address
+     * is not on the list.
+     */
+    void removeAdmin(String email);
 }
