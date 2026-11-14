@@ -5,7 +5,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup CI
-      uses: tahminator/pipeline/actions/setup@52eb2a0451daba94989db6a6fa232e689144aa50 # 1.0.96
+      uses: tahminator/pipeline/actions/setup@a424f92d486342e1255fcdf377a7569eb230aabe # 1.0.97
       with:
         LINT_CI: true
 
@@ -16,7 +16,7 @@ runs:
         java-version: "25"
 
     - name: Cache Maven packages
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: |
           ~/.m2
