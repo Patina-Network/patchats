@@ -85,6 +85,8 @@ public class SecurityConfig {
         return common(http)
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/admin/**")
                         .hasRole(ADMIN_ROLE)
+                        .requestMatchers("/api/match", "/api/match/**")
+                        .hasRole(ADMIN_ROLE)
                         .requestMatchers(HttpMethod.GET, "/api/session")
                         .authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/members/me/status")
